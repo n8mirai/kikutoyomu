@@ -1,0 +1,1197 @@
+{
+  "profile_name": "default",
+  "vocab": {
+    "known": [
+      "あげる",
+      "あと",
+      "あなた",
+      "ありがたい",
+      "ありま",
+      "あんなに",
+      "いつ",
+      "いや",
+      "いやあ",
+      "うち",
+      "えて",
+      "おじいさん",
+      "お前",
+      "お話",
+      "お金",
+      "かわいそう",
+      "くれる",
+      "こうして",
+      "こっち",
+      "こんな",
+      "ごと",
+      "ごらん",
+      "しばらく",
+      "じっと",
+      "じゃあ",
+      "すぐ",
+      "せん",
+      "そういう",
+      "そうしたら",
+      "そうして",
+      "そうだ",
+      "その",
+      "その時",
+      "その間",
+      "それから",
+      "それほど",
+      "それも",
+      "そんな",
+      "た",
+      "だから",
+      "っ",
+      "できるだけ",
+      "ですから",
+      "という",
+      "とり",
+      "どうしても",
+      "なか",
+      "なくなる",
+      "など",
+      "なれる",
+      "ので",
+      "ひとつ",
+      "ほうが",
+      "ほとんど",
+      "また",
+      "まだ",
+      "まっ",
+      "まるで",
+      "みんな",
+      "もう",
+      "やっと",
+      "んで",
+      "シャツ",
+      "ブリ",
+      "ボックス",
+      "一つ",
+      "一人",
+      "一日",
+      "一瞬",
+      "一緒",
+      "一面",
+      "上",
+      "上げ",
+      "不満",
+      "中",
+      "二人",
+      "人",
+      "人間",
+      "今",
+      "今夜",
+      "今度",
+      "仕事",
+      "代わり",
+      "休み",
+      "何",
+      "何でも",
+      "何事",
+      "何者",
+      "偶然",
+      "僕",
+      "兄",
+      "兄弟",
+      "先",
+      "光",
+      "入",
+      "入れ",
+      "全て",
+      "出",
+      "出し",
+      "切",
+      "前",
+      "半年",
+      "取り",
+      "口",
+      "名",
+      "向こう",
+      "呼",
+      "喜",
+      "声",
+      "夏",
+      "多い",
+      "夜中",
+      "大",
+      "大きな",
+      "失う",
+      "女",
+      "姿",
+      "娘",
+      "子",
+      "子供",
+      "学校",
+      "実は",
+      "寒",
+      "寝",
+      "寝る",
+      "小さい",
+      "小さな",
+      "少し",
+      "山",
+      "川",
+      "帰",
+      "彼",
+      "彼女",
+      "後",
+      "心",
+      "思",
+      "思い",
+      "思わず",
+      "急",
+      "恋",
+      "悪い",
+      "感じ",
+      "我",
+      "所",
+      "手",
+      "持",
+      "持ち",
+      "振る",
+      "数",
+      "日",
+      "早く",
+      "時",
+      "時々",
+      "時に",
+      "晴れ",
+      "暗い",
+      "月",
+      "朝",
+      "木",
+      "村",
+      "来",
+      "森",
+      "止め",
+      "歩き",
+      "死",
+      "泣",
+      "減る",
+      "父",
+      "父様",
+      "生き",
+      "生徒",
+      "男",
+      "病人",
+      "白い",
+      "的",
+      "目",
+      "知",
+      "知らず",
+      "私",
+      "空",
+      "窓",
+      "立",
+      "立ち",
+      "笑",
+      "終",
+      "続",
+      "繰り返し",
+      "繰り返す",
+      "考え",
+      "聞",
+      "腹",
+      "自分",
+      "良い",
+      "良く",
+      "色",
+      "草",
+      "落ち",
+      "葉",
+      "行",
+      "見",
+      "見え",
+      "見える",
+      "言",
+      "言う",
+      "言葉",
+      "話",
+      "身",
+      "込",
+      "遊び",
+      "金",
+      "開",
+      "雪",
+      "静か",
+      "順順",
+      "頭",
+      "顔",
+      "風",
+      "飛"
+    ],
+    "learning": [
+      "認め"
+    ],
+    "ignored": [
+      "ろう"
+    ],
+    "updated_at": "2026-11-23T19:17:00Z"
+  },
+  "config": {
+    "toggl_api_token": "",
+    "toggl_workspace_id": 21203036,
+    "toggl_workspace_name": "日本語",
+    "toggl_project_id": 223282025,
+    "toggl_project_name": "日本語",
+    "toggl_tags": [
+      "japanese",
+      "immersion"
+    ],
+    "toggl_tag_anime": true,
+    "toggl_auto_sync": true,
+    "toggl_min_seconds": 5,
+    "description_template": "{anime} — {episode}",
+    "daily_goal_minutes": 60
+  },
+  "playlists": [
+    {
+      "id": "pl-japanese-stories",
+      "name": "Japanese Stories",
+      "description": "Classic Japanese literature narration (Akutagawa, Sōseki & Hyakunin Isshu)",
+      "items": [
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-01"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-02"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-03"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-04"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-05"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-06"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-07"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-08"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-09"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-10"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-11"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-12"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-13"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-14"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-15"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-16"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-17"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-18"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-19"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-20"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-21"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-22"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-23"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-24"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-25"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-26"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-27"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-28"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-29"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-30"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-31"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-32"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-33"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-34"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-35"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-36"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-37"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-38"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-39"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-40"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-41"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-42"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-43"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-44"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-45"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-46"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-47"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-48"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-49"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-50"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-51"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-52"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-53"
+        },
+        {
+          "anime_id": "example-japanese-stories",
+          "episode_id": "ep-54"
+        }
+      ]
+    },
+    {
+      "id": "pl-mha-monster",
+      "name": "MHA × Monster Rotation",
+      "description": "Cross-anime playlist template — plays automatically as you drop MP3s",
+      "items": [
+        {
+          "anime_id": "my-hero-academia",
+          "episode_id": "ep-01"
+        },
+        {
+          "anime_id": "monster",
+          "episode_id": "ep-01"
+        },
+        {
+          "anime_id": "my-hero-academia",
+          "episode_id": "ep-02"
+        },
+        {
+          "anime_id": "monster",
+          "episode_id": "ep-02"
+        }
+      ]
+    }
+  ],
+  "history": [
+    {
+      "id": "ses-1795461558021",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-41",
+      "episode_title": "Ep 41: Kaze Tachinu (Hori) Ch 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T19:19:17Z",
+      "ended_at": "2026-11-23T19:19:27Z",
+      "duration_secs": 9,
+      "toggl_entry_id": 4631381345,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795460492447",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-40",
+      "episode_title": "Ep 40: Kaze Tachinu (Hori) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T19:01:32Z",
+      "ended_at": "2026-11-23T19:10:03Z",
+      "duration_secs": 510,
+      "toggl_entry_id": 4631361769,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795460406846",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-40",
+      "episode_title": "Ep 40: Kaze Tachinu (Hori) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T19:00:06Z",
+      "ended_at": "2026-11-23T19:00:52Z",
+      "duration_secs": 45,
+      "toggl_entry_id": 4631359522,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795460366899",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-40",
+      "episode_title": "Ep 40: Kaze Tachinu (Hori) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:59:26Z",
+      "ended_at": "2026-11-23T19:00:06Z",
+      "duration_secs": 39,
+      "toggl_entry_id": 4631358560,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795458981956",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-40",
+      "episode_title": "Ep 40: Kaze Tachinu (Hori) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:36:21Z",
+      "ended_at": "2026-11-23T18:39:14Z",
+      "duration_secs": 172,
+      "toggl_entry_id": 4631332825,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795458392019",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-40",
+      "episode_title": "Ep 40: Kaze Tachinu (Hori) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:26:31Z",
+      "ended_at": "2026-11-23T18:30:25Z",
+      "duration_secs": 233,
+      "toggl_entry_id": 4631321064,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795458246626",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-39",
+      "episode_title": "Ep 39: Kaze Tachinu (Hori) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:24:06Z",
+      "ended_at": "2026-11-23T18:26:31Z",
+      "duration_secs": 144,
+      "toggl_entry_id": 4631318281,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795457834241",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-39",
+      "episode_title": "Ep 39: Kaze Tachinu (Hori) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:17:13Z",
+      "ended_at": "2026-11-23T18:24:05Z",
+      "duration_secs": 410,
+      "toggl_entry_id": null,
+      "toggl_synced": false,
+      "toggl_error": "Toggl API HTTP 400: \"Stop and duration mismatch\""
+    },
+    {
+      "id": "ses-1795457678392",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-39",
+      "episode_title": "Ep 39: Kaze Tachinu (Hori) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:14:38Z",
+      "ended_at": "2026-11-23T18:14:58Z",
+      "duration_secs": 19,
+      "toggl_entry_id": 4631307459,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795457462678",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-39",
+      "episode_title": "Ep 39: Kaze Tachinu (Hori) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:11:02Z",
+      "ended_at": "2026-11-23T18:11:08Z",
+      "duration_secs": 5,
+      "toggl_entry_id": 4631303312,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795457447623",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-26",
+      "episode_title": "Ep 26: Good-Bye (Dazai) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:10:47Z",
+      "ended_at": "2026-11-23T18:10:56Z",
+      "duration_secs": 9,
+      "toggl_entry_id": 4631303035,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795457440522",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-17",
+      "episode_title": "Ep 17: Gongitsune (Niimi) Pt 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:10:40Z",
+      "ended_at": "2026-11-23T18:10:47Z",
+      "duration_secs": 7,
+      "toggl_entry_id": 4631302898,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795456829203",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-14",
+      "episode_title": "Ep 14: Hyakunin Isshu (Waka) Pt 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T18:00:29Z",
+      "ended_at": "2026-11-23T18:03:45Z",
+      "duration_secs": 196,
+      "toggl_entry_id": 4631289962,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795456640450",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-13",
+      "episode_title": "Ep 13: Hyakunin Isshu (Waka) Pt 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:57:20Z",
+      "ended_at": "2026-11-23T18:00:28Z",
+      "duration_secs": 188,
+      "toggl_entry_id": 4631285548,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795455539400",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-12",
+      "episode_title": "Ep 12: Hyakunin Isshu (Waka) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:38:59Z",
+      "ended_at": "2026-11-23T17:42:11Z",
+      "duration_secs": 192,
+      "toggl_entry_id": 4631263082,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795455062180",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-10",
+      "episode_title": "Ep 10: Garasudo no Uchi (Soseki) Ch 4",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:31:02Z",
+      "ended_at": "2026-11-23T17:34:52Z",
+      "duration_secs": 230,
+      "toggl_entry_id": 4631252863,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795455008973",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-09",
+      "episode_title": "Ep 09: Garasudo no Uchi (Soseki) Ch 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:30:08Z",
+      "ended_at": "2026-11-23T17:31:01Z",
+      "duration_secs": 52,
+      "toggl_entry_id": 4631251483,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795454592383",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-08",
+      "episode_title": "Ep 08: Garasudo no Uchi (Soseki) Ch 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:23:12Z",
+      "ended_at": "2026-11-23T17:26:59Z",
+      "duration_secs": 227,
+      "toggl_entry_id": 4631241781,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795454211370",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-06",
+      "episode_title": "Ep 06: Toshishun (Akutagawa) Pt 6",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:16:51Z",
+      "ended_at": "2026-11-23T17:19:03Z",
+      "duration_secs": 132,
+      "toggl_entry_id": 4631233662,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795454163436",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-05",
+      "episode_title": "Ep 05: Toshishun (Akutagawa) Pt 5",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:16:03Z",
+      "ended_at": "2026-11-23T17:16:50Z",
+      "duration_secs": 47,
+      "toggl_entry_id": 4631232612,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795453386118",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-04",
+      "episode_title": "Ep 04: Toshishun (Akutagawa) Pt 4",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:03:05Z",
+      "ended_at": "2026-11-23T17:10:02Z",
+      "duration_secs": 416,
+      "toggl_entry_id": 4631214405,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795453297835",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-03",
+      "episode_title": "Ep 03: Toshishun (Akutagawa) Pt 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T17:01:37Z",
+      "ended_at": "2026-11-23T17:03:05Z",
+      "duration_secs": 87,
+      "toggl_entry_id": 4631212015,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795452042221",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:40:41Z",
+      "ended_at": "2026-11-23T16:42:47Z",
+      "duration_secs": 125,
+      "toggl_entry_id": 4631177424,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795451589938",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:33:09Z",
+      "ended_at": "2026-11-23T16:35:22Z",
+      "duration_secs": 132,
+      "toggl_entry_id": 4631165917,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795450986552",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-02",
+      "episode_title": "Ep 02: Toshishun (Akutagawa) Pt 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:23:06Z",
+      "ended_at": "2026-11-23T16:24:13Z",
+      "duration_secs": 67,
+      "toggl_entry_id": 4631149256,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795450917166",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:21:56Z",
+      "ended_at": "2026-11-23T16:23:06Z",
+      "duration_secs": 68,
+      "toggl_entry_id": 4631147437,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795450753337",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:19:12Z",
+      "ended_at": "2026-11-23T16:21:33Z",
+      "duration_secs": 140,
+      "toggl_entry_id": 4631143297,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795449946975",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-02",
+      "episode_title": "Ep 02: Toshishun (Akutagawa) Pt 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:05:46Z",
+      "ended_at": "2026-11-23T16:14:49Z",
+      "duration_secs": 542,
+      "toggl_entry_id": 4631121531,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795449752898",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:02:32Z",
+      "ended_at": "2026-11-23T16:05:46Z",
+      "duration_secs": 193,
+      "toggl_entry_id": 4631115772,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795449710869",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T16:01:50Z",
+      "ended_at": "2026-11-23T16:02:19Z",
+      "duration_secs": 28,
+      "toggl_entry_id": 4631114423,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795449597459",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-39",
+      "episode_title": "Ep 39: Kaze Tachinu (Hori) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:59:57Z",
+      "ended_at": "2026-11-23T16:01:17Z",
+      "duration_secs": 79,
+      "toggl_entry_id": 4631110241,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795449462574",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-44",
+      "episode_title": "Ep 44: Botchan (Soseki) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:57:42Z",
+      "ended_at": "2026-11-23T15:59:57Z",
+      "duration_secs": 135,
+      "toggl_entry_id": 4631106071,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795448968997",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-44",
+      "episode_title": "Ep 44: Botchan (Soseki) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:49:28Z",
+      "ended_at": "2026-11-23T15:49:45Z",
+      "duration_secs": 16,
+      "toggl_entry_id": 4631092370,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795448711044",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-44",
+      "episode_title": "Ep 44: Botchan (Soseki) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:45:10Z",
+      "ended_at": "2026-11-23T15:49:11Z",
+      "duration_secs": 240,
+      "toggl_entry_id": 4631085443,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795448564820",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-44",
+      "episode_title": "Ep 44: Botchan (Soseki) Ch 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:42:44Z",
+      "ended_at": "2026-11-23T15:43:04Z",
+      "duration_secs": 19,
+      "toggl_entry_id": 4631081545,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795448532931",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:42:12Z",
+      "ended_at": "2026-11-23T15:42:44Z",
+      "duration_secs": 32,
+      "toggl_entry_id": 4631080692,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795447048118",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-02",
+      "episode_title": "Ep 02: Toshishun (Akutagawa) Pt 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:17:28Z",
+      "ended_at": "2026-11-23T15:21:45Z",
+      "duration_secs": 257,
+      "toggl_entry_id": 4631045163,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795446854280",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-01",
+      "episode_title": "Ep 01: Toshishun (Akutagawa) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T15:14:14Z",
+      "ended_at": "2026-11-23T15:17:28Z",
+      "duration_secs": 193,
+      "toggl_entry_id": null,
+      "toggl_synced": false,
+      "toggl_error": null
+    }
+  ],
+  "progress": {
+    "_test/ep-01": {
+      "position_secs": 0.0,
+      "duration_secs": 200.0,
+      "completions": 1,
+      "last_played_at": "2026-11-23T16:31:37Z"
+    },
+    "example-japanese-stories/ep-01": {
+      "position_secs": 3.650577,
+      "duration_secs": 192.36195,
+      "completions": 1,
+      "last_played_at": "2026-11-23T18:11:00Z"
+    },
+    "example-japanese-stories/ep-02": {
+      "position_secs": 0.0,
+      "duration_secs": 257.720068,
+      "completions": 0,
+      "last_played_at": "2026-11-23T16:47:06Z"
+    },
+    "example-japanese-stories/ep-03": {
+      "position_secs": 0.0,
+      "duration_secs": 275.605714,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:03:05Z"
+    },
+    "example-japanese-stories/ep-04": {
+      "position_secs": 0.0,
+      "duration_secs": 416.91449,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:10:03Z"
+    },
+    "example-japanese-stories/ep-05": {
+      "position_secs": 0.0,
+      "duration_secs": 374.657778,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:16:51Z"
+    },
+    "example-japanese-stories/ep-06": {
+      "position_secs": 0.0,
+      "duration_secs": 132.146712,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:19:03Z"
+    },
+    "example-japanese-stories/ep-07": {
+      "position_secs": 0.0,
+      "duration_secs": 248.084898,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:23:11Z"
+    },
+    "example-japanese-stories/ep-08": {
+      "position_secs": 0.0,
+      "duration_secs": 224.862041,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:27:00Z"
+    },
+    "example-japanese-stories/ep-09": {
+      "position_secs": 0.0,
+      "duration_secs": 225.593469,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:31:01Z"
+    },
+    "example-japanese-stories/ep-10": {
+      "position_secs": 0.0,
+      "duration_secs": 230.164898,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:34:52Z"
+    },
+    "example-japanese-stories/ep-11": {
+      "position_secs": 0.0,
+      "duration_secs": 236.199184,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:38:58Z"
+    },
+    "example-japanese-stories/ep-12": {
+      "position_secs": 0.0,
+      "duration_secs": 192.495964,
+      "completions": 1,
+      "last_played_at": "2026-11-23T17:42:11Z"
+    },
+    "example-japanese-stories/ep-13": {
+      "position_secs": 0.0,
+      "duration_secs": 191.81678,
+      "completions": 1,
+      "last_played_at": "2026-11-23T18:00:28Z"
+    },
+    "example-japanese-stories/ep-14": {
+      "position_secs": 0.0,
+      "duration_secs": 196.597188,
+      "completions": 1,
+      "last_played_at": "2026-11-23T18:03:45Z"
+    },
+    "example-japanese-stories/ep-15": {
+      "position_secs": 272.248674,
+      "duration_secs": 315.898776,
+      "completions": 0,
+      "last_played_at": "2026-11-23T18:09:37Z"
+    },
+    "example-japanese-stories/ep-17": {
+      "position_secs": 5.738079,
+      "duration_secs": 156.551837,
+      "completions": 0,
+      "last_played_at": "2026-11-23T18:10:47Z"
+    },
+    "example-japanese-stories/ep-26": {
+      "position_secs": 9.425652,
+      "duration_secs": 231.627755,
+      "completions": 0,
+      "last_played_at": "2026-11-23T18:10:56Z"
+    },
+    "example-japanese-stories/ep-39": {
+      "position_secs": 0.0,
+      "duration_secs": 679.158639,
+      "completions": 1,
+      "last_played_at": "2026-11-23T18:26:31Z"
+    },
+    "example-japanese-stories/ep-40": {
+      "position_secs": 0.0,
+      "duration_secs": 1382.427211,
+      "completions": 0,
+      "last_played_at": "2026-11-23T19:19:17Z"
+    },
+    "example-japanese-stories/ep-41": {
+      "position_secs": 10.114584,
+      "duration_secs": 3447.250068,
+      "completions": 0,
+      "last_played_at": "2026-11-23T19:19:27Z"
+    }
+  },
+  "custom_anime": []
+}

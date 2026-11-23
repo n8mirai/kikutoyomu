@@ -1,0 +1,24 @@
+﻿# Build outputs & binaries
+target/
+kiku.exe
+
+# Machine-local secrets & legacy state (NEVER commit API tokens!)
+data/secrets.json
+data/state.json
+data/vocab.json
+data/dict_cache.json
+data/edge-profile/
+data/whisper-batch.log
+
+# Large downloadable dictionaries & Whisper models (>100 MB — run setup.ps1 to fetch)
+data/jmdict-eng.json
+data/jmnedict.json
+tools/whisper/
+
+# Audio files (add your own MP3s locally; synced .srt subtitles & covers are tracked!)
+media/**/*.mp3
+media/**/*.m4a
+media/**/*.ogg
+media/**/*.flac
+media/**/*.wav
+media/**/*.opus

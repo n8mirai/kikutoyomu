@@ -1,0 +1,3014 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231E1133'/%3E%3Cstop offset='1' stop-color='%230D0617'/%3E%3C/linearGradient%3E%3ClinearGradient id='rim' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23B49DE0'/%3E%3Cstop offset='.5' stop-color='%238C73B7'/%3E%3Cstop offset='.5' stop-color='%23EE4766'/%3E%3Cstop offset='1' stop-color='%23F9A893'/%3E%3C/linearGradient%3E%3ClinearGradient id='wave' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23B49DE0'/%3E%3Cstop offset='.5' stop-color='%23EE4766'/%3E%3Cstop offset='1' stop-color='%23F6E08A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='60' height='60' rx='16' fill='url(%23bg)' stroke='url(%23rim)' stroke-width='2.5'/%3E%3Cpath d='M16 34a16 16 0 0 1 32 0' fill='none' stroke='url(%23rim)' stroke-width='3.2' stroke-linecap='round'/%3E%3Crect x='13' y='32' width='6' height='14' rx='3' fill='%23B49DE0'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%23EE4766'/%3E%3Crect x='24' y='30' width='3.6' height='14' rx='1.8' fill='url(%23wave)'/%3E%3Crect x='30.2' y='24' width='3.6' height='24' rx='1.8' fill='url(%23wave)'/%3E%3Crect x='36.4' y='29' width='3.6' height='16' rx='1.8' fill='url(%23wave)'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#120A1C;--bg1:#180F24;--bg2:#211534;--bg3:#2B1B44;
+  --line:rgba(180,157,224,.08);--line2:rgba(180,157,224,.14);--line3:rgba(180,157,224,.24);
+  --text:#F4EAF3;--muted:#B6A5C7;--faint:#76648D;--onacc:#120A1C;
+  --acc:#EE4766;--acc2:#FF788E;--accsoft:rgba(238,71,102,.13);
+  --cool2:#B49DE0;--coolsoft:rgba(180,157,224,.15);
+  --g:#2ECC40;--g2:#6BF27A;--gsoft:rgba(46,204,64,.14);
+  --red:#FF5A6E;--amber:#F6D47A;
+  --split:linear-gradient(135deg,#B49DE0 0%,#6E5A9A 50%,#EE4766 50%,#F9A893 100%);
+  --flame:linear-gradient(90deg,#EE4766,#F9A893 55%,#F6E08A);
+  --spring:cubic-bezier(.22,1,.36,1);
+  --smooth:cubic-bezier(.16,1,.3,1);
+  --font:"Inter","Segoe UI Variable Text","Noto Sans JP","Yu Gothic UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+  font-family:var(--font);
+}
+/* Curated Themes */
+:root[data-theme="sumi"]{
+  --bg:#09090D;--bg1:#111118;--bg2:#181822;--bg3:#232332;
+  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);--line3:rgba(255,255,255,.22);
+  --text:#F3F4F6;--muted:#9CA3AF;--faint:#636B7A;--onacc:#09090D;
+  --acc:#60A5FA;--acc2:#93C5FD;--accsoft:rgba(96,165,250,.14);
+  --cool2:#A5B4FC;--coolsoft:rgba(165,180,252,.15);
+  --g:#34D399;--g2:#6EE7B7;--gsoft:rgba(52,211,153,.14);
+  --split:linear-gradient(135deg,#A5B4FC 0%,#60A5FA 100%);
+  --flame:linear-gradient(90deg,#60A5FA,#A5B4FC);
+}
+:root[data-theme="matcha"]{
+  --bg:#0C1411;--bg1:#121E19;--bg2:#192A23;--bg3:#22382F;
+  --line:rgba(167,243,208,.08);--line2:rgba(167,243,208,.14);--line3:rgba(167,243,208,.24);
+  --text:#ECF5F0;--muted:#9CB8AC;--faint:#5E7B6E;--onacc:#0C1411;
+  --acc:#4ADE80;--acc2:#86EFAC;--accsoft:rgba(74,222,128,.14);
+  --cool2:#EAB308;--coolsoft:rgba(234,179,8,.15);
+  --g:#4ADE80;--g2:#86EFAC;--gsoft:rgba(74,222,128,.16);
+  --split:linear-gradient(135deg,#4ADE80 0%,#EAB308 100%);
+  --flame:linear-gradient(90deg,#4ADE80,#A3E635 60%,#FACC15);
+}
+:root[data-theme="sakura"]{
+  --bg:#170E16;--bg1:#211420;--bg2:#2C1B2B;--bg3:#3A2438;
+  --line:rgba(249,168,212,.09);--line2:rgba(249,168,212,.15);--line3:rgba(249,168,212,.25);
+  --text:#FAF0F6;--muted:#C7A9BC;--faint:#876A7D;--onacc:#170E16;
+  --acc:#F472B6;--acc2:#F9A8D4;--accsoft:rgba(244,114,182,.15);
+  --cool2:#FBBF24;--coolsoft:rgba(251,191,36,.15);
+  --g:#34D399;--g2:#6EE7B7;--gsoft:rgba(52,211,153,.15);
+  --split:linear-gradient(135deg,#F9A8D4 0%,#F472B6 55%,#FBBF24 100%);
+  --flame:linear-gradient(90deg,#F472B6,#FDBA74);
+}
+:root[data-theme="noir"]{
+  --bg:#101318;--bg1:#171B22;--bg2:#1F252F;--bg3:#2A3240;
+  --line:rgba(212,163,115,.09);--line2:rgba(212,163,115,.15);--line3:rgba(212,163,115,.26);
+  --text:#EAECEF;--muted:#9CA3AF;--faint:#667080;--onacc:#fff;
+  --acc:#E11D48;--acc2:#FB7185;--accsoft:rgba(225,29,72,.15);
+  --cool2:#D4A373;--coolsoft:rgba(212,163,115,.16);
+  --g:#22C55E;--g2:#4ADE80;--gsoft:rgba(34,197,94,.15);
+  --split:linear-gradient(135deg,#D4A373 0%,#E11D48 100%);
+  --flame:linear-gradient(90deg,#E11D48,#D4A373);
+}
+:root[data-theme="washi"]{
+  --bg:#F6F2E9;--bg1:#EFE9DC;--bg2:#E6DEC9;--bg3:#DCD2B8;
+  --line:rgba(28,25,23,.08);--line2:rgba(28,25,23,.14);--line3:rgba(28,25,23,.24);
+  --text:#1C1917;--muted:#57534E;--faint:#8C857D;--onacc:#FFFFFF;
+  --acc:#D93848;--acc2:#E85261;--accsoft:rgba(217,56,72,.12);
+  --cool2:#6D559B;--coolsoft:rgba(109,85,155,.12);
+  --g:#16A34A;--g2:#15803D;--gsoft:rgba(22,163,74,.14);
+  --split:linear-gradient(135deg,#6D559B 0%,#D93848 100%);
+  --flame:linear-gradient(90deg,#D93848,#EA580C);
+  color-scheme:light;
+}
+:root[data-theme="washi"] #dock,:root[data-theme="washi"] #dict-pop,:root[data-theme="washi"] #pop{
+  background:rgba(246,242,233,.95);box-shadow:0 14px 36px rgba(28,25,23,.14);
+}
+:root[data-theme="washi"] .sub-ts{background:rgba(239,233,220,.9)}
+:root[data-theme="washi"] .tok.st-learning{color:#92400E}
+:root[data-theme="washi"] .tok.active-lookup{color:#1C1917}
+
+.theme-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.swatch{
+  width:20px;height:20px;border-radius:50%;cursor:pointer;position:relative;
+  box-shadow:0 0 0 1px var(--line3);transition:transform .2s var(--spring),box-shadow .2s;
+}
+.swatch:hover{transform:scale(1.14)}
+.swatch.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--text)}
+
+/* Jump-to-bottom button when scrolled up in subtitles */
+#sub-jump-bottom{
+  position:fixed;right:22px;bottom:76px;z-index:34;
+  width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  background:var(--bg2);border:1px solid var(--line3);color:var(--text);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  transition:transform .22s var(--spring),background .18s,opacity .2s;
+}
+#sub-jump-bottom:hover{background:var(--bg3);transform:translateY(-2px)}
+
+/* Ambient Idle Subtitle Veil (gradually blurs background & reveals live subs when inactive) */
+#idle-veil{
+  position:fixed;inset:0;z-index:33;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 28px 108px;
+  --idle-p:0;--idle-sub-op:0;
+  backdrop-filter:blur(calc(var(--idle-p) * 18px));
+  -webkit-backdrop-filter:blur(calc(var(--idle-p) * 18px));
+  background:color-mix(in srgb,var(--bg) calc(var(--idle-p) * 72%),transparent);
+  visibility:hidden;
+}
+#idle-veil.active{visibility:visible}
+.idle-stage{
+  width:100%;max-width:720px;display:flex;flex-direction:column;align-items:stretch;
+  opacity:var(--idle-sub-op);
+  transform:scale(calc(.97 + var(--idle-sub-op) * .03));
+  filter:blur(calc((1 - var(--idle-sub-op)) * 3px));
+  will-change:opacity,transform,filter;
+}
+.idle-row{
+  padding:18px 26px;border-radius:18px;border:1px solid transparent;
+  text-align:left;
+  animation:ukabuAmbient 1.05s cubic-bezier(.19,1,.22,1) both;
+}
+.idle-row.cur{
+  opacity:1;
+  background:color-mix(in srgb,var(--bg1) 74%,transparent);
+  border-color:var(--line2);
+  box-shadow:0 18px 44px rgba(0,0,0,.28);
+}
+.idle-row.cur.t1{
+  background:rgba(46,204,64,.16);
+  border-color:rgba(46,204,64,.34);
+  box-shadow:0 16px 38px rgba(46,204,64,.12);
+}
+.idle-row.cur.t2{
+  background:rgba(250,204,21,.14);
+  border-color:rgba(250,204,21,.28);
+}
+.idle-row.cur.t3{
+  background:rgba(250,204,21,.075);
+  border-color:rgba(250,204,21,.17);
+}
+.idle-line{
+  font-size:var(--sub-size,22px);line-height:1.85;letter-spacing:.025em;
+  color:var(--text);word-break:break-word;
+}
+:root[data-theme="washi"] .idle-row.cur{box-shadow:0 18px 40px rgba(28,25,23,.1)}
+/* Top-down 浮かぶ: pure Z-depth rising up through still water toward the viewer (no bottom slide!) */
+@keyframes ukabu{
+  0%{opacity:0;transform:scale(.91);filter:blur(11px)}
+  58%{opacity:.92;filter:blur(1px)}
+  100%{opacity:1;transform:scale(1);filter:blur(0)}
+}
+@keyframes ukabuAmbient{
+  0%{opacity:0;transform:scale(.89);filter:blur(14px)}
+  55%{opacity:.9;filter:blur(1.2px)}
+  100%{opacity:1;transform:scale(1);filter:blur(0)}
+}
+
+/* ================= MEDIA WORD FREQUENCY MAP VIEWER ================= */
+#v-wordmap{
+  position:fixed;inset:0;z-index:31;background:var(--bg);
+  overflow-y:auto;padding:0 16px 110px;
+  animation:fadeIn .22s var(--smooth) both;
+}
+.wm-inner{max-width:860px;margin:0 auto}
+.wm-head{
+  position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 2px 12px;background:linear-gradient(180deg,var(--bg) 76%,rgba(18,10,28,0) 100%);
+}
+.wm-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wm-cov{font-size:12px;font-weight:500;color:var(--g2);font-variant-numeric:tabular-nums}
+.wm-grid{display:flex;flex-wrap:wrap;gap:8px;padding:12px 2px 40px;align-items:baseline}
+.wm-chip{
+  display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:10px;
+  background:var(--bg1);border:1px solid var(--line2);cursor:pointer;user-select:none;
+  transition:transform .2s var(--spring),background .16s,border-color .16s;
+}
+.wm-chip:hover{transform:translateY(-2px);background:var(--bg2);border-color:var(--line3)}
+.wm-chip.st-unknown{border-color:rgba(238,71,102,.32);background:var(--accsoft)}
+.wm-chip.st-learning{border-color:rgba(246,212,122,.35);background:rgba(246,212,122,.1)}
+.wm-chip.st-known{border-color:rgba(46,204,64,.25);background:var(--gsoft);opacity:.65}
+.wm-chip.st-known:hover{opacity:1}
+.wm-word{font-weight:500;color:var(--text)}
+.wm-cnt{font-size:11px;font-variant-numeric:tabular-nums;color:var(--faint)}
+*{box-sizing:border-box;scrollbar-color:#3D245E transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#3D245E;border-radius:999px}
+::selection{background:#4E2F72;color:var(--text)}
+html,body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{font-size:14px;line-height:1.45;padding-bottom:130px}
+input,select{caret-color:var(--g);font:inherit;color:var(--text)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0;white-space:nowrap}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--g);outline-offset:2px;border-radius:6px}
+svg{display:block;flex:none}
+[hidden]{display:none!important}
+
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--acc);z-index:50;transition:width .9s var(--spring)}
+#progress.full{background:linear-gradient(90deg,#EE4766,#F9A893,#F6E08A,#F9A893,#EE4766);background-size:200% 100%;animation:run 2.2s linear infinite}
+
+main{max-width:920px;margin:0 auto;padding:10px 18px 36px;position:relative}
+
+/* ================= WHISPER-MINIMAL NAV ================= */
+nav{position:relative;display:flex;align-items:center;gap:4px;margin-bottom:18px;padding-bottom:9px}
+nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--split);opacity:.55}
+.tab{
+  color:var(--faint);font-size:13px;font-weight:500;padding:5px 10px;border-radius:8px;
+  transition:color .2s var(--smooth),background .2s var(--smooth);
+}
+.tab:hover{color:var(--muted)}
+.tab[aria-selected=true]{color:var(--text);background:rgba(255,255,255,.055)}
+.sp{flex:1}
+
+#live-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;
+  background:var(--bg1);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);
+  margin-right:2px;transition:background .2s;
+}
+#live-pill:hover{background:var(--bg2)}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:pulse 1.6s ease-in-out infinite}
+.pulse.g{background:var(--g);box-shadow:0 0 8px rgba(46,204,64,.8)}
+.pulse.paused{background:var(--amber);animation:none}
+
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted);position:relative;
+  transition:color .18s var(--smooth),background .18s var(--smooth),transform .2s var(--spring);
+}
+.icon-btn:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn.pri{background:var(--acc);color:var(--onacc);border-radius:50%;width:34px;height:34px}
+.icon-btn.pri:hover{background:var(--acc2);color:var(--onacc);transform:scale(1.05)}
+.icon-btn.on{color:var(--acc2);background:var(--accsoft)}
+.dot-badge{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.dot-badge.on{background:var(--g);box-shadow:0 0 6px rgba(46,204,64,.8)}
+
+.view-pane{animation:tabIn .28s var(--spring) both}
+
+/* ================= PURE ROUNDED-EDGE ANIME THUMBNAILS ================= */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
+.card{
+  position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;
+  background:var(--bg1);cursor:pointer;user-select:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.38);
+  transition:transform .38s var(--spring),box-shadow .38s var(--spring);
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(0,0,0,.55)}
+.card.selected{box-shadow:0 0 0 2px var(--cool2),0 14px 32px rgba(0,0,0,.55)}
+.card.active-card{box-shadow:0 0 0 2px var(--acc),0 14px 34px rgba(238,71,102,.22)}
+.card.active-card.toggl-live{box-shadow:0 0 0 2px var(--g),0 14px 34px rgba(46,204,64,.22)}
+
+.card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s var(--spring),filter .35s var(--smooth)}
+.card:hover .card-img{transform:scale(1.05);filter:brightness(.78)}
+.card.active-card .card-img{transform:scale(1.03);filter:brightness(.42) saturate(1.1)}
+.card-fallback{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,var(--bg3),var(--bg));font-size:32px;font-weight:600;color:var(--cool2);opacity:.55}
+
+.card-hover-veil{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;
+  background:linear-gradient(180deg,transparent 45%,rgba(12,6,20,.88) 100%);
+  opacity:0;transition:opacity .26s var(--smooth);pointer-events:none;
+}
+.card:hover .card-hover-veil{opacity:1}
+.card.active-card .card-hover-veil{opacity:0}
+.card-title{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.card-play-fab{
+  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%) scale(.86);
+  width:48px;height:48px;border-radius:50%;background:rgba(238,71,102,.94);color:var(--onacc);
+  display:grid;place-items:center;z-index:3;opacity:0;
+  box-shadow:0 8px 24px rgba(238,71,102,.45);
+  transition:opacity .22s var(--smooth),transform .34s var(--spring),background .18s;
+}
+.card:hover .card-play-fab{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.card-play-fab:hover{background:var(--acc2);transform:translate(-50%,-50%) scale(1.07)}
+.card.active-card .card-play-fab{display:none}
+
+/* Pure minimal Timer Overlay */
+.timer-overlay{
+  position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;justify-content:space-between;padding:12px;
+  background:rgba(14,8,22,.56);backdrop-filter:blur(7px);
+  animation:ovIn .3s var(--spring) both;
+}
+.to-top{display:flex;align-items:center;justify-content:space-between}
+.to-center{text-align:center;margin:auto 0}
+.to-clock{font-size:30px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.to-ctrls{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px}
+.to-btn{
+  width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.1);color:var(--text);
+  transition:background .16s,transform .2s var(--spring);
+}
+.to-btn:hover{background:rgba(255,255,255,.2);transform:scale(1.07)}
+.to-btn.pri{width:38px;height:38px;background:var(--acc);color:var(--onacc)}
+.to-btn.pri:hover{background:var(--acc2)}
+.to-prog-wrap{height:2.5px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden}
+.to-prog{height:100%;width:0%;background:var(--flame);transition:width .25s linear}
+
+.card-add{
+  aspect-ratio:3/4;border-radius:16px;border:1px dashed var(--line2);background:rgba(255,255,255,.015);
+  display:grid;place-items:center;color:var(--faint);cursor:pointer;
+  transition:border-color .2s,color .2s,background .2s,transform .35s var(--spring);
+}
+.card-add:hover{border-color:var(--acc2);color:var(--acc2);background:rgba(255,255,255,.03);transform:translateY(-3px)}
+
+/* ================= FLAT CLEAN LISTS (ZERO BULK) ================= */
+#drawer{margin-top:18px;animation:revealUp .3s var(--spring) both}
+.sec-bar{display:flex;align-items:center;gap:8px;padding:4px 2px 10px;border-bottom:1px solid var(--line)}
+.sec-bar h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-meta{font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.rows{list-style:none;margin:4px 0 0;padding:0}
+.r{
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:12px;padding:9px 8px;border-radius:9px;cursor:pointer;
+  transition:background .16s var(--smooth),opacity .18s var(--smooth);
+}
+.r-prog{position:absolute;left:0;bottom:0;height:2px;background:var(--flame);opacity:.72;pointer-events:none;border-radius:2px}
+.r-cnt{flex:none;font-size:11px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--g2);opacity:.78}
+.r:hover{background:rgba(255,255,255,.045)}
+.r.playing{background:var(--accsoft)}
+.r.playing.toggl{background:var(--gsoft)}
+.r.playing .r-title{color:var(--acc2)}
+.r.playing.toggl .r-title{color:var(--g2)}
+.r.unavail{opacity:.38;cursor:default}
+.r.unavail:hover{background:transparent}
+.r-num{width:22px;flex:none;font-size:12px;font-variant-numeric:tabular-nums;color:var(--faint);text-align:right}
+.r-thumb{width:26px;height:26px;border-radius:6px;object-fit:cover;flex:none;background:var(--bg2)}
+.r-title{flex:1;min-width:0;font-size:13.5px;font-weight:450;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-subdot{width:5px;height:5px;border-radius:50%;background:var(--cool2);opacity:.65;flex:none}
+.r-dur{flex:none;font-size:12px;font-variant-numeric:tabular-nums;color:var(--faint)}
+.r-hover-acts{display:flex;align-items:center;gap:2px;opacity:0;transition:opacity .16s var(--smooth)}
+.r:hover .r-hover-acts{opacity:1}
+.r-act-ic{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:var(--muted);transition:color .14s,background .14s}
+.r-act-ic:hover{color:var(--text);background:rgba(255,255,255,.08)}
+.r-act-ic.del:hover{color:var(--red)}
+
+/* ================= PLAYLISTS (MINIMAL) ================= */
+.pl-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pl-pill{
+  padding:5px 12px;border-radius:999px;font-size:13px;font-weight:500;color:var(--muted);
+  background:rgba(255,255,255,.035);transition:background .18s,color .18s;
+}
+.pl-pill:hover{background:rgba(255,255,255,.07);color:var(--text)}
+.pl-pill.on{background:var(--accsoft);color:var(--text);box-shadow:inset 0 0 0 1px rgba(238,71,102,.45)}
+
+.inline-add{
+  display:flex;align-items:center;gap:6px;padding:6px 8px;margin-bottom:10px;
+  border-radius:10px;background:var(--bg1);border:1px solid var(--line2);
+  animation:revealUp .22s var(--spring) both;
+}
+.inline-add input,.inline-add select{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:13px;padding:4px 6px}
+.inline-add select option{background:var(--bg2);color:var(--text)}
+
+/* ================= HISTORY (MINIMAL) ================= */
+.stats-row{display:flex;gap:24px;padding:4px 4px 14px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.stat-it .v{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--text)}
+.stat-it .v.ok{color:var(--g2)}
+.stat-it .l{font-size:11.5px;color:var(--faint)}
+.day-lbl{font-size:11.5px;font-weight:500;color:var(--faint);padding:12px 8px 4px;display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.sync-ok{color:var(--g2);font-size:13px}
+
+/* ================= FULL-PAGE CONTINUOUS 浮かぶ JAPANESE SUBTITLES ================= */
+#v-subs{
+  --sub-size:21px;
+  position:fixed;inset:0;z-index:30;background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;padding:0 14px;
+  animation:fadeIn .24s var(--smooth) both;
+}
+.sub-inner{max-width:780px;width:100%;margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column}
+.sub-head{
+  flex:none;z-index:5;
+  display:flex;align-items:center;gap:8px;padding:12px 4px 8px;
+  background:var(--bg);
+}
+.sub-head-title{font-size:13px;font-weight:500;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub-head-tools{display:flex;align-items:center;gap:6px;opacity:.5;transition:opacity .2s var(--smooth)}
+.sub-head:hover .sub-head-tools,.sub-head:focus-within .sub-head-tools{opacity:1}
+.sub-mini-btn{
+  padding:3px 8px;border-radius:7px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;
+  transition:background .15s,color .15s;
+}
+.sub-mini-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}
+.sub-mini-btn.on{color:var(--cool2);background:var(--coolsoft)}
+.size-slider{width:68px;accent-color:var(--cool2);cursor:pointer;height:3px;vertical-align:middle}
+
+/* Top & bottom seamless water-surface fade viewport */
+.sub-scroll{
+  flex:1;min-height:0;overflow-y:auto;position:relative;
+  mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.38) 8%,#000 22%,#000 78%,rgba(0,0,0,.38) 92%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.38) 8%,#000 22%,#000 78%,rgba(0,0,0,.38) 92%,transparent 100%);
+}
+.sub-feed{display:flex;flex-direction:column;gap:9px;padding:28vh 4px 44vh}
+.sub-row{
+  position:relative;
+  --depth-s:1;--depth-b:0px;--depth-o:1;
+  transform:scale(var(--depth-s));
+  filter:blur(var(--depth-b));
+  opacity:var(--depth-o);
+  transform-origin:center center;
+  will-change:transform,opacity,filter;
+}
+.sub-row:hover{transform:scale(1)!important;filter:blur(0)!important;opacity:1!important}
+.sub-row-inner{
+  position:relative;padding:13px 22px;border-radius:13px;
+  transform:scale(1);filter:blur(0);
+  transition:opacity 1.05s cubic-bezier(.19,1,.22,1),transform 1.05s cubic-bezier(.19,1,.22,1),filter 1.05s cubic-bezier(.19,1,.22,1),background .38s var(--smooth),box-shadow .38s var(--smooth);
+}
+.sub-row.submerged{pointer-events:none}
+.sub-row.submerged .sub-row-inner{opacity:0!important;transform:scale(.90);filter:blur(12px)}
+.sub-row.past .sub-row-inner{opacity:.54}
+.sub-row.past:hover .sub-row-inner{opacity:.96}
+.sub-row.cur .sub-row-inner{opacity:1;background:rgba(238,71,102,.08);box-shadow:inset 0 0 0 1px rgba(238,71,102,.32)}
+.sub-row.future .sub-row-inner{opacity:.24}
+.sub-row.future:hover .sub-row-inner{opacity:.82}
+
+/* Stephen Krashen i+1 Heatmap: T1 = emerald green, T2 = warm yellow, T3 = softer yellow */
+.sub-row.t1 .sub-row-inner{background:rgba(46,204,64,.16);box-shadow:inset 0 0 0 1px rgba(46,204,64,.42)}
+.sub-row.t2 .sub-row-inner{background:rgba(246,212,122,.13);box-shadow:inset 0 0 0 1px rgba(246,212,122,.34)}
+.sub-row.t3 .sub-row-inner{background:rgba(246,212,122,.055);box-shadow:inset 0 0 0 1px rgba(246,212,122,.16)}
+.sub-row.cur.t1 .sub-row-inner{background:rgba(46,204,64,.22);box-shadow:inset 0 0 0 1.5px rgba(46,204,64,.75)}
+.sub-row.cur.t2 .sub-row-inner{background:rgba(246,212,122,.19);box-shadow:inset 0 0 0 1.5px rgba(246,212,122,.62)}
+.sub-row.cur.t3 .sub-row-inner{background:rgba(246,212,122,.095);box-shadow:inset 0 0 0 1.5px rgba(246,212,122,.34)}
+.sub-row.t2 .tier-tag,.sub-row.t3 .tier-tag{color:var(--amber)}
+
+.sub-meta-float{
+  position:absolute;top:7px;right:12px;display:flex;align-items:center;gap:6px;
+  opacity:0;transition:opacity .16s var(--smooth);user-select:none;
+}
+.sub-row:hover .sub-meta-float{opacity:1}
+.sub-ts{
+  font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);cursor:pointer;
+  padding:1px 6px;border-radius:999px;background:rgba(18,10,28,.75);
+  transition:color .14s,background .14s;
+}
+.sub-ts:hover{color:var(--acc2);background:rgba(18,10,28,.95)}
+.tier-tag{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--g2);opacity:.9}
+
+.sub-text{
+  font-size:var(--sub-size);font-weight:450;line-height:1.74;letter-spacing:.015em;
+  color:var(--text);text-align:left;user-select:text;
+}
+.sub-row.cur .sub-text{font-weight:500}
+
+/* Word tokens + status underlines */
+.tok{
+  display:inline;padding:1px 1.5px;border-radius:4px;cursor:pointer;
+  transition:background .12s var(--smooth),color .12s var(--smooth),box-shadow .15s var(--smooth);
+}
+.tok:hover{background:rgba(180,157,224,.18)}
+.tok.st-unknown{box-shadow:inset 0 -1.5px 0 rgba(238,71,102,.5)}
+.tok.st-learning{box-shadow:inset 0 -1.5px 0 rgba(246,212,122,.72);color:#FBE6AC}
+.tok.st-known{box-shadow:none}
+.tok.st-ignore{box-shadow:none}
+.tok.active-lookup{background:var(--accsoft);color:#fff}
+.tok-punc{display:inline;color:var(--muted)}
+
+/* Code-diff style high-contrast highlighting for target unknown/learning words inside T1–T3 sentences! */
+.sub-row.t1 .tok.st-unknown,.sub-row.t1 .tok.st-learning,
+.idle-row.t1 .tok.st-unknown,.idle-row.t1 .tok.st-learning{
+  background:rgba(46,204,64,.36);color:#fff;font-weight:600;
+  padding:1px 6px;margin:0 1px;border-radius:6px;
+  box-shadow:inset 0 0 0 1px rgba(107,242,122,.78),0 0 12px rgba(46,204,64,.22);
+}
+.sub-row.t2 .tok.st-unknown,.sub-row.t2 .tok.st-learning,
+.idle-row.t2 .tok.st-unknown,.idle-row.t2 .tok.st-learning{
+  background:rgba(250,204,21,.30);color:#FFFBEB;font-weight:550;
+  padding:1px 5px;margin:0 1px;border-radius:6px;
+  box-shadow:inset 0 0 0 1px rgba(253,224,71,.72);
+}
+.sub-row.t3 .tok.st-unknown,.sub-row.t3 .tok.st-learning,
+.idle-row.t3 .tok.st-unknown,.idle-row.t3 .tok.st-learning{
+  background:rgba(250,204,21,.20);color:#FEF9C3;font-weight:500;
+  padding:1px 5px;margin:0 1px;border-radius:5px;
+  box-shadow:inset 0 0 0 1px rgba(253,224,71,.46);
+}
+:root[data-theme="washi"] .sub-row.t1 .tok.st-unknown,:root[data-theme="washi"] .sub-row.t1 .tok.st-learning,
+:root[data-theme="washi"] .idle-row.t1 .tok.st-unknown,:root[data-theme="washi"] .idle-row.t1 .tok.st-learning{
+  background:rgba(22,163,74,.28);color:#052E16;box-shadow:inset 0 0 0 1px rgba(22,163,74,.65);
+}
+:root[data-theme="washi"] .sub-row.t2 .tok.st-unknown,:root[data-theme="washi"] .sub-row.t2 .tok.st-learning,
+:root[data-theme="washi"] .idle-row.t2 .tok.st-unknown,:root[data-theme="washi"] .idle-row.t2 .tok.st-learning{
+  background:rgba(234,179,8,.34);color:#422006;box-shadow:inset 0 0 0 1px rgba(202,138,4,.65);
+}
+:root[data-theme="washi"] .sub-row.t3 .tok.st-unknown,:root[data-theme="washi"] .sub-row.t3 .tok.st-learning,
+:root[data-theme="washi"] .idle-row.t3 .tok.st-unknown,:root[data-theme="washi"] .idle-row.t3 .tok.st-learning{
+  background:rgba(234,179,8,.22);color:#422006;box-shadow:inset 0 0 0 1px rgba(202,138,4,.45);
+}
+
+/* Yomitan-style Shift+Hover Floating Popout Dictionary */
+#dict-pop{
+  position:fixed;z-index:70;width:min(340px,calc(100vw - 24px));max-height:min(380px,62vh);overflow-y:auto;
+  background:rgba(24,14,38,.97);backdrop-filter:blur(22px) saturate(1.3);
+  border:1px solid var(--line3);border-radius:14px;padding:13px 15px;
+  box-shadow:0 18px 46px rgba(0,0,0,.68);
+  opacity:0;pointer-events:none;transform:translateY(4px) scale(.98);
+  transition:opacity .16s var(--smooth),transform .2s var(--spring);
+}
+#dict-pop.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+.dict-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dict-word{font-size:18px;font-weight:600;color:var(--text)}
+.dict-read{font-size:13px;color:var(--cool2)}
+.dict-jlpt{font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--coolsoft);color:var(--cool2)}
+.dict-freq{
+  margin-left:auto;display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-variant-numeric:tabular-nums;cursor:help;white-space:nowrap;
+}
+.dict-stars{letter-spacing:.5px;color:var(--amber);font-size:11.5px;line-height:1}
+.dict-stars .off{color:var(--faint);opacity:.38}
+.dict-fcnt{color:var(--faint);font-size:10.5px}
+.dict-def{margin-top:6px;font-size:13px;color:var(--text);line-height:1.5}
+.dict-pos{font-size:11px;color:var(--faint);margin-right:6px}
+.dict-more{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.dict-sense{font-size:12.5px;color:var(--muted);line-height:1.45}
+.dict-sense b{color:var(--text);font-weight:500}
+.dict-expand-btn{margin-top:6px;font-size:12px;color:var(--cool2);display:inline-flex;align-items:center;gap:4px}
+.dict-expand-btn:hover{color:var(--text)}
+.dict-tags{display:flex;gap:5px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.vtag{
+  flex:1;padding:4px 0;border-radius:7px;font-size:11.5px;font-weight:500;text-align:center;
+  background:rgba(255,255,255,.04);color:var(--muted);transition:background .14s,color .14s;
+}
+.vtag:hover{background:rgba(255,255,255,.09);color:var(--text)}
+.vtag.on.known{background:var(--gsoft);color:var(--g2);box-shadow:inset 0 0 0 1px rgba(46,204,64,.4)}
+.vtag.on.learning{background:rgba(246,212,122,.16);color:var(--amber);box-shadow:inset 0 0 0 1px rgba(246,212,122,.4)}
+.vtag.on.unknown{background:var(--accsoft);color:var(--acc2);box-shadow:inset 0 0 0 1px rgba(238,71,102,.4)}
+.vtag.on.ignore{background:rgba(154,160,180,.15);color:#C4C9D6;box-shadow:inset 0 0 0 1px rgba(154,160,180,.35)}
+
+.sub-empty-box{
+  padding:48px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;
+  color:var(--muted);font-size:13.5px;
+}
+@keyframes spillIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ================= SLIM FLOATING DOCK ================= */
+#dock{
+  position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:35;
+  width:min(680px,calc(100vw - 24px));
+  background:rgba(18,10,28,.9);backdrop-filter:blur(22px) saturate(1.3);
+  border:1px solid var(--line2);border-radius:14px;overflow:hidden;
+  box-shadow:0 14px 36px rgba(0,0,0,.55);
+  animation:dockIn .32s var(--spring) both;
+  transition:border-color .25s var(--smooth);
+}
+#dock.toggl{border-color:rgba(46,204,64,.4)}
+.dock-scrub{position:relative;height:5px;background:rgba(255,255,255,.07);cursor:pointer;transition:height .15s}
+.dock-scrub:hover{height:7px}
+.dock-scrub-fill{height:100%;width:0%;background:var(--flame);pointer-events:none;transition:width .18s linear}
+.dock-row{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.dock-thumb{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none;background:var(--bg2)}
+.dock-title{flex:1;min-width:0;font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-ctrls{display:flex;align-items:center;gap:2px;flex:none}
+.spd-btn{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);padding:4px 7px;border-radius:7px}
+.spd-btn:hover{color:var(--text);background:rgba(255,255,255,.06)}
+
+/* ================= SETTINGS POPOVER & MODALS ================= */
+#pop{
+  position:absolute;right:18px;top:42px;z-index:48;
+  width:min(340px,calc(100vw - 24px));
+  background:rgba(26,16,42,.97);backdrop-filter:blur(20px);
+  border:1px solid var(--line3);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.6);
+  padding:15px;font-size:12.5px;color:var(--muted);
+  transform-origin:top right;animation:popIn .22s var(--spring) both;
+}
+#pop .field{margin-bottom:9px}
+#pop .field label{display:block;font-size:11.5px;color:var(--faint);margin-bottom:3px}
+#pop input[type=text],#pop input[type=password],#pop input[type=number],#pop select{
+  width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--bg1);padding:6px 9px;outline:0;font-size:12.5px;
+}
+#pop input:focus,#pop select:focus{border-color:var(--g)}
+#pop .row-inline{display:flex;gap:6px;align-items:center}
+#pop .chk{display:flex;align-items:center;gap:7px;margin:7px 0;color:var(--text);cursor:pointer}
+#pop .chk input{width:auto;accent-color:var(--acc)}
+.btn-pill{padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:500;background:var(--acc);color:var(--onacc)}
+.btn-pill:hover{background:var(--acc2)}
+.btn-sub{padding:5px 11px;border-radius:999px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.05)}
+.btn-sub:hover{color:var(--text);background:rgba(255,255,255,.09)}
+
+.modal-bg{position:fixed;inset:0;z-index:65;background:rgba(10,6,16,.76);backdrop-filter:blur(8px);display:grid;place-items:center;padding:16px;animation:fadeIn .18s both}
+.modal{width:min(440px,100%);background:var(--bg2);border:1px solid var(--line3);border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.6);animation:popIn .24s var(--spring) both}
+.modal h3{margin:0 0 12px;font-size:15px;font-weight:600}
+.modal .field{margin-bottom:10px}
+.modal label{display:block;font-size:11.5px;color:var(--faint);margin-bottom:4px}
+.modal input,.modal select{width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--bg1);padding:7px 10px;outline:0;font-size:13px}
+.modal-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.drop-zone{border:1.5px dashed var(--line3);border-radius:12px;padding:22px 14px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.drop-zone:hover,.drop-zone.over{border-color:var(--acc2);background:var(--accsoft)}
+.bulk-preview{margin-top:10px;max-height:170px;overflow:auto;border-radius:9px;background:var(--bg1);padding:4px 8px}
+.bp-row{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:12px}
+.bp-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bp-dest{font-size:11px;color:var(--cool2)}
+.bulk-prog-wrap{margin-top:10px;height:4px;border-radius:999px;background:var(--bg1);overflow:hidden}
+.bulk-prog-bar{height:100%;width:0%;background:var(--flame);transition:width .16s}
+
+#drop-veil{position:fixed;inset:12px;z-index:80;border-radius:18px;background:rgba(16,9,26,.88);backdrop-filter:blur(12px);border:2px dashed var(--acc2);display:grid;place-items:center;pointer-events:none}
+#drop-veil span{font-size:17px;font-weight:500;color:var(--text)}
+
+#toast{
+  position:fixed;left:50%;top:14px;z-index:75;transform:translate(-50%,-16px);opacity:0;pointer-events:none;
+  background:rgba(28,17,44,.96);backdrop-filter:blur(14px);border:1px solid var(--line3);border-radius:999px;
+  padding:6px 14px;font-size:12.5px;transition:opacity .2s,transform .28s var(--spring);
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast.err{border-color:var(--red)}
+
+@keyframes run{to{background-position:-200% 0}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.82)}}
+@keyframes tabIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes revealUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(-3px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes dockIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+@media (max-width:560px){
+  main{padding:8px 12px 28px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .to-clock{font-size:24px}
+  .sub-line{font-size:17px}
+  #pop{right:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="drop-veil" hidden><span>Drop MP3s or .srt subtitles</span></div>
+
+<main>
+  <nav>
+    <button class="tab" id="t-anime" aria-selected="true">Anime</button>
+    <button class="tab" id="t-playlists" aria-selected="false">Playlists</button>
+    <button class="tab" id="t-history" aria-selected="false">History</button>
+    <span class="sp"></span>
+    <button id="live-pill" hidden><span class="pulse" id="live-dot"></span><span id="live-time">00:00</span></button>
+    <button class="icon-btn" id="b-bulk" title="Bulk upload MP3 / SRT">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </button>
+    <button class="icon-btn" id="b-set" title="Settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="dot-badge" id="vdot"></span>
+    </button>
+  </nav>
+
+  <!-- Settings Popover -->
+  <div id="pop" hidden>
+    <div class="theme-row" id="theme-row" title="Theme">
+      <button class="swatch" data-theme="split-flame" title="Split Flame" style="background:linear-gradient(135deg,#B49DE0 50%,#EE4766 50%)"></button>
+      <button class="swatch" data-theme="sumi" title="Midnight Ink" style="background:linear-gradient(135deg,#111118 50%,#60A5FA 50%)"></button>
+      <button class="swatch" data-theme="matcha" title="Kyoto Matcha" style="background:linear-gradient(135deg,#121E19 50%,#4ADE80 50%)"></button>
+      <button class="swatch" data-theme="sakura" title="Sakura Dusk" style="background:linear-gradient(135deg,#211420 50%,#F472B6 50%)"></button>
+      <button class="swatch" data-theme="noir" title="Prague Noir" style="background:linear-gradient(135deg,#171B22 50%,#D4A373 50%)"></button>
+      <button class="swatch" data-theme="washi" title="Washi Paper" style="background:linear-gradient(135deg,#F6F2E9 50%,#D93848 50%)"></button>
+    </div>
+    <div class="field">
+      <label>Toggl API Token <span id="s-tok-hint" style="color:var(--cool2)"></span></label>
+      <div class="row-inline">
+        <input id="s-token" type="password" placeholder="API Token" autocomplete="off">
+        <button class="btn-pill" id="s-connect">Connect</button>
+      </div>
+      <div id="s-toggl-status" style="font-size:11.5px;margin-top:4px"></div>
+    </div>
+    <div class="field"><label>Workspace</label><select id="s-ws"><option value="">—</option></select></div>
+    <div class="field"><label>Project</label><select id="s-proj"><option value="">None</option></select></div>
+    <div class="field"><label>Tags</label><input id="s-tags" type="text" placeholder="japanese, immersion"></div>
+    <div class="row-inline">
+      <div class="field" style="flex:1"><label>Min sec</label><input id="s-min" type="number" min="1" max="600" value="5"></div>
+      <div class="field" style="flex:1"><label>Daily goal (m)</label><input id="s-goal" type="number" min="5" max="720" value="60"></div>
+    </div>
+    <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl</label>
+    <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
+    <div style="margin-top:10px;display:flex;gap:7px">
+      <button class="btn-pill" id="s-save">Save</button>
+      <button class="btn-sub" id="s-open-root">Folder</button>
+      <button class="btn-sub" id="s-rescan">Rescan</button>
+    </div>
+    <div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px">
+      <span id="s-vocab-cnt" style="font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums">0 known</span>
+      <span class="sp"></span>
+      <button class="btn-sub" id="s-vocab-imp">Import</button>
+      <button class="btn-sub" id="s-vocab-exp">Export</button>
+    </div>
+  </div>
+
+  <!-- TAB 1: ANIME -->
+  <section id="v-anime" class="view-pane">
+    <div class="grid" id="anime-grid"></div>
+    <div id="drawer" hidden></div>
+  </section>
+
+  <!-- TAB 2: PLAYLISTS -->
+  <section id="v-playlists" class="view-pane" hidden>
+    <div class="pl-top" id="pl-top"></div>
+    <div class="inline-add" id="pl-create-bar" hidden>
+      <input id="pl-new-name" placeholder="Playlist name" autocomplete="off">
+      <button class="btn-pill" id="pl-create-ok">Add</button>
+      <button class="icon-btn" id="pl-create-cancel">×</button>
+    </div>
+    <div id="pl-detail"></div>
+  </section>
+
+  <!-- TAB 3: HISTORY -->
+  <section id="v-history" class="view-pane" hidden>
+    <div class="stats-row" id="h-stats"></div>
+    <div id="h-list"></div>
+  </section>
+
+  <!-- TAB 4: FULL-PAGE TOP-DOWN JAPANESE SUBTITLES -->
+  <section id="v-subs" hidden>
+    <div class="sub-inner">
+      <div class="sub-head">
+        <button class="icon-btn" id="sub-back" title="Back (Esc / S)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="sub-head-title" id="sub-head-title"></span>
+        <span class="sp"></span>
+        <div class="sub-head-tools">
+          <input type="range" class="size-slider" id="sub-size" min="15" max="34" step="1" value="21" title="Font size">
+          <button class="sub-mini-btn" id="sub-wordmap" title="Most common words in this media">Map</button>
+          <button class="sub-mini-btn on" id="sub-autoscroll" title="Continuous auto-scroll (pauses while you interact)">Auto</button>
+          <button class="sub-mini-btn" id="sub-reveal" title="Show all lines">All</button>
+          <button class="sub-mini-btn" id="sub-off-m" title="Earlier 0.5s">−0.5s</button>
+          <button class="sub-mini-btn" id="sub-off-p" title="Later 0.5s">+0.5s</button>
+          <span id="sub-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
+          <button class="sub-mini-btn on" id="sub-autopause" title="Pause on Shift+hover lookup">Pause</button>
+        </div>
+      </div>
+      <div class="sub-scroll" id="sub-scroll">
+        <div class="sub-feed" id="sub-feed"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 5: MEDIA WORD FREQUENCY MAP -->
+  <section id="v-wordmap" hidden>
+    <div class="wm-inner">
+      <div class="wm-head">
+        <button class="icon-btn" id="wm-back" title="Back (Esc)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="wm-title" id="wm-title"></span>
+        <span class="wm-cov" id="wm-cov"></span>
+        <span class="sp"></span>
+        <button class="sub-mini-btn" id="wm-scope-ep">Episode</button>
+        <button class="sub-mini-btn on" id="wm-scope-all">Series</button>
+        <span style="width:1px;height:14px;background:var(--line2)"></span>
+        <button class="sub-mini-btn on" data-wm-f="all">All</button>
+        <button class="sub-mini-btn" data-wm-f="unknown">Unknown</button>
+        <button class="sub-mini-btn" data-wm-f="learning">Learning</button>
+        <button class="sub-mini-btn" data-wm-f="known">Known</button>
+      </div>
+      <div class="wm-grid" id="wm-grid"></div>
+    </div>
+  </section>
+</main>
+
+<div id="idle-veil" aria-hidden="true"><div class="idle-stage" id="idle-stage"></div></div>
+
+<button id="sub-jump-bottom" hidden title="Jump to live subtitle">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+
+<!-- Floating Yomitan-style Shift+Hover Popout Dictionary -->
+<div id="dict-pop"></div>
+<input type="file" id="vocab-file-input" accept=".txt,.csv,.json" hidden>
+
+<!-- Slim Floating Player Dock -->
+<div id="dock" hidden>
+  <div class="dock-scrub" id="d-scrub"><div class="dock-scrub-fill" id="d-fill"></div></div>
+  <div class="dock-row">
+    <img class="dock-thumb" id="d-thumb" alt="">
+    <div class="dock-title" id="d-title"></div>
+    <div class="dock-ctrls">
+      <button class="icon-btn" id="d-prev" title="Previous (P)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="icon-btn pri" id="d-play" title="Play / Pause (Space)"></button>
+      <button class="icon-btn" id="d-next" title="Next (N)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="d-sub-btn" title="Japanese subtitles & dictionary (S)">
+        <span style="font-size:14px;font-weight:600;line-height:1">字</span>
+      </button>
+      <button class="spd-btn" id="d-speed" title="Speed">1×</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal-bg" id="bulk-modal" hidden>
+  <div class="modal">
+    <h3>Bulk Upload</h3>
+    <div class="field"><label>Destination</label><select id="bu-target"></select></div>
+    <div class="drop-zone" id="bu-drop">
+      <div style="font-size:13.5px;font-weight:500">Drop MP3s, folders, or .srt/.ass subtitles</div>
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:8px">
+        <button class="btn-pill" type="button" id="bu-pick-files">Files</button>
+        <button class="btn-sub" type="button" id="bu-pick-folder">Folder</button>
+      </div>
+    </div>
+    <div class="bulk-preview" id="bu-preview" hidden></div>
+    <div class="bulk-prog-wrap" id="bu-prog-wrap" hidden><div class="bulk-prog-bar" id="bu-prog-bar"></div></div>
+    <div id="bu-status" style="font-size:12px;color:var(--muted);margin-top:8px" hidden></div>
+    <div class="modal-acts">
+      <button class="btn-sub" id="bu-cancel">Close</button>
+      <button class="btn-pill" id="bu-start" hidden>Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Anime Modal -->
+<div class="modal-bg" id="add-modal" hidden>
+  <div class="modal">
+    <h3>Add Anime</h3>
+    <div class="field"><label>Title</label><input id="am-title" placeholder="Title"></div>
+    <div class="field"><label>Japanese</label><input id="am-jp" placeholder="日本語 (optional)"></div>
+    <div class="modal-acts">
+      <button class="btn-sub" id="am-cancel">Cancel</button>
+      <button class="btn-pill" id="am-ok">Add</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"><span id="toast-msg"></span></div>
+<input type="file" id="bu-files-input" multiple accept="audio/*,image/*,.srt,.vtt,.ass,.ssa" hidden>
+<input type="file" id="bu-folder-input" webkitdirectory directory multiple hidden>
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(Math.floor(n)).padStart(2, '0');
+
+const IC_PLAY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-left:2px"><polygon points="6,4 20,12 6,20"/></svg>`;
+const IC_PAUSE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`;
+const IC_NEXT = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>`;
+const IC_STOP = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>`;
+const IC_PLUS = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+const IC_UP = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
+const IC_DOWN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+const IC_X = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const IC_UPLOAD = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+const IC_FOLDER = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+const IC_TRASH = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>`;
+const IC_BARS = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
+
+function fmtClock(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+function fmtHuman(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${s}s`;
+}
+
+/* ================= Natural Episode Auto-Sort ================= */
+const natCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+function parseSeasonEp(name) {
+  const s = String(name || '').toUpperCase();
+  const se = s.match(/S(\d{1,2})\s*E(\d{1,4})/);
+  if (se) return [Number(se[1]) || 1, Number(se[2])];
+  const ep = s.match(/(?:^|[^A-Z])(?:EP(?:ISODE)?|E)[\s._#-]*(\d{1,4})/);
+  if (ep) return [1, Number(ep[1])];
+  const lead = s.trim().match(/^(\d{1,4})/);
+  if (lead) return [1, Number(lead[1])];
+  const nums = [...s.matchAll(/(\d{1,4})(?!KB|P\b)/g)].map(m => Number(m[1])).filter(n => n > 0 && n < 1000 && n !== 720 && n !== 480);
+  return [1, nums.length ? nums[nums.length - 1] : 99999];
+}
+function sortFilesNaturally(files) {
+  return [...files].sort((a, b) => {
+    const [sa, ea] = parseSeasonEp(a.name), [sb, eb] = parseSeasonEp(b.name);
+    if (sa !== sb) return sa - sb;
+    if (ea !== eb) return ea - eb;
+    return natCollator.compare(a.name, b.name);
+  });
+}
+function guessDestinationLabel(file, targetVal) {
+  if (targetVal && targetVal !== 'auto') return getAnime(targetVal)?.title || targetVal;
+  const hay = ((file.webkitRelativePath || '') + ' ' + file.name).toLowerCase();
+  const comp = hay.replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9faf]/g, '');
+  if (/mha|bnha|myhero|heroacademia|bokunohero|ヒロアカ|僕のヒーロー/.test(comp)) return 'My Hero Academia';
+  if (/monster|モンスター|tenma|johan/.test(comp)) return 'Monster';
+  if (/greatpretender|pretender|グレートプリテンダー/.test(comp)) return 'Great Pretender';
+  if (/deathnote|デスノート/.test(comp)) return 'Death Note';
+  if (/spyxfamily|spyfamily|スパイファミリー/.test(comp)) return 'Spy × Family';
+  if (/fmab|fullmetal|brotherhood|鋼の錬金術師/.test(comp)) return 'Fullmetal Alchemist';
+  if (/steinsgate|シュタインズ/.test(comp)) return 'Steins;Gate';
+  if (/attackontitan|shingeki|進撃の巨人/.test(comp)) return 'Attack on Titan';
+  if (/toshishun|garasudo|botchan|gongitsune|goodbye|kazetachinu|hyakunin/.test(comp)) return 'Japanese Stories';
+  for (const a of state.library) {
+    const tComp = a.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (hay.includes(a.id) || (tComp.length >= 4 && comp.includes(tComp))) return a.title;
+  }
+  const dir = (file.webkitRelativePath || '').split('/')[0];
+  return (dir && dir !== file.name) ? dir : 'My Hero Academia';
+}
+
+/* ================= Toast & API ================= */
+let toastT = 0;
+function toast(msg, err = false) {
+  $('#toast-msg').textContent = msg;
+  $('#toast').className = 'on' + (err ? ' err' : '');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { $('#toast').className = ''; }, err ? 3800 : 2200);
+}
+async function api(url, opts = {}) {
+  const res = await fetch(url, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+/* ================= State ================= */
+let state = {
+  config: {}, library: [], playlists: [], history: [], active_session: null,
+  stats: { today_secs: 0, total_secs: 0, session_count: 0, streak_days: 0, per_anime: [] },
+  progress: {}
+};
+let curTab = 'anime';
+let selectedAnimeId = null;
+let selectedPlaylistId = null;
+let showPlAddBar = false;
+let togglWorkspaces = [], togglProjects = [];
+let pendingBulkFiles = [];
+
+/* ================= Audio & Session ================= */
+const audio = $('#audio');
+const SPEEDS = [1.0, 1.25, 1.5, 0.75];
+let speedIdx = 0;
+let queue = [], queueIdx = -1, currentTrack = null;
+let sessionStartedMs = 0, sessionActive = false;
+
+/* ================= Vocab Store, Auto-Ignore & Krashen i+1 Heatmap ================= */
+const jaSegmenter = typeof Intl !== 'undefined' && Intl.Segmenter
+  ? new Intl.Segmenter('ja', { granularity: 'word' })
+  : null;
+
+const vocab = { known: new Set(), learning: new Set(), ignored: new Set() };
+
+// Grammatical particles, auxiliaries, copula fragments & tiny kana noise auto-ignored for clean T1/T2/T3
+const AUTO_IGNORE_KANA = new Set([
+  'です','ます','まし','ませ','でし','でした','ません','から','まで','より','ほど','だけ','しか',
+  'ので','のに','けど','けれど','けれども','でも','なら','たら','たり','って','ちゃ','じゃ','では',
+  'には','とは','への','かも','など','こそ','さえ','すら','つつ','ながら','ない','なく','なかっ',
+  'なかった','れる','られ','せる','させ','たい','たく','てい','てる','てた','ていた','しまっ','しまう',
+  'しまい','しまった','よう','そう','らし','らしい','みたい','でしょ','でしょう','だろ','だろう',
+  'だっ','だった','あっ','いっ','おっ','んだ','んです','もの','こと','ところ','ため','たち','ども',
+  'さん','くん','ちゃん','さま','っけ','かな','かしら','ばかり','くらい','ぐらい','という','として',
+  'による','において','について','これ','それ','あれ','どれ','ここ','そこ','あそこ','どこ','この',
+  'その','あの','どの','こう','そう','ああ','どう','いる','ある','する','なる','くる','いく','おる',
+  'して','した','され','でき','できる','おり','あり','なり','てき','きた','きて','いけ','ゆく',
+  'いま','います','いました','いません','いて','いた','いませ'
+]);
+
+function isAutoIgnoredToken(word, isWordLike) {
+  if (!isWordLike || !word) return true;
+  const w = word.trim();
+  if (!w) return true;
+  // Brackets, parentheses, grammar symbols, punctuation, numbers, ASCII symbols
+  if (/^[\s\p{P}\p{S}0-9０-９a-zA-Z「」『』（）()【】\[\]〈〉《》〔〕｛｝{}。、・！？…―ー〜～.,!?:;"'`\-+=/*\\|_<>]+$/u.test(w)) return true;
+  // Single hiragana OR single katakana
+  if (/^[\u3040-\u309F\u30A0-\u30FF]$/.test(w)) return true;
+  // Pure small kana / prolonged marks / iteration marks / tiny gibberish kana fragments
+  if (/^[ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮー々ゝゞヽヾ]+$/.test(w)) return true;
+  // Repeated identical kana (e.g. ああ, ええ, おお, んん, アー)
+  if (w.length <= 3 && /^(.)\1+$/.test(w)) return true;
+  // Common 2-char katakana whisper artifacts (only kana, <=2 chars)
+  if (/^[\u30A0-\u30FF]{1,2}$/.test(w)) return true;
+  // Pure hiragana grammatical particles/auxiliaries
+  if (AUTO_IGNORE_KANA.has(w)) return true;
+  return false;
+}
+
+function getWordStatus(word, autoIgnored) {
+  if (vocab.ignored.has(word)) return 'ignore';
+  if (vocab.known.has(word)) return 'known';
+  if (vocab.learning.has(word)) return 'learning';
+  if (autoIgnored) return 'ignore';
+  return 'unknown';
+}
+
+function loadVocabFromState(v) {
+  vocab.known = new Set(v?.known || []);
+  vocab.learning = new Set(v?.learning || []);
+  vocab.ignored = new Set(v?.ignored || []);
+  const el = $('#s-vocab-cnt');
+  if (el) el.textContent = `${vocab.known.size} known`;
+}
+
+async function setWordStatus(word, status) {
+  vocab.known.delete(word);
+  vocab.learning.delete(word);
+  vocab.ignored.delete(word);
+  if (status === 'known') vocab.known.add(word);
+  else if (status === 'learning') vocab.learning.add(word);
+  else if (status === 'ignore') vocab.ignored.add(word);
+
+  const cnt = $('#s-vocab-cnt');
+  if (cnt) cnt.textContent = `${vocab.known.size} known`;
+
+  // Instant zero-flash DOM highlight & T1/T2/T3 recalculation
+  refreshVocabHighlights();
+  if (curTab === 'wordmap') updateWordMapStatusInPlace(word);
+  if (popWord === word && popOpen) renderDictPop();
+
+  try {
+    await api('/api/vocab', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word, status })
+    });
+  } catch (e) { toast(e.message, true); }
+}
+
+/* ================= Organic 浮かぶ (Surfacing Water-Droplet) Chime for T1 (i+1) ================= */
+let audioCtx = null;
+function playT1Ping() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+
+    // Warm low-pass so it feels liquid & submerged, never sharp
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1650, now);
+    lp.Q.setValueAtTime(0.7, now);
+    lp.connect(audioCtx.destination);
+
+    // Layer 1: Buoyant bubble rising gently to the surface (G4 -> D5)
+    const osc1 = audioCtx.createOscillator();
+    const g1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(392.0, now);
+    osc1.frequency.exponentialRampToValueAtTime(587.33, now + 0.12);
+    g1.gain.setValueAtTime(0.0001, now);
+    g1.gain.linearRampToValueAtTime(0.055, now + 0.024);
+    g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+    osc1.connect(g1);
+    g1.connect(lp);
+    osc1.start(now);
+    osc1.stop(now + 0.45);
+
+    // Layer 2: Soft glassy surface-ripple harmonic blooming as it breaks the surface (D6)
+    const osc2 = audioCtx.createOscillator();
+    const g2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1174.66, now + 0.055);
+    g2.gain.setValueAtTime(0.0001, now + 0.055);
+    g2.gain.linearRampToValueAtTime(0.016, now + 0.11);
+    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.62);
+    osc2.connect(g2);
+    g2.connect(lp);
+    osc2.start(now + 0.055);
+    osc2.stop(now + 0.65);
+  } catch (e) {}
+}
+
+/* ================= Zero-Flash Incremental Top-Down Subtitles ================= */
+let lastNonSubTab = 'anime';
+let subCues = [];
+let subCueIdx = -1;
+let subMaxSeen = -1;
+let subRenderedCount = 0;
+let subOffset = 0;
+let subRevealAll = false;
+let subAutoPause = true;
+let subAutoScroll = true;
+let subGenerating = false;
+let pingedCues = new Set();
+let userAtBottom = true;
+let progScrollUntil = 0;
+let subCamY = 0;
+let subCamInited = false;
+let subCamRaf = 0;
+let subCamLastMs = 0;
+let isCamScrolling = false;
+const SUB_ACTIVE_PAUSE_MS = 2200; // Pause auto-scroll while actively using the app!
+
+// Yomitan-style Shift+Hover Popout Dictionary state
+let shiftHeld = false;
+let hoveredTokEl = null;
+let popOpen = false;
+let popWord = '';
+let popCtx = '';
+let popAnchorEl = null;
+let popData = null;
+let popExpanded = false;
+let popCloseTimer = 0;
+let pausedByDict = false;
+const dictClientCache = new Map();
+
+// Word Map & Series Frequency Statistics state
+let wmAnimeId = null;
+let wmEpisodeId = null;
+let wmScope = 'all';   // 'ep' | 'all'
+let wmFilter = 'all';  // 'all' | 'unknown' | 'learning' | 'known'
+let wmReturnTab = 'anime';
+let wmEntries = [];    // [{ word, count, ctx }]
+const seriesFreqCache = new Map();    // animeId -> { byWord, totalTypes, totalTokens, files, meanLog, stdLog, lines }
+const seriesFreqInflight = new Map(); // animeId -> Promise
+
+function applyTheme(name) {
+  const t = name || 'split-flame';
+  if (t === 'split-flame') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  $$('#theme-row .swatch').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+  try { localStorage.setItem('kiku.theme', t); } catch (e) {}
+}
+
+function getAnime(id) { return state.library.find(a => a.id === id); }
+function getEpisode(aid, eid) { const a = getAnime(aid); return a ? a.episodes.find(e => e.id === eid) : null; }
+function coverUrl(a) { return a && a.has_cover ? `/cover/${encodeURIComponent(a.id)}?v=2` : ''; }
+function currentSessionSecs() { return (!sessionActive || !sessionStartedMs) ? 0 : Math.max(0, Math.floor((Date.now() - sessionStartedMs) / 1000)); }
+
+function applySubFontSize(px) {
+  const v = Math.max(15, Math.min(34, Number(px) || 21));
+  $('#v-subs').style.setProperty('--sub-size', v + 'px');
+  $('#idle-veil').style.setProperty('--sub-size', v + 'px');
+  $('#sub-size').value = String(v);
+  try { localStorage.setItem('kiku.subSize', String(v)); } catch (e) {}
+}
+
+async function loadSubtitlesForTrack(animeId, episodeId) {
+  subCues = []; subCueIdx = -1; subMaxSeen = -1; subRenderedCount = 0; subOffset = 0;
+  pingedCues = new Set(); idleRenderedIdx = -2;
+  closeDictPop(false);
+  ensureSeriesFreq(animeId); // Preload series-wide Zipf frequency stats in background for 1-5★ dict hovers
+  try {
+    const res = await api(`/api/subtitles/${encodeURIComponent(animeId)}/${encodeURIComponent(episodeId)}`);
+    subCues = res.cues || [];
+  } catch (e) { subCues = []; }
+  rebuildSubtitleFeed();
+}
+
+async function generateSubtitlesForCurrent() {
+  if (!currentTrack || subGenerating) return;
+  subGenerating = true;
+  rebuildSubtitleFeed();
+  try {
+    const res = await api(`/api/subtitles/${encodeURIComponent(currentTrack.anime.id)}/${encodeURIComponent(currentTrack.ep.id)}/generate`, { method: 'POST' });
+    subCues = res.cues || [];
+    if (res.library) state.library = res.library;
+    subCueIdx = -1; subMaxSeen = -1; subRenderedCount = 0; pingedCues = new Set();
+    toast(`Synced ${subCues.length} lines`);
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    subGenerating = false;
+    rebuildSubtitleFeed();
+    syncSubtitleToAudio(true);
+  }
+}
+
+function segmentJapanese(text) {
+  if (!jaSegmenter) return [{ segment: text, isWordLike: true }];
+  return [...jaSegmenter.segment(text)];
+}
+
+function computeRowTier(rowEl) {
+  const unknownSet = new Set();
+  rowEl.querySelectorAll('.tok').forEach(tok => {
+    const st = getWordStatus(tok.dataset.word, tok.dataset.autoign === '1');
+    tok.classList.remove('st-known', 'st-learning', 'st-unknown', 'st-ignore');
+    tok.classList.add('st-' + st);
+    if (st === 'unknown' || st === 'learning') unknownSet.add(tok.dataset.word);
+  });
+  const n = unknownSet.size;
+  rowEl.classList.remove('t1', 't2', 't3');
+  const tagEl = rowEl.querySelector('.tier-tag');
+  if (n === 1) { rowEl.classList.add('t1'); if (tagEl) tagEl.textContent = 'T1'; return 1; }
+  if (n === 2) { rowEl.classList.add('t2'); if (tagEl) tagEl.textContent = 'T2'; return 2; }
+  if (n === 3) { rowEl.classList.add('t3'); if (tagEl) tagEl.textContent = 'T3'; return 3; }
+  if (tagEl) tagEl.textContent = '';
+  return n;
+}
+
+function refreshVocabHighlights() {
+  $('#sub-feed').querySelectorAll('.sub-row').forEach(computeRowTier);
+}
+
+function renderCueTokensHtml(cue, forAmbient = false) {
+  const fullText = cue.text || '';
+  const puncRe = /^[\s\p{P}\p{S}「」『』（）()【】\[\]〈〉《》〔〕｛｝{}。、・！？…―ー〜～.,!?:;"'`]+$/u;
+
+  // Prefer backend MeCab / IPADIC morphological tokens (accurate hiragana verbs, lemmas & POS!)
+  if (Array.isArray(cue.tokens) && cue.tokens.length) {
+    let charPos = 0;
+    const unknownSet = new Set();
+    const html = cue.tokens.map(tk => {
+      const surf = tk.surface || '';
+      const lemma = tk.lemma || surf;
+      const pos = charPos;
+      charPos += surf.length;
+      if (surf === '\n') return '<br>';
+      if (tk.pos === '記号' || puncRe.test(surf)) {
+        return `<span class="tok-punc">${esc(surf)}</span>`;
+      }
+      const autoIgn = !!tk.ignore;
+      const st = getWordStatus(lemma, autoIgn);
+      if (st === 'unknown' || st === 'learning') unknownSet.add(lemma);
+      if (forAmbient) {
+        return `<span class="tok st-${st}">${esc(surf)}</span>`;
+      }
+      const ctx = fullText.slice(pos, pos + 14).replace(/\s+/g, '');
+      return `<span class="tok" data-word="${esc(lemma)}" data-surf="${esc(surf)}" data-pos="${esc(tk.pos || '')}" data-ctx="${esc(ctx)}" data-autoign="${autoIgn ? '1' : '0'}">${esc(surf)}</span>`;
+    }).join('');
+    return { html, unknownCount: unknownSet.size };
+  }
+
+  // Fallback if MeCab tokens unavailable
+  const segs = segmentJapanese(fullText);
+  let charPos = 0;
+  const unknownSet = new Set();
+  const html = segs.map(s => {
+    const t = s.segment;
+    const pos = charPos;
+    charPos += t.length;
+    if (t === '\n') return '<br>';
+    const autoIgn = isAutoIgnoredToken(t, s.isWordLike);
+    if (!s.isWordLike || puncRe.test(t)) {
+      return `<span class="tok-punc">${esc(t)}</span>`;
+    }
+    const st = getWordStatus(t, autoIgn);
+    if (st === 'unknown' || st === 'learning') unknownSet.add(t);
+    if (forAmbient) {
+      return `<span class="tok st-${st}">${esc(t)}</span>`;
+    }
+    const ctx = fullText.slice(pos, pos + 14).replace(/\s+/g, '');
+    return `<span class="tok" data-word="${esc(t)}" data-surf="${esc(t)}" data-pos="" data-ctx="${esc(ctx)}" data-autoign="${autoIgn ? '1' : '0'}">${esc(t)}</span>`;
+  }).join('');
+  return { html, unknownCount: unknownSet.size };
+}
+
+function createSubRowEl(cue, idx, submerged) {
+  const row = document.createElement('div');
+  row.className = 'sub-row' + (submerged ? ' submerged' : '');
+  row.dataset.subIdx = String(idx);
+
+  const { html: tokensHtml } = renderCueTokensHtml(cue, false);
+
+  row.innerHTML = `
+    <div class="sub-row-inner">
+      <div class="sub-meta-float">
+        <span class="tier-tag"></span>
+        <span class="sub-ts" data-seek-cue="${idx}" title="Jump here">${fmtClock(cue.start)}</span>
+      </div>
+      <div class="sub-text">${tokensHtml}</div>
+    </div>`;
+
+  computeRowTier(row);
+  return row;
+}
+
+function updateSubHeadUI() {
+  $('#d-sub-btn').classList.toggle('on', curTab === 'subs');
+  $('#sub-head-title').textContent = currentTrack ? currentTrack.ep.title : '';
+  $('#sub-off-val').textContent = subOffset ? `${subOffset > 0 ? '+' : ''}${subOffset.toFixed(1)}s` : '';
+  $('#sub-reveal').classList.toggle('on', subRevealAll);
+  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
+}
+
+// Called ONLY when track changes, Reveal All toggles, or generating state changes — NEVER on tick or hover!
+// Places all cues once so scrollHeight never jumps mid-playback (zero scroll jerking!).
+function rebuildSubtitleFeed() {
+  updateSubHeadUI();
+  const feed = $('#sub-feed');
+  feed.innerHTML = '';
+  subRenderedCount = 0;
+  subCamInited = false;
+
+  if (!currentTrack) {
+    feed.innerHTML = `<div class="sub-empty-box">Play an episode to follow subtitles</div>`;
+    return;
+  }
+  if (subGenerating) {
+    feed.innerHTML = `<div class="sub-empty-box"><span>Syncing Japanese audio with local Whisper…</span></div>`;
+    return;
+  }
+  if (!subCues.length) {
+    feed.innerHTML = `
+      <div class="sub-empty-box">
+        ${state.whisper_ready ? `<button class="btn-pill" id="btn-gen-subs">Generate Synced JP Subtitles</button>` : ''}
+        <button class="btn-sub" id="btn-drop-srt">Upload .srt / .ass</button>
+      </div>`;
+    if ($('#btn-gen-subs')) $('#btn-gen-subs').onclick = generateSubtitlesForCurrent;
+    $('#btn-drop-srt').onclick = () => openBulkModal(currentTrack.anime.id);
+    return;
+  }
+
+  const revealThrough = Math.max(subCueIdx, subMaxSeen);
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < subCues.length; i++) {
+    const submerged = !subRevealAll && i > revealThrough;
+    frag.appendChild(createSubRowEl(subCues[i], i, submerged));
+  }
+  feed.appendChild(frag);
+  subRenderedCount = subCues.length;
+  applyCueStatesInPlace(false);
+  requestAnimationFrame(() => {
+    if (curTab === 'subs') {
+      const target = computeContinuousSubTargetY();
+      if (target !== null) {
+        const sc = $('#sub-scroll');
+        isCamScrolling = true;
+        sc.scrollTop = target;
+        subCamY = target;
+        subCamInited = true;
+        isCamScrolling = false;
+      }
+      updateSubDepthOptics();
+      ensureSubCameraRunning();
+    }
+  });
+}
+
+function computeContinuousSubTargetY() {
+  const sc = $('#sub-scroll');
+  const feed = $('#sub-feed');
+  if (!sc || !feed || !subCues.length) return null;
+  const rows = feed.children;
+  if (!rows.length || !rows[0].classList.contains('sub-row')) return null;
+
+  const anchorIdx = subCueIdx >= 0 ? subCueIdx : Math.max(0, subMaxSeen);
+  const curEl = rows[anchorIdx];
+  if (!curEl) return null;
+
+  const focal = sc.clientHeight * 0.50;
+  const curMid = curEl.offsetTop + curEl.offsetHeight * 0.5;
+  let desiredMid = curMid;
+
+  // Continuously interpolate between current sentence and next sentence so scroll glides at calm constant velocity!
+  if (anchorIdx + 1 < subCues.length && rows[anchorIdx + 1]) {
+    const t = audio.currentTime + subOffset;
+    const c0 = subCues[anchorIdx];
+    const c1 = subCues[anchorIdx + 1];
+    const span = Math.max(0.6, Math.min(8.0, c1.start - c0.start));
+    if (t >= c0.start) {
+      const frac = Math.max(0, Math.min(1, (t - c0.start) / span));
+      const nextMid = rows[anchorIdx + 1].offsetTop + rows[anchorIdx + 1].offsetHeight * 0.5;
+      desiredMid = curMid + (nextMid - curMid) * frac;
+    }
+  }
+  return Math.max(0, desiredMid - focal);
+}
+
+// Top-down water-surface optics on BOTH the top and bottom edges of the reader viewport!
+function updateSubDepthOptics() {
+  const sc = $('#sub-scroll');
+  const feed = $('#sub-feed');
+  if (!sc || !feed || curTab !== 'subs') return;
+  const viewH = sc.clientHeight || 1;
+  const scrollTop = sc.scrollTop;
+  const rows = feed.children;
+  const edgeZone = 0.25;
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r.classList.contains('sub-row')) continue;
+    const top = r.offsetTop;
+    const h = r.offsetHeight;
+    // Skip rows far outside viewport for effortless 60fps performance
+    if (top + h < scrollTop - 220 || top > scrollTop + viewH + 220) continue;
+
+    const mid = top + h * 0.5;
+    const ny = (mid - scrollTop) / viewH; // 0 = top edge, 0.5 = center, 1 = bottom edge
+    let e = 1;
+    if (ny < edgeZone) e = Math.max(0, ny / edgeZone);
+    else if (ny > 1 - edgeZone) e = Math.max(0, (1 - ny) / edgeZone);
+
+    // Smoothstep underwater optical curve (scale + blur + opacity on both top and bottom!)
+    const s = e * e * (3 - 2 * e);
+    const scale = (0.915 + 0.085 * s).toFixed(4);
+    const blur = ((1 - s) * 7.5).toFixed(2) + 'px';
+    const op = (0.08 + 0.92 * s).toFixed(3);
+    r.style.setProperty('--depth-s', scale);
+    r.style.setProperty('--depth-b', blur);
+    r.style.setProperty('--depth-o', op);
+  }
+}
+
+function isUserActiveInApp() {
+  if (popOpen || shiftHeld || hoveredTokEl) return true;
+  if (document.hasFocus() && (Date.now() - lastActivityMs) < SUB_ACTIVE_PAUSE_MS) return true;
+  return false;
+}
+
+function tickSubCamera(now) {
+  subCamRaf = 0;
+  if (curTab !== 'subs' || !subCues.length || subGenerating) { subCamLastMs = 0; return; }
+  const dt = subCamLastMs ? Math.min(0.1, (now - subCamLastMs) / 1000) : 0.016;
+  subCamLastMs = now;
+
+  const sc = $('#sub-scroll');
+  const canGlide = subAutoScroll && userAtBottom && !audio.paused && !isUserActiveInApp();
+
+  if (canGlide) {
+    const target = computeContinuousSubTargetY();
+    if (target !== null) {
+      if (!subCamInited) { subCamY = sc.scrollTop; subCamInited = true; }
+      const diff = target - subCamY;
+      // Critically damped silky continuous glide (zero jerking!)
+      const alpha = 1 - Math.exp(-2.6 * dt);
+      subCamY = Math.abs(diff) < 0.25 ? target : subCamY + diff * alpha;
+      isCamScrolling = true;
+      sc.scrollTop = subCamY;
+      isCamScrolling = false;
+      updateSubDepthOptics();
+    }
+  } else {
+    subCamY = sc.scrollTop;
+  }
+
+  // Keep camera alive while in subtitles view and audio is playing (or settling)
+  if (curTab === 'subs' && (!audio.paused || canGlide)) {
+    subCamRaf = requestAnimationFrame(tickSubCamera);
+  } else {
+    subCamLastMs = 0;
+  }
+}
+
+function ensureSubCameraRunning() {
+  if (!subCamRaf && curTab === 'subs' && subCues.length && !subGenerating) {
+    subCamLastMs = performance.now();
+    subCamRaf = requestAnimationFrame(tickSubCamera);
+  }
+}
+
+function scrollSubsToBottom(smooth = true) {
+  const sc = $('#sub-scroll');
+  userAtBottom = true;
+  $('#sub-jump-bottom').hidden = true;
+  const target = computeContinuousSubTargetY();
+  if (target !== null) {
+    if (smooth) {
+      progScrollUntil = Date.now() + 700;
+      sc.scrollTo({ top: target, behavior: 'smooth' });
+      subCamY = target;
+      subCamInited = true;
+    } else {
+      isCamScrolling = true;
+      sc.scrollTop = target;
+      subCamY = target;
+      subCamInited = true;
+      isCamScrolling = false;
+    }
+    updateSubDepthOptics();
+  }
+  ensureSubCameraRunning();
+}
+
+function applyCueStatesInPlace(shouldSnap) {
+  const feed = $('#sub-feed');
+  const rows = feed.children;
+  const t = audio.currentTime + subOffset;
+  const revealThrough = Math.max(subCueIdx, subMaxSeen);
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r.classList.contains('sub-row')) continue;
+    const idx = Number(r.dataset.subIdx);
+    const isCur = idx === subCueIdx;
+    const isPast = idx < subCueIdx || (subCueIdx < 0 && idx <= subMaxSeen);
+    // Begin smoothly surfacing (浮かぶ) 0.55s before the line is spoken!
+    const approaching = subCues[idx] && t >= subCues[idx].start - 0.55;
+    const submerged = !subRevealAll && idx > revealThrough && !approaching;
+
+    r.classList.toggle('submerged', submerged);
+    r.classList.toggle('cur', isCur);
+    r.classList.toggle('past', !isCur && isPast);
+    r.classList.toggle('future', !isCur && !isPast);
+  }
+
+  if (curTab === 'subs') {
+    if (shouldSnap && subAutoScroll && userAtBottom && !isUserActiveInApp()) {
+      scrollSubsToBottom(true);
+    }
+    updateSubDepthOptics();
+    ensureSubCameraRunning();
+  }
+}
+
+// Runs smoothly every 200ms — ZERO innerHTML rebuilds, ONLY reveals approaching submerged rows & toggles classes!
+function syncSubtitleToAudio(forceScroll = false) {
+  if (!subCues.length || subGenerating) return;
+  const t = audio.currentTime + subOffset;
+  let found = -1;
+  let latestPassed = -1;
+  for (let i = 0; i < subCues.length; i++) {
+    if (t >= subCues[i].start) latestPassed = i;
+    if (t >= subCues[i].start && t <= subCues[i].end) { found = i; break; }
+    if (subCues[i].start > t) break;
+  }
+
+  const cueChanged = found !== subCueIdx;
+  if (latestPassed > subMaxSeen) subMaxSeen = latestPassed;
+  if (cueChanged) subCueIdx = found;
+
+  if (subRenderedCount !== subCues.length) {
+    rebuildSubtitleFeed();
+  }
+
+  applyCueStatesInPlace(forceScroll);
+  if (cueChanged) {
+    if (idleP > 0.04) renderIdleSubtitles();
+    // Organic 浮かぶ T1 (i+1) chime when a newly spoken sentence has exactly 1 unknown word!
+    if (found >= 0 && !audio.paused && !pingedCues.has(found)) {
+      const curRow = $('#sub-feed').querySelector(`.sub-row[data-sub-idx="${found}"]`);
+      if (curRow && curRow.classList.contains('t1')) {
+        pingedCues.add(found);
+        playT1Ping();
+      }
+    }
+  }
+}
+
+/* ================= Yomitan-style Shift+Hover Popout Dictionary ================= */
+function positionDictPop(anchorEl) {
+  const pop = $('#dict-pop');
+  if (!anchorEl) return;
+  const r = anchorEl.getBoundingClientRect();
+  const pw = Math.min(340, window.innerWidth - 24);
+  let left = r.left + r.width / 2 - pw / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));
+  pop.style.left = left + 'px';
+
+  // Prefer below word; flip above if close to bottom dock
+  const spaceBelow = window.innerHeight - r.bottom - 88;
+  if (spaceBelow >= 170) {
+    pop.style.top = (r.bottom + 8) + 'px';
+    pop.style.bottom = 'auto';
+  } else {
+    pop.style.top = 'auto';
+    pop.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+  }
+}
+
+function activeSeriesIdForDict() {
+  if (curTab === 'wordmap' && wmAnimeId) return wmAnimeId;
+  if (currentTrack?.anime?.id) return currentTrack.anime.id;
+  return wmAnimeId || null;
+}
+
+function renderDictPop() {
+  const pop = $('#dict-pop');
+  if (!popOpen || !popWord) { pop.classList.remove('open'); return; }
+  const autoIgn = popAnchorEl?.dataset.autoign === '1';
+  const curSt = getWordStatus(popWord, autoIgn);
+  const seriesId = activeSeriesIdForDict();
+  const topWord = (popData && popData.length) ? popData[0].word : null;
+  const freqHtml = renderFreqStarsHtml(getSeriesFreqInfo(seriesId, popWord, topWord));
+
+  let bodyHtml = '';
+  if (popData === null) {
+    bodyHtml = `<div class="dict-head"><span class="dict-word">${esc(popWord)}</span>${freqHtml}</div><div class="dict-def" style="color:var(--faint)">Looking up…</div>`;
+  } else if (!popData.length) {
+    bodyHtml = `<div class="dict-head"><span class="dict-word">${esc(popWord)}</span>${freqHtml}</div><div class="dict-def" style="color:var(--faint)">No definition found</div>`;
+  } else {
+    const top = popData[0];
+    const s0 = top.senses[0];
+    const hasMore = top.senses.length > 1 || popData.length > 1;
+    const jlpt = top.jlpt && top.jlpt.length ? `<span class="dict-jlpt">${esc(top.jlpt[0])}</span>` : '';
+    let moreHtml = '';
+    if (popExpanded && hasMore) {
+      const extraSenses = top.senses.slice(1).map((s, i) =>
+        `<div class="dict-sense"><span class="dict-pos">${i + 2}. ${esc(s.pos.slice(0, 2).join(', '))}</span>${esc(s.defs.join('; '))}</div>`
+      ).join('');
+      const otherEntries = popData.slice(1, 4).map(e =>
+        `<div class="dict-sense"><b>${esc(e.word)}</b> ${e.reading && e.reading !== e.word ? `<span style="color:var(--cool2)">${esc(e.reading)}</span> ` : ''}— ${esc(e.senses[0]?.defs.join('; ') || '')}</div>`
+      ).join('');
+      moreHtml = `<div class="dict-more">${extraSenses}${otherEntries}</div>`;
+    }
+    bodyHtml = `
+      <div class="dict-head">
+        <span class="dict-word">${esc(top.word)}</span>
+        ${top.reading && top.reading !== top.word ? `<span class="dict-read">${esc(top.reading)}</span>` : ''}
+        ${jlpt}
+        ${freqHtml}
+      </div>
+      ${s0 ? `<div class="dict-def"><span class="dict-pos">${esc(s0.pos.slice(0, 2).join(', '))}</span>${esc(s0.defs.join('; '))}</div>` : ''}
+      ${moreHtml}
+      ${hasMore ? `<button class="dict-expand-btn" data-pop-more="1">${popExpanded ? 'Less ▴' : 'More ▾'}</button>` : ''}`;
+  }
+
+  pop.innerHTML = bodyHtml + `
+    <div class="dict-tags">
+      <button class="vtag known${curSt === 'known' ? ' on' : ''}" data-set-st="known" title="Key 1">Known</button>
+      <button class="vtag learning${curSt === 'learning' ? ' on' : ''}" data-set-st="learning" title="Key 2">Learning</button>
+      <button class="vtag unknown${curSt === 'unknown' ? ' on' : ''}" data-set-st="unknown" title="Key 3">Unknown</button>
+      <button class="vtag ignore${curSt === 'ignore' ? ' on' : ''}" data-set-st="ignore" title="Key 4">Ignore</button>
+    </div>`;
+  pop.classList.add('open');
+}
+
+async function openDictPop(tokEl) {
+  if (!tokEl) return;
+  clearTimeout(popCloseTimer);
+  const word = tokEl.dataset.word;          // Canonical MeCab lemma (for tagging & dict)
+  const surf = tokEl.dataset.surf || word;  // Exact surface text in sentence
+  const pos = tokEl.dataset.pos || '';      // MeCab POS (動詞, 名詞, 副詞, 形容詞)
+  const ctx = tokEl.dataset.ctx || surf;
+  if (!word) return;
+
+  if (popAnchorEl && popAnchorEl !== tokEl) popAnchorEl.classList.remove('active-lookup');
+  popAnchorEl = tokEl;
+  popAnchorEl.classList.add('active-lookup');
+
+  if (subAutoPause && !audio.paused && curTab === 'subs') { audio.pause(); pausedByDict = true; renderDock(); }
+
+  const cacheKey = `${word}|${surf}|${pos}`;
+  const sameLookup = popOpen && popWord === word && popCtx === ctx;
+  popOpen = true;
+  popWord = word;
+  popCtx = ctx;
+  if (!sameLookup) { popExpanded = false; popData = dictClientCache.has(cacheKey) ? dictClientCache.get(cacheKey) : null; }
+
+  positionDictPop(tokEl);
+  renderDictPop();
+
+  if (!dictClientCache.has(cacheKey)) {
+    try {
+      const res = await api(`/api/dict?q=${encodeURIComponent(surf)}&lemma=${encodeURIComponent(word)}&pos=${encodeURIComponent(pos)}&ctx=${encodeURIComponent(ctx)}`);
+      const entries = res.entries || [];
+      if (entries.length) dictClientCache.set(cacheKey, entries);
+      if (popOpen && popWord === word && popCtx === ctx) {
+        popData = entries;
+        renderDictPop();
+      }
+    } catch (e) {
+      if (popOpen && popWord === word && popCtx === ctx) { popData = []; renderDictPop(); }
+    }
+  }
+}
+
+function scheduleCloseDictPop() {
+  clearTimeout(popCloseTimer);
+  popCloseTimer = setTimeout(() => {
+    const pop = $('#dict-pop');
+    if (pop.matches(':hover')) return;
+    if (shiftHeld && hoveredTokEl) return;
+    closeDictPop(true);
+  }, 180);
+}
+
+function closeDictPop(resumeIfPaused) {
+  clearTimeout(popCloseTimer);
+  if (popAnchorEl) { popAnchorEl.classList.remove('active-lookup'); popAnchorEl = null; }
+  popOpen = false; popWord = ''; popExpanded = false;
+  $('#dict-pop').classList.remove('open');
+  if (resumeIfPaused && pausedByDict) {
+    pausedByDict = false;
+    audio.play().catch(() => {});
+    renderDock();
+  } else {
+    pausedByDict = false;
+  }
+}
+
+/* ================= Per-Episode Audio Progress Caching & Play Counts ================= */
+let lastProgressSaveMs = 0;
+let trackCompletedSent = false;
+let pendingResumeSecs = 0;
+
+function progressKey(aid, eid) { return `${aid}/${eid}`; }
+function getProgress(aid, eid) { return (state.progress && state.progress[progressKey(aid, eid)]) || null; }
+
+async function saveTrackProgress(forceCompleted = false, useBeacon = false) {
+  if (!currentTrack) return;
+  const aid = currentTrack.anime.id, eid = currentTrack.ep.id;
+  const dur = (audio.duration && isFinite(audio.duration)) ? audio.duration : (currentTrack.ep.duration_secs || 0);
+  const pos = audio.currentTime || 0;
+  const nearEnd = dur > 15 && (pos >= dur - 10 || (pos / dur) >= 0.95);
+  const shouldComplete = (forceCompleted || nearEnd) && !trackCompletedSent;
+  if (shouldComplete) trackCompletedSent = true;
+  if (!shouldComplete && !forceCompleted && pos < 1 && !nearEnd) return;
+
+  const key = progressKey(aid, eid);
+  const payload = {
+    anime_id: aid,
+    episode_id: eid,
+    position_secs: (shouldComplete || nearEnd) ? 0 : pos,
+    duration_secs: dur,
+    completed: shouldComplete
+  };
+
+  // Update local cache immediately
+  if (!state.progress) state.progress = {};
+  const prev = state.progress[key] || { position_secs: 0, duration_secs: dur, completions: 0, last_played_at: '' };
+  state.progress[key] = {
+    position_secs: payload.position_secs,
+    duration_secs: dur || prev.duration_secs,
+    completions: prev.completions + (shouldComplete ? 1 : 0),
+    last_played_at: new Date().toISOString()
+  };
+
+  if (useBeacon) {
+    navigator.sendBeacon('/api/progress', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    return;
+  }
+  try {
+    const res = await api('/api/progress', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.progress) state.progress[key] = res.progress;
+  } catch (e) {}
+}
+
+/* ================= Live Timers & Goal ================= */
+function updateLiveTimers() {
+  const secs = currentSessionSecs();
+  const clockStr = fmtClock(secs);
+  const pill = $('#live-pill');
+  const isToggl = !!(state.active_session && state.active_session.toggl_live);
+
+  if (sessionActive && currentTrack) {
+    pill.hidden = false;
+    $('#live-dot').className = 'pulse' + (audio.paused ? ' paused' : (isToggl ? ' g' : ''));
+    $('#live-time').textContent = clockStr;
+  } else {
+    pill.hidden = true;
+  }
+
+  const ovClock = $('#active-ov-clock');
+  if (ovClock) ovClock.textContent = clockStr;
+  const pct = audio.duration > 0 ? Math.min(100, (audio.currentTime / audio.duration) * 100) : 0;
+  const ovProg = $('#active-ov-prog');
+  if (ovProg) ovProg.style.width = pct + '%';
+  $('#d-fill').style.width = pct + '%';
+
+  // Periodically cache progress every 4s while playing
+  if (currentTrack && !audio.paused && Date.now() - lastProgressSaveMs >= 4000) {
+    lastProgressSaveMs = Date.now();
+    saveTrackProgress(false, false);
+  }
+
+  syncSubtitleToAudio();
+  updateGoalBar();
+}
+
+function updateGoalBar() {
+  const goalSecs = Math.max(60, (state.config.daily_goal_minutes || 60) * 60);
+  const totalToday = (state.stats.today_secs || 0) + (sessionActive && !audio.paused ? currentSessionSecs() : 0);
+  const pct = Math.min(100, Math.round((totalToday / goalSecs) * 100));
+  $('#progress').style.width = pct + '%';
+  $('#progress').classList.toggle('full', pct >= 100);
+  const togglReady = !!(state.config.has_toggl_token && state.config.toggl_workspace_id && state.config.toggl_auto_sync);
+  $('#vdot').className = 'dot-badge' + (togglReady ? ' on' : '');
+}
+
+async function startBackendSession(animeId, episodeId, playlistId) {
+  try {
+    const res = await api('/api/session/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ anime_id: animeId, episode_id: episodeId, playlist_id: playlistId || null })
+    });
+    state.active_session = res.active_session;
+    state.history = res.history || state.history;
+    state.stats = res.stats || state.stats;
+    sessionStartedMs = Date.now();
+    sessionActive = true;
+    if (res.active_session?.toggl_error) toast('Toggl: ' + res.active_session.toggl_error, true);
+  } catch (e) {}
+  renderAll();
+}
+
+async function stopBackendSession(silent = false) {
+  if (!sessionActive) return;
+  const elapsed = currentSessionSecs();
+  sessionActive = false; sessionStartedMs = 0;
+  try {
+    const res = await api('/api/session/stop', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ elapsed_secs: elapsed })
+    });
+    state.active_session = null;
+    state.history = res.history || state.history;
+    state.stats = res.stats || state.stats;
+    if (!silent && res.logged) {
+      toast(res.logged.toggl_synced ? `${fmtHuman(res.logged.duration_secs)} → Toggl` : `Logged ${fmtHuman(res.logged.duration_secs)}`);
+    }
+  } catch (e) {}
+  renderAll();
+}
+
+async function playQueueIndex(idx) {
+  if (idx < 0 || idx >= queue.length) return;
+  // Save current track progress before switching
+  if (currentTrack) await saveTrackProgress(false, false);
+
+  const item = queue[idx];
+  const anime = getAnime(item.animeId), ep = getEpisode(item.animeId, item.episodeId);
+  if (!anime || !ep || !ep.available || !ep.filename) {
+    const next = queue.findIndex((q, i) => i > idx && getEpisode(q.animeId, q.episodeId)?.available);
+    if (next >= 0) return playQueueIndex(next);
+    openBulkModal(item.animeId);
+    return;
+  }
+  queueIdx = idx;
+  currentTrack = { anime, ep, playlistId: item.playlistId || null };
+  trackCompletedSent = false;
+  lastProgressSaveMs = Date.now();
+
+  // Check cached progress to resume seamlessly (if >3s in and not near the end)
+  const prog = getProgress(anime.id, ep.id);
+  const estDur = (prog && prog.duration_secs > 0) ? prog.duration_secs : (ep.duration_secs || 0);
+  pendingResumeSecs = (prog && prog.position_secs > 3 && (estDur <= 15 || prog.position_secs < estDur - 10))
+    ? prog.position_secs
+    : 0;
+
+  audio.src = `/stream/${encodeURIComponent(anime.id)}/${encodeURIComponent(ep.filename)}`;
+  audio.playbackRate = SPEEDS[speedIdx];
+  loadSubtitlesForTrack(anime.id, ep.id);
+  try {
+    await audio.play();
+    await startBackendSession(anime.id, ep.id, item.playlistId);
+  } catch (e) { toast(e.message, true); }
+  renderDock(); renderAll();
+}
+
+audio.addEventListener('loadedmetadata', () => {
+  if (pendingResumeSecs > 0 && audio.duration > 15 && pendingResumeSecs < audio.duration - 10) {
+    audio.currentTime = pendingResumeSecs;
+    pendingResumeSecs = 0;
+    syncSubtitleToAudio(true);
+  } else {
+    pendingResumeSecs = 0;
+  }
+});
+
+function playAnime(animeId, startEpId = null) {
+  const anime = getAnime(animeId); if (!anime) return;
+  const playable = anime.episodes.filter(e => e.available);
+  if (!playable.length) { selectedAnimeId = animeId; setTab('anime'); openBulkModal(animeId); return; }
+  queue = playable.map(e => ({ animeId: anime.id, episodeId: e.id, playlistId: null }));
+
+  let chosenEpId = startEpId;
+  if (!chosenEpId) {
+    // Auto-resume the most recently played in-progress episode of this anime!
+    let best = null, bestTime = '';
+    for (const e of playable) {
+      const p = getProgress(anime.id, e.id);
+      if (p && p.position_secs > 3 && p.last_played_at > bestTime) {
+        best = e.id; bestTime = p.last_played_at;
+      }
+    }
+    if (best) chosenEpId = best;
+  }
+  playQueueIndex(chosenEpId ? Math.max(0, queue.findIndex(q => q.episodeId === chosenEpId)) : 0);
+}
+
+function playPlaylist(plId, startIdx = 0) {
+  const pl = state.playlists.find(p => p.id === plId); if (!pl) return;
+  const items = pl.items.map(it => ({ animeId: it.anime_id, episodeId: it.episode_id, playlistId: pl.id }))
+    .filter(it => getEpisode(it.animeId, it.episodeId)?.available);
+  if (!items.length) return toast('No MP3s in playlist yet');
+  queue = items;
+  playQueueIndex(Math.min(startIdx, queue.length - 1));
+}
+
+async function togglePlayPause() {
+  pausedByDict = false;
+  if (!currentTrack) {
+    const ready = state.library.find(a => a.episodes.some(e => e.available));
+    return ready ? playAnime(ready.id) : openBulkModal('auto');
+  }
+  if (audio.paused) {
+    await audio.play();
+    if (!sessionActive) await startBackendSession(currentTrack.anime.id, currentTrack.ep.id, currentTrack.playlistId);
+  } else {
+    audio.pause();
+    await saveTrackProgress(false, false);
+    await stopBackendSession(false);
+  }
+  renderDock(); renderAll();
+}
+
+async function stopAndClear() {
+  audio.pause();
+  await saveTrackProgress(false, false);
+  await stopBackendSession(false);
+  renderDock(); renderAll();
+}
+
+audio.addEventListener('ended', async () => {
+  await saveTrackProgress(true, false);
+  await stopBackendSession(false);
+  if (queueIdx + 1 < queue.length) playQueueIndex(queueIdx + 1);
+  else { renderDock(); renderAll(); }
+});
+window.addEventListener('beforeunload', () => {
+  if (currentTrack) saveTrackProgress(false, true);
+  if (sessionActive) navigator.sendBeacon('/api/session/stop', new Blob([JSON.stringify({ elapsed_secs: currentSessionSecs() })], { type: 'application/json' }));
+});
+
+/* ================= RENDER: ANIME ================= */
+function renderAnimeView() {
+  const grid = $('#anime-grid');
+  const isTogglLive = !!(state.active_session && state.active_session.toggl_live);
+
+  grid.innerHTML = state.library.map(a => {
+    const isThis = currentTrack && currentTrack.anime.id === a.id;
+    const showOv = isThis && (sessionActive || !audio.paused);
+    const isSel = selectedAnimeId === a.id;
+    const dotCls = audio.paused ? 'paused' : (isTogglLive ? 'g' : '');
+    const pct = audio.duration > 0 ? Math.min(100, (audio.currentTime / audio.duration) * 100) : 0;
+
+    return `
+      <div class="card${isSel ? ' selected' : ''}${showOv ? ' active-card' : ''}${showOv && isTogglLive ? ' toggl-live' : ''}" data-anime="${esc(a.id)}">
+        ${a.has_cover ? `<img class="card-img" src="${coverUrl(a)}" alt="${esc(a.title)}" loading="lazy">` : `<div class="card-fallback">${esc(a.title.slice(0,2))}</div>`}
+        <div class="card-hover-veil"><div class="card-title">${esc(a.title)}</div></div>
+        <button class="card-play-fab" data-play-anime="${esc(a.id)}" title="Play">${IC_PLAY}</button>
+        ${showOv ? `
+          <div class="timer-overlay">
+            <div class="to-top"><span class="pulse ${dotCls}"></span></div>
+            <div class="to-center">
+              <div class="to-clock" id="active-ov-clock">${fmtClock(currentSessionSecs())}</div>
+              <div class="to-ctrls">
+                <button class="to-btn pri" data-ov="toggle">${audio.paused ? IC_PLAY : IC_PAUSE}</button>
+                <button class="to-btn" data-ov="next">${IC_NEXT}</button>
+                <button class="to-btn" data-ov="stop">${IC_STOP}</button>
+              </div>
+            </div>
+            <div class="to-prog-wrap"><div class="to-prog" id="active-ov-prog" style="width:${pct}%"></div></div>
+          </div>` : ''}
+      </div>`;
+  }).join('') + `<button class="card-add" id="btn-add-anime" title="Add anime">${IC_PLUS}</button>`;
+
+  renderDrawer();
+}
+
+function renderDrawer() {
+  const el = $('#drawer');
+  const anime = selectedAnimeId ? getAnime(selectedAnimeId) : null;
+  if (!anime) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+
+  const ready = anime.episodes.filter(e => e.available).length;
+  const dur = anime.episodes.reduce((s, e) => s + (e.duration_secs || 0), 0);
+
+  el.innerHTML = `
+    <div class="sec-bar">
+      <h2>${esc(anime.title)}</h2>
+      ${dur ? `<span class="sec-meta">${fmtHuman(dur)}</span>` : ''}
+      <span class="sp"></span>
+      ${ready ? `<button class="icon-btn pri" id="dr-play" title="Play">${IC_PLAY}</button>` : ''}
+      ${anime.episodes.some(e => e.has_subtitles) ? `<button class="icon-btn" id="dr-map" title="Word frequency map">${IC_BARS}</button>` : ''}
+      <button class="icon-btn" id="dr-upload" title="Bulk upload MP3 / SRT">${IC_UPLOAD}</button>
+      <button class="icon-btn" id="dr-open" title="Open folder">${IC_FOLDER}</button>
+      <button class="icon-btn" id="dr-close" title="Close">${IC_X}</button>
+    </div>
+    <ul class="rows">
+      ${anime.episodes.map(ep => {
+        const isP = currentTrack && currentTrack.anime.id === anime.id && currentTrack.ep.id === ep.id;
+        const isT = isP && state.active_session && state.active_session.toggl_live;
+        const pr = getProgress(anime.id, ep.id);
+        const pct = (pr && pr.position_secs > 3 && (pr.duration_secs || ep.duration_secs)) ? Math.min(100, (pr.position_secs / (pr.duration_secs || ep.duration_secs)) * 100) : 0;
+        const cnt = pr && pr.completions > 0 ? `<span class="r-cnt" title="Listened in full ${pr.completions}x">${pr.completions}×</span>` : '';
+        return `
+          <li class="r${isP ? ' playing' : ''}${isT ? ' toggl' : ''}${ep.available ? '' : ' unavail'}" data-ep-row="${esc(ep.id)}">
+            ${pct > 0 ? `<span class="r-prog" style="width:${pct.toFixed(1)}%"></span>` : ''}
+            <span class="r-num">${pad(ep.number)}</span>
+            <span class="r-title">${esc(ep.title)}</span>
+            ${ep.has_subtitles ? `<span class="r-subdot" title="Subtitles ready"></span>` : ''}
+            ${cnt}
+            <span class="r-dur">${ep.duration_secs ? fmtClock(ep.duration_secs) : ''}</span>
+            <span class="r-hover-acts">
+              ${state.playlists.length ? `<button class="r-act-ic" data-ep-addpl="${esc(ep.id)}" title="Add to playlist">${IC_PLUS}</button>` : ''}
+            </span>
+          </li>`;
+      }).join('')}
+    </ul>`;
+
+  if ($('#dr-play')) $('#dr-play').onclick = () => playAnime(anime.id);
+  if ($('#dr-map')) $('#dr-map').onclick = () => openWordMap(anime.id, null);
+  $('#dr-upload').onclick = () => openBulkModal(anime.id);
+  $('#dr-open').onclick = () => api(`/api/anime/${encodeURIComponent(anime.id)}/open-folder`, { method: 'POST' });
+  $('#dr-close').onclick = () => { selectedAnimeId = null; renderAnimeView(); };
+
+  $$('[data-ep-row]', el).forEach(row => row.onclick = e => {
+    if (e.target.closest('[data-ep-addpl]')) return;
+    const epId = row.dataset.epRow;
+    const ep = getEpisode(anime.id, epId);
+    if (!ep?.available) return;
+    if (currentTrack && currentTrack.anime.id === anime.id && currentTrack.ep.id === epId) togglePlayPause();
+    else playAnime(anime.id, epId);
+  });
+  $$('[data-ep-addpl]', el).forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    const pl = state.playlists.find(p => p.id === selectedPlaylistId) || state.playlists[0];
+    if (!pl) return;
+    await addEpisodeToPlaylist(pl.id, anime.id, b.dataset.epAddpl);
+  });
+}
+
+/* ================= RENDER: PLAYLISTS (ULTRA CLEAN) ================= */
+function renderPlaylistsView() {
+  if (!selectedPlaylistId && state.playlists.length) selectedPlaylistId = state.playlists[0].id;
+  if (selectedPlaylistId && !state.playlists.some(p => p.id === selectedPlaylistId)) selectedPlaylistId = state.playlists[0]?.id || null;
+
+  $('#pl-top').innerHTML = state.playlists.map(p =>
+    `<button class="pl-pill${p.id === selectedPlaylistId ? ' on' : ''}" data-pl-sel="${esc(p.id)}">${esc(p.name)}</button>`
+  ).join('') + `<button class="icon-btn" id="pl-new-btn" title="New playlist">${IC_PLUS}</button>`;
+
+  const detail = $('#pl-detail');
+  const pl = state.playlists.find(p => p.id === selectedPlaylistId);
+  if (!pl) { detail.innerHTML = ''; return; }
+
+  const ready = pl.items.filter(it => getEpisode(it.anime_id, it.episode_id)?.available).length;
+  const dur = pl.items.reduce((s, it) => s + (getEpisode(it.anime_id, it.episode_id)?.duration_secs || 0), 0);
+  const uniqueAnimes = new Set(pl.items.map(it => it.anime_id)).size;
+  const animeOpts = state.library.map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
+
+  detail.innerHTML = `
+    <div class="sec-bar">
+      <span class="sec-meta">${ready}${dur ? ` · ${fmtHuman(dur)}` : ''}</span>
+      <span class="sp"></span>
+      <button class="icon-btn pri" id="pl-play-all" title="Play">${IC_PLAY}</button>
+      <button class="icon-btn${showPlAddBar ? ' on' : ''}" id="pl-toggle-add" title="Add episodes">${IC_PLUS}</button>
+      <button class="icon-btn" id="pl-del" title="Delete playlist">${IC_TRASH}</button>
+    </div>
+    <div class="inline-add" id="pl-add-bar" ${showPlAddBar ? '' : 'hidden'}>
+      <select id="pl-add-anime">${animeOpts}</select>
+      <select id="pl-add-ep"></select>
+      <button class="btn-pill" id="pl-add-one">Add</button>
+      <button class="btn-sub" id="pl-add-all">All</button>
+    </div>
+    <ul class="rows">
+      ${pl.items.map((it, idx) => {
+        const a = getAnime(it.anime_id), ep = getEpisode(it.anime_id, it.episode_id), avail = !!(ep && ep.available);
+        const isP = currentTrack && currentTrack.playlistId === pl.id && currentTrack.anime.id === it.anime_id && currentTrack.ep.id === it.episode_id;
+        const isT = isP && state.active_session && state.active_session.toggl_live;
+        const pr = getProgress(it.anime_id, it.episode_id);
+        const pct = (pr && pr.position_secs > 3 && (pr.duration_secs || ep?.duration_secs)) ? Math.min(100, (pr.position_secs / (pr.duration_secs || ep.duration_secs)) * 100) : 0;
+        const cnt = pr && pr.completions > 0 ? `<span class="r-cnt" title="Listened in full ${pr.completions}x">${pr.completions}×</span>` : '';
+        return `
+          <li class="r${isP ? ' playing' : ''}${isT ? ' toggl' : ''}${avail ? '' : ' unavail'}" data-pl-row="${idx}">
+            ${pct > 0 ? `<span class="r-prog" style="width:${pct.toFixed(1)}%"></span>` : ''}
+            ${uniqueAnimes > 1 && a?.has_cover ? `<img class="r-thumb" src="${coverUrl(a)}" alt="">` : `<span class="r-num">${idx + 1}</span>`}
+            <span class="r-title">${esc(ep ? ep.title : it.episode_id)}</span>
+            ${ep?.has_subtitles ? `<span class="r-subdot" title="Subtitles ready"></span>` : ''}
+            ${cnt}
+            <span class="r-dur">${ep?.duration_secs ? fmtClock(ep.duration_secs) : ''}</span>
+            <span class="r-hover-acts">
+              <button class="r-act-ic" data-pl-mv="${idx}:-1" title="Up">${IC_UP}</button>
+              <button class="r-act-ic" data-pl-mv="${idx}:1" title="Down">${IC_DOWN}</button>
+              <button class="r-act-ic del" data-pl-rm="${idx}" title="Remove">${IC_X}</button>
+            </span>
+          </li>`;
+      }).join('')}
+    </ul>`;
+
+  const popEp = () => {
+    const a = getAnime($('#pl-add-anime').value);
+    $('#pl-add-ep').innerHTML = a ? a.episodes.map(e => `<option value="${esc(e.id)}">${pad(e.number)} · ${esc(e.title)}</option>`).join('') : '';
+  };
+  popEp();
+  $('#pl-add-anime').onchange = popEp;
+  $('#pl-play-all').onclick = () => playPlaylist(pl.id, 0);
+  $('#pl-toggle-add').onclick = () => { showPlAddBar = !showPlAddBar; $('#pl-add-bar').hidden = !showPlAddBar; $('#pl-toggle-add').classList.toggle('on', showPlAddBar); };
+  $('#pl-del').onclick = async () => {
+    const res = await api(`/api/playlists/${encodeURIComponent(pl.id)}`, { method: 'DELETE' });
+    state.playlists = res.playlists; selectedPlaylistId = state.playlists[0]?.id || null;
+    renderPlaylistsView();
+  };
+  $('#pl-add-one').onclick = () => addEpisodeToPlaylist(pl.id, $('#pl-add-anime').value, $('#pl-add-ep').value);
+  $('#pl-add-all').onclick = async () => {
+    const a = getAnime($('#pl-add-anime').value); if (!a) return;
+    await savePlaylist(pl.id, pl.name, pl.description, [...pl.items, ...a.episodes.map(e => ({ anime_id: a.id, episode_id: e.id }))]);
+    toast(`+${a.episodes.length}`);
+  };
+
+  $$('[data-pl-row]', detail).forEach(row => row.onclick = e => {
+    if (e.target.closest('.r-hover-acts')) return;
+    const target = pl.items[+row.dataset.plRow];
+    if (!getEpisode(target.anime_id, target.episode_id)?.available) return;
+    const items = pl.items.map(it => ({ animeId: it.anime_id, episodeId: it.episode_id, playlistId: pl.id })).filter(it => getEpisode(it.animeId, it.episodeId)?.available);
+    queue = items;
+    playQueueIndex(Math.max(0, items.findIndex(x => x.animeId === target.anime_id && x.episodeId === target.episode_id)));
+  });
+  $$('[data-pl-mv]', detail).forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    const [i, d] = b.dataset.plMv.split(':').map(Number), j = i + d;
+    if (j < 0 || j >= pl.items.length) return;
+    const next = [...pl.items]; [next[i], next[j]] = [next[j], next[i]];
+    await savePlaylist(pl.id, pl.name, pl.description, next);
+  });
+  $$('[data-pl-rm]', detail).forEach(b => b.onclick = async e => {
+    e.stopPropagation();
+    await savePlaylist(pl.id, pl.name, pl.description, pl.items.filter((_, idx) => idx !== +b.dataset.plRm));
+  });
+}
+
+async function savePlaylist(id, name, description, items) {
+  const res = await api(`/api/playlists/${encodeURIComponent(id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, description, items }) });
+  state.playlists = res.playlists; renderPlaylistsView();
+}
+async function addEpisodeToPlaylist(plId, animeId, episodeId) {
+  const pl = state.playlists.find(p => p.id === plId); if (!pl) return;
+  await savePlaylist(pl.id, pl.name, pl.description, [...pl.items, { anime_id: animeId, episode_id: episodeId }]);
+  toast(`Added to ${pl.name}`);
+}
+
+/* ================= RENDER: HISTORY ================= */
+function renderHistoryView() {
+  const st = state.stats || { today_secs: 0, total_secs: 0, streak_days: 0 };
+  const goalSecs = (state.config.daily_goal_minutes || 60) * 60;
+  $('#h-stats').innerHTML = `
+    <div class="stat-it"><div class="v${st.today_secs >= goalSecs ? ' ok' : ''}">${fmtHuman(st.today_secs)}</div><div class="l">Today</div></div>
+    <div class="stat-it"><div class="v">${fmtHuman(st.total_secs)}</div><div class="l">Total</div></div>
+    <div class="stat-it"><div class="v">${st.streak_days}d</div><div class="l">Streak</div></div>`;
+
+  if (!state.history.length) { $('#h-list').innerHTML = ''; return; }
+
+  const groups = new Map(), todayKey = new Date().toDateString(), yestKey = new Date(Date.now() - 864e5).toDateString();
+  for (const h of state.history) {
+    const d = new Date(h.started_at), key = d.toDateString();
+    const label = key === todayKey ? 'Today' : (key === yestKey ? 'Yesterday' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+    if (!groups.has(key)) groups.set(key, { label, secs: 0, rows: [] });
+    const g = groups.get(key); g.secs += h.duration_secs; g.rows.push(h);
+  }
+
+  $('#h-list').innerHTML = [...groups.values()].map(g => `
+    <div class="day-lbl"><span>${esc(g.label)}</span><span>${fmtHuman(g.secs)}</span></div>
+    <ul class="rows">
+      ${g.rows.map(h => {
+        const a = getAnime(h.anime_id);
+        return `
+          <li class="r" style="cursor:default">
+            ${a?.has_cover ? `<img class="r-thumb" src="${coverUrl(a)}" alt="">` : ''}
+            <span class="r-title">${esc(h.anime_title)} <span style="color:var(--faint)">· ${esc(h.episode_title)}</span></span>
+            <span class="r-dur">${fmtClock(h.duration_secs)}</span>
+            ${h.toggl_synced ? `<span class="sync-ok" title="Synced to Toggl">✓</span>` : `<button class="r-act-ic" data-sync="${esc(h.id)}" title="Sync to Toggl">↻</button>`}
+            <span class="r-hover-acts"><button class="r-act-ic del" data-hdel="${esc(h.id)}" title="Remove">${IC_X}</button></span>
+          </li>`;
+      }).join('')}
+    </ul>`).join('');
+
+  $$('[data-sync]', $('#h-list')).forEach(b => b.onclick = async () => {
+    try { const res = await api(`/api/history/${encodeURIComponent(b.dataset.sync)}/sync-toggl`, { method: 'POST' }); state.history = res.history; toast('Synced'); renderHistoryView(); }
+    catch (e) { toast(e.message, true); }
+  });
+  $$('[data-hdel]', $('#h-list')).forEach(b => b.onclick = async () => {
+    const res = await api(`/api/history/${encodeURIComponent(b.dataset.hdel)}`, { method: 'DELETE' });
+    state.history = res.history; state.stats = res.stats; renderHistoryView(); updateGoalBar();
+  });
+}
+
+/* ================= DOCK & SETTINGS ================= */
+function renderDock() {
+  const dock = $('#dock');
+  if (!currentTrack) { dock.hidden = true; return; }
+  dock.hidden = false;
+  const isToggl = !!(state.active_session && state.active_session.toggl_live);
+  dock.classList.toggle('toggl', isToggl);
+  const img = $('#d-thumb');
+  if (currentTrack.anime.has_cover) { img.src = coverUrl(currentTrack.anime); img.hidden = false; } else img.hidden = true;
+  $('#d-title').textContent = currentTrack.ep.title;
+  $('#d-play').innerHTML = audio.paused ? IC_PLAY : IC_PAUSE;
+  $('#d-speed').textContent = SPEEDS[speedIdx] === 1 ? '1×' : SPEEDS[speedIdx] + '×';
+  $('#d-sub-btn').classList.toggle('on', curTab === 'subs');
+}
+
+function syncSettingsUI() {
+  const c = state.config || {};
+  $('#s-tok-hint').textContent = c.has_toggl_token ? c.toggl_token_hint : '';
+  $('#s-tags').value = (c.toggl_tags || []).join(', ');
+  $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
+  $('#s-auto').checked = c.toggl_auto_sync !== false;
+  $('#s-min').value = c.toggl_min_seconds ?? 5;
+  $('#s-goal').value = c.daily_goal_minutes ?? 60;
+  if (!togglWorkspaces.length && c.toggl_workspace_id) $('#s-ws').innerHTML = `<option value="${c.toggl_workspace_id}">${esc(c.toggl_workspace_name || ('Workspace ' + c.toggl_workspace_id))}</option>`;
+  if (!togglProjects.length && c.toggl_project_id) $('#s-proj').innerHTML = `<option value="">None</option><option value="${c.toggl_project_id}" selected>${esc(c.toggl_project_name || ('Project ' + c.toggl_project_id))}</option>`;
+}
+
+function populateWsProj(workspaces, projects, wid, pid) {
+  togglWorkspaces = workspaces || []; togglProjects = projects || [];
+  $('#s-ws').innerHTML = togglWorkspaces.map(w => `<option value="${w.id}"${w.id === wid ? ' selected' : ''}>${esc(w.name)}</option>`).join('') || '<option value="">—</option>';
+  $('#s-proj').innerHTML = '<option value="">None</option>' + togglProjects.map(p => `<option value="${p.id}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+}
+
+/* ================= BULK UPLOAD ================= */
+function openBulkModal(defaultTarget = 'auto', initialFiles = null) {
+  const sel = $('#bu-target');
+  sel.innerHTML = `<option value="auto">Auto-sort by filename</option>` + state.library.map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
+  sel.value = defaultTarget || 'auto';
+  pendingBulkFiles = initialFiles ? sortFilesNaturally(initialFiles) : [];
+  $('#bu-prog-wrap').hidden = true; $('#bu-status').hidden = true;
+  renderBulkPreview();
+  $('#bulk-modal').hidden = false;
+}
+function renderBulkPreview() {
+  const box = $('#bu-preview'), btn = $('#bu-start');
+  if (!pendingBulkFiles.length) { box.hidden = true; btn.hidden = true; return; }
+  pendingBulkFiles = sortFilesNaturally(pendingBulkFiles);
+  const target = $('#bu-target').value;
+  box.hidden = false; btn.hidden = false; btn.disabled = false;
+  btn.textContent = `Upload (${pendingBulkFiles.length})`;
+  box.innerHTML = pendingBulkFiles.map(f => `<div class="bp-row"><span class="bp-name">${esc(f.name)}</span><span class="bp-dest">${esc(guessDestinationLabel(f, target))}</span></div>`).join('');
+}
+async function runBulkUpload() {
+  if (!pendingBulkFiles.length) return;
+  const files = sortFilesNaturally(pendingBulkFiles), target = $('#bu-target').value || 'auto';
+  $('#bu-start').disabled = true; $('#bu-prog-wrap').hidden = false; $('#bu-status').hidden = false;
+  let ok = 0;
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    $('#bu-status').textContent = `${i + 1} / ${files.length} · ${f.name}`;
+    $('#bu-prog-bar').style.width = Math.round(((i + 0.5) / files.length) * 100) + '%';
+    try {
+      await api('/api/upload/bulk-item', {
+        method: 'POST',
+        headers: { 'X-Filename': encodeURIComponent(f.name), 'X-RelPath': encodeURIComponent(f.webkitRelativePath || ''), 'X-Target-Anime': target, 'X-Skip-Rescan': i === files.length - 1 ? '0' : '1' },
+        body: f
+      });
+      ok++;
+    } catch (e) {}
+    $('#bu-prog-bar').style.width = Math.round(((i + 1) / files.length) * 100) + '%';
+  }
+  const scanned = await api('/api/rescan', { method: 'POST' });
+  state.library = scanned.library;
+  pendingBulkFiles = []; $('#bulk-modal').hidden = true;
+  if (currentTrack) loadSubtitlesForTrack(currentTrack.anime.id, currentTrack.ep.id);
+  renderAll(); toast(`Uploaded ${ok}`);
+}
+
+/* ================= SERIES FREQUENCY STATISTICS (MECAB LEMMAS + ZIPF LOG-Z + ECDF) ================= */
+function buildSeriesFreqModel(lines, fileCount, backendWords) {
+  const counts = new Map();
+  const contexts = new Map();
+  const posMap = new Map();
+  let totalTokens = 0;
+
+  if (Array.isArray(backendWords) && backendWords.length) {
+    for (const bw of backendWords) {
+      counts.set(bw.word, bw.count);
+      contexts.set(bw.word, bw.ctx || bw.word);
+      posMap.set(bw.word, bw.pos || '');
+      totalTokens += bw.count;
+    }
+  } else {
+    for (const line of (lines || [])) {
+      const segs = segmentJapanese(line);
+      let pos = 0;
+      for (const s of segs) {
+        const w = s.segment;
+        const p = pos; pos += w.length;
+        if (isAutoIgnoredToken(w, s.isWordLike)) continue;
+        counts.set(w, (counts.get(w) || 0) + 1);
+        totalTokens++;
+        if (!contexts.has(w)) contexts.set(w, line.slice(p, p + 14).replace(/\s+/g, ''));
+      }
+    }
+  }
+
+  const arr = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const N = arr.length;
+  if (!N) {
+    return { byWord: new Map(), totalTypes: 0, totalTokens: 0, files: fileCount || 0, meanLog: 0, stdLog: 0, lines: lines || [], words: backendWords || [] };
+  }
+
+  // Log-transform counts: under Zipf/Pareto tail, ln(C) ~ Exponential(lambda), so z = (ln(C) - mu)/sigma is scale-invariant!
+  let sumLog = 0;
+  for (let i = 0; i < N; i++) sumLog += Math.log(arr[i][1]);
+  const meanLog = sumLog / N;
+  let sumSq = 0;
+  for (let i = 0; i < N; i++) {
+    const d = Math.log(arr[i][1]) - meanLog;
+    sumSq += d * d;
+  }
+  const stdLog = Math.sqrt(sumSq / N);
+
+  // Tie-aware competition rank & mid-rank ECDF percentile
+  const byWord = new Map();
+  let i = 0;
+  while (i < N) {
+    const c = arr[i][1];
+    let j = i + 1;
+    while (j < N && arr[j][1] === c) j++;
+    const tieCount = j - i;
+    const rank = i + 1; // 1-based competition rank
+    const below = N - j;
+    const pct = ((below + 0.5 * tieCount) / N) * 100; // Mid-rank Empirical CDF (0..100)
+    const topPct = Math.max(0.1, 100 - pct);
+    const z = stdLog > 1e-6 ? (Math.log(c) - meanLog) / stdLog : 0;
+
+    let stars = 1;
+    if (c >= 3 && (z >= 2.2 || pct >= 96.5)) stars = 5;
+    else if (c >= 2 && (z >= 1.3 || pct >= 90.0)) stars = 4;
+    else if (c >= 2 && (z >= 0.5 || pct >= 76.0)) stars = 3;
+    else if (c >= 2) stars = 2;
+
+    for (let k = i; k < j; k++) {
+      const w = arr[k][0];
+      byWord.set(w, {
+        word: w,
+        count: c,
+        rank,
+        totalTypes: N,
+        totalTokens,
+        pct,
+        topPct,
+        z,
+        stars,
+        files: fileCount || 0,
+        pos: posMap.get(w) || '',
+        ctx: contexts.get(w) || w
+      });
+    }
+    i = j;
+  }
+
+  return { byWord, totalTypes: N, totalTokens, files: fileCount || 0, meanLog, stdLog, lines: lines || [], words: backendWords || [] };
+}
+
+async function ensureSeriesFreq(animeId, forceRefresh = false) {
+  if (!animeId) return null;
+  if (!forceRefresh && seriesFreqCache.has(animeId)) return seriesFreqCache.get(animeId);
+  if (seriesFreqInflight.has(animeId)) return seriesFreqInflight.get(animeId);
+
+  const p = (async () => {
+    try {
+      const res = await api(`/api/corpus/${encodeURIComponent(animeId)}`);
+      const model = buildSeriesFreqModel(res.lines || [], res.files || 0, res.words || []);
+      seriesFreqCache.set(animeId, model);
+      if (popOpen && activeSeriesIdForDict() === animeId) renderDictPop();
+      return model;
+    } catch (e) {
+      return null;
+    } finally {
+      seriesFreqInflight.delete(animeId);
+    }
+  })();
+  seriesFreqInflight.set(animeId, p);
+  return p;
+}
+
+function getSeriesFreqInfo(animeId, surfaceWord, headWord) {
+  if (!animeId) return null;
+  const model = seriesFreqCache.get(animeId);
+  if (!model || !model.totalTypes) {
+    ensureSeriesFreq(animeId);
+    return null;
+  }
+  const a = surfaceWord ? model.byWord.get(surfaceWord) : null;
+  // Only check headWord if it's a genuine lemma/compound (>= surface length), NEVER a shorter 1-kanji fallback like 中 for 中山!
+  const validLemma = headWord && headWord !== surfaceWord && [...headWord].length >= [...(surfaceWord || '')].length;
+  const b = validLemma ? model.byWord.get(headWord) : null;
+  if (a && b) return a.count >= b.count ? a : b;
+  return a || b || null;
+}
+
+function renderFreqStarsHtml(info) {
+  if (!info) return '';
+  const filled = '★'.repeat(info.stars);
+  const empty = '★'.repeat(5 - info.stars);
+  const topStr = info.topPct < 10 ? info.topPct.toFixed(1) : Math.round(info.topPct);
+  const zStr = (info.z >= 0 ? '+' : '') + info.z.toFixed(2);
+  const tip = `Series frequency: ${info.count}× (${info.files} file${info.files === 1 ? '' : 's'}) · Rank #${info.rank.toLocaleString()} / ${info.totalTypes.toLocaleString()} · Top ${topStr}% · log z = ${zStr}`;
+  return `<span class="dict-freq" title="${esc(tip)}"><span class="dict-stars">${filled}<span class="off">${empty}</span></span><span class="dict-fcnt">${info.count}×</span></span>`;
+}
+
+/* ================= MEDIA WORD FREQUENCY MAP (PROPER WORDS: NOUNS & VERBS) ================= */
+// Extra ultra-common syntax/pronoun/connector exclusions for the Word Map so only genuine nouns, verbs & adjectives appear
+const WM_SKIP_COMMON = new Set([
+  '何','誰','私','僕','俺','君','彼','彼女','自分','皆','みんな','人','事','物','時','所','方',
+  '今','前','後','中','上','下','内','外','間','気','手','目','口','日','年','月','一','二','三',
+  '四','五','六','七','八','九','十','百','千','万','言う','言っ','思い','思う','思っ','見る','見',
+  '見た','見て','来る','行く','出る','入る','持つ','取る','知る','分かる','分る','聞く','話す','書く',
+  'リブリボックス','パブリック','ドメイン','ボランティア','サイト','録音'
+]);
+
+function isProperContentWord(word, isWordLike) {
+  if (isAutoIgnoredToken(word, isWordLike)) return false;
+  if (WM_SKIP_COMMON.has(word)) return false;
+  // Keep Kanji-containing words (nouns, verbs, adjectives) OR 3+ char Katakana loanwords!
+  const hasKanji = /[\u4E00-\u9FFF々]/.test(word);
+  if (hasKanji) {
+    // Skip single-kanji grammatical suffixes/counters that aren't standalone proper words
+    if (word.length === 1 && /[的性化者員家所場度回番第個本枚台匹頭杯冊分秒]/.test(word)) return false;
+    return true;
+  }
+  // 3+ character Katakana loanwords (real nouns like ホテル, エネルギー, システム)
+  if (/^[\u30A0-\u30FFー]{3,}$/.test(word)) return true;
+  return false;
+}
+
+async function openWordMap(animeId, episodeId) {
+  wmReturnTab = curTab !== 'wordmap' ? curTab : lastNonSubTab;
+  wmAnimeId = animeId;
+  wmEpisodeId = episodeId || null;
+  wmScope = episodeId ? 'ep' : 'all';
+  wmFilter = 'all';
+  setTab('wordmap');
+  await loadWordMapData();
+}
+
+async function loadWordMapData() {
+  const anime = getAnime(wmAnimeId);
+  const ep = wmEpisodeId ? getEpisode(wmAnimeId, wmEpisodeId) : null;
+  $('#wm-title').textContent = (wmScope === 'ep' && ep) ? ep.title : (anime ? anime.title : '');
+  $('#wm-scope-ep').hidden = !wmEpisodeId;
+  $('#wm-scope-ep').classList.toggle('on', wmScope === 'ep');
+  $('#wm-scope-all').classList.toggle('on', wmScope === 'all');
+  $('#wm-grid').innerHTML = `<div class="sub-empty-box" style="width:100%">Mapping vocabulary…</div>`;
+  $('#wm-cov').textContent = '';
+
+  try {
+    let lines = [];
+    let backendWords = [];
+    if (wmScope === 'all') {
+      const model = await ensureSeriesFreq(wmAnimeId, true);
+      lines = model ? model.lines : [];
+      backendWords = model ? (model.words || []) : [];
+    } else {
+      ensureSeriesFreq(wmAnimeId); // Ensure series stats ready for 1-5★ dict hovers!
+      const qs = wmEpisodeId ? `?episode_id=${encodeURIComponent(wmEpisodeId)}` : '';
+      const res = await api(`/api/corpus/${encodeURIComponent(wmAnimeId)}${qs}`);
+      lines = res.lines || [];
+      backendWords = res.words || [];
+    }
+
+    if (backendWords.length) {
+      wmEntries = backendWords
+        .filter(w => w.content)
+        .slice(0, 260)
+        .map(w => ({ word: w.word, count: w.count, pos: w.pos || '', ctx: w.ctx || w.word }));
+    } else {
+      const counts = new Map();
+      const contexts = new Map();
+      for (const line of lines) {
+        const segs = segmentJapanese(line);
+        let pos = 0;
+        for (const s of segs) {
+          const w = s.segment;
+          const p = pos; pos += w.length;
+          if (!isProperContentWord(w, s.isWordLike)) continue;
+          counts.set(w, (counts.get(w) || 0) + 1);
+          if (!contexts.has(w)) contexts.set(w, line.slice(p, p + 14).replace(/\s+/g, ''));
+        }
+      }
+      wmEntries = [...counts.entries()]
+        .map(([word, count]) => ({ word, count, pos: '', ctx: contexts.get(word) || word }))
+        .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word))
+        .slice(0, 260);
+    }
+    renderWordMapGrid();
+  } catch (e) {
+    $('#wm-grid').innerHTML = `<div class="sub-empty-box" style="width:100%">${esc(e.message)}</div>`;
+  }
+}
+
+function updateWordMapCoverage() {
+  let totalOcc = 0, knownOcc = 0;
+  for (const e of wmEntries) {
+    const st = getWordStatus(e.word, false);
+    if (st === 'ignore') continue;
+    totalOcc += e.count;
+    if (st === 'known') knownOcc += e.count;
+  }
+  const pct = totalOcc > 0 ? Math.round((knownOcc / totalOcc) * 100) : 0;
+  $('#wm-cov').textContent = `${pct}% known`;
+}
+
+function updateWordMapStatusInPlace(word) {
+  updateWordMapCoverage();
+  if (wmFilter !== 'all') { renderWordMapGrid(); return; }
+  const st = getWordStatus(word, false);
+  if (st === 'ignore') { renderWordMapGrid(); return; }
+  $('#wm-grid').querySelectorAll('.tok').forEach(el => {
+    if (el.dataset.word === word) {
+      el.classList.remove('st-known', 'st-learning', 'st-unknown', 'st-ignore');
+      el.classList.add('st-' + st);
+    }
+  });
+}
+
+function renderWordMapGrid() {
+  const grid = $('#wm-grid');
+  $$('[data-wm-f]').forEach(b => b.classList.toggle('on', b.dataset.wmF === wmFilter));
+
+  if (!wmEntries.length) {
+    grid.innerHTML = `<div class="sub-empty-box" style="width:100%">No synced subtitles yet for this media</div>`;
+    $('#wm-cov').textContent = '';
+    return;
+  }
+
+  updateWordMapCoverage();
+
+  const filtered = wmEntries.filter(e => {
+    const st = getWordStatus(e.word, false);
+    if (st === 'ignore') return false;
+    return wmFilter === 'all' || st === wmFilter;
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="sub-empty-box" style="width:100%">No words in this filter</div>`;
+    return;
+  }
+
+  const maxC = filtered[0].count || 1;
+  grid.innerHTML = filtered.map(e => {
+    const st = getWordStatus(e.word, false);
+    // Proportional font size scaling by frequency (13.5px -> 23px)
+    const ratio = Math.log1p(e.count) / Math.log1p(maxC);
+    const sz = (13.5 + ratio * 9.5).toFixed(1);
+    return `
+      <span class="wm-chip tok st-${st}" data-word="${esc(e.word)}" data-surf="${esc(e.word)}" data-pos="${esc(e.pos || '')}" data-ctx="${esc(e.ctx)}" data-autoign="0">
+        <span class="wm-word" style="font-size:${sz}px">${esc(e.word)}</span>
+        <span class="wm-cnt">${e.count}</span>
+      </span>`;
+  }).join('');
+}
+
+/* ================= NAV & EVENTS ================= */
+function setTab(t) {
+  if (t !== 'subs' && t !== 'wordmap') lastNonSubTab = t;
+  curTab = t;
+  ['anime', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
+    $('#v-' + k).hidden = k !== t;
+    const tb = $('#t-' + k);
+    if (tb) tb.setAttribute('aria-selected', String(k === t));
+  });
+  $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
+  renderAll();
+}
+function toggleSubsTab() {
+  if (curTab === 'subs') { closeDictPop(false); setTab(lastNonSubTab); }
+  else {
+    userAtBottom = true;
+    setTab('subs');
+    if (subRenderedCount !== subCues.length) rebuildSubtitleFeed();
+    syncSubtitleToAudio(false);
+    requestAnimationFrame(() => scrollSubsToBottom(false));
+  }
+}
+function renderAll() {
+  renderAnimeView();
+  if (curTab === 'playlists') renderPlaylistsView();
+  if (curTab === 'history') renderHistoryView();
+  if (curTab === 'subs') { updateSubHeadUI(); applyCueStatesInPlace(false); }
+  renderDock(); updateGoalBar(); updateLiveTimers();
+}
+async function loadState() {
+  state = await api('/api/state');
+  loadVocabFromState(state.vocab);
+  syncSettingsUI();
+  renderAll();
+}
+
+$('#t-anime').onclick = () => setTab('anime');
+$('#t-playlists').onclick = () => setTab('playlists');
+$('#t-history').onclick = () => setTab('history');
+$('#live-pill').onclick = () => { if (currentTrack) { selectedAnimeId = currentTrack.anime.id; setTab('anime'); } };
+$('#b-bulk').onclick = () => openBulkModal(selectedAnimeId || 'auto');
+
+$('#anime-grid').addEventListener('click', e => {
+  if (e.target.closest('#btn-add-anime')) { $('#add-modal').hidden = false; $('#am-title').focus(); return; }
+  const ov = e.target.closest('[data-ov]');
+  if (ov) { e.stopPropagation(); const a = ov.dataset.ov; if (a === 'toggle') togglePlayPause(); else if (a === 'next') playQueueIndex(queueIdx + 1); else if (a === 'stop') stopAndClear(); return; }
+  const fab = e.target.closest('[data-play-anime]');
+  if (fab) { e.stopPropagation(); playAnime(fab.dataset.playAnime); return; }
+  const card = e.target.closest('[data-anime]');
+  if (card) {
+    const id = card.dataset.anime;
+    selectedAnimeId = (selectedAnimeId === id) ? null : id;
+    renderAnimeView();
+    if (selectedAnimeId) requestAnimationFrame(() => $('#drawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  }
+});
+
+// Playlists top bar
+$('#pl-top').addEventListener('click', e => {
+  if (e.target.closest('#pl-new-btn')) { $('#pl-create-bar').hidden = false; $('#pl-new-name').focus(); return; }
+  const p = e.target.closest('[data-pl-sel]');
+  if (p) { selectedPlaylistId = p.dataset.plSel; renderPlaylistsView(); }
+});
+async function doCreatePl() {
+  const name = $('#pl-new-name').value.trim(); if (!name) return;
+  const res = await api('/api/playlists', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, description: '', items: [] }) });
+  state.playlists = res.playlists; selectedPlaylistId = res.playlist.id;
+  $('#pl-new-name').value = ''; $('#pl-create-bar').hidden = true; renderPlaylistsView();
+}
+$('#pl-create-ok').onclick = doCreatePl;
+$('#pl-create-cancel').onclick = () => { $('#pl-create-bar').hidden = true; };
+$('#pl-new-name').addEventListener('keydown', e => { if (e.key === 'Enter') doCreatePl(); });
+
+// Subtitles, Smart Auto-Scroll, Shift+Hover Popout Dictionary & Instant Word Tagging
+$('#d-sub-btn').onclick = toggleSubsTab;
+$('#sub-back').onclick = () => { closeDictPop(false); setTab(lastNonSubTab); };
+$('#sub-size').oninput = e => applySubFontSize(e.target.value);
+$('#sub-wordmap').onclick = () => { if (currentTrack) openWordMap(currentTrack.anime.id, currentTrack.ep.id); };
+$('#sub-reveal').onclick = () => { subRevealAll = !subRevealAll; rebuildSubtitleFeed(); syncSubtitleToAudio(false); };
+$('#sub-autoscroll').onclick = () => {
+  subAutoScroll = !subAutoScroll;
+  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
+  try { localStorage.setItem('kiku.autoScroll', subAutoScroll ? '1' : '0'); } catch (e) {}
+  if (subAutoScroll) {
+    userAtBottom = true;
+    lastActivityMs = Date.now() - SUB_ACTIVE_PAUSE_MS;
+    $('#sub-jump-bottom').hidden = true;
+    scrollSubsToBottom(true);
+    ensureSubCameraRunning();
+  } else if (subCamRaf) {
+    cancelAnimationFrame(subCamRaf);
+    subCamRaf = 0;
+    subCamLastMs = 0;
+  }
+};
+$('#sub-autopause').onclick = () => { subAutoPause = !subAutoPause; $('#sub-autopause').classList.toggle('on', subAutoPause); };
+$('#sub-off-m').onclick = () => { subOffset -= 0.5; updateSubHeadUI(); syncSubtitleToAudio(true); };
+$('#sub-off-p').onclick = () => { subOffset += 0.5; updateSubHeadUI(); syncSubtitleToAudio(true); };
+$('#sub-jump-bottom').onclick = () => scrollSubsToBottom(true);
+
+// Continuous depth optics + smart manual scroll detection (never fights user wheel/scrollbar!)
+const subScrollEl = $('#sub-scroll');
+subScrollEl.addEventListener('wheel', e => {
+  if (e.deltaY < 0) {
+    userAtBottom = false;
+    $('#sub-jump-bottom').hidden = !(curTab === 'subs');
+  }
+}, { passive: true });
+subScrollEl.addEventListener('scroll', () => {
+  updateSubDepthOptics();
+  if (isCamScrolling || Date.now() < progScrollUntil) return;
+  subCamY = subScrollEl.scrollTop;
+  const target = computeContinuousSubTargetY();
+  if (target !== null) {
+    const dist = Math.abs(subScrollEl.scrollTop - target);
+    if (subScrollEl.scrollTop < target - 110) {
+      userAtBottom = false;
+    } else if (dist <= 90) {
+      userAtBottom = true;
+    }
+    $('#sub-jump-bottom').hidden = !(curTab === 'subs' && !userAtBottom);
+  }
+}, { passive: true });
+
+// Word Map controls & Shift+Hover / Click interactions
+$('#wm-back').onclick = () => { closeDictPop(false); setTab(wmReturnTab); };
+$('#wm-scope-ep').onclick = () => { wmScope = 'ep'; loadWordMapData(); };
+$('#wm-scope-all').onclick = () => { wmScope = 'all'; loadWordMapData(); };
+$$('[data-wm-f]').forEach(b => b.onclick = () => { wmFilter = b.dataset.wmF; renderWordMapGrid(); });
+
+const wmGridEl = $('#wm-grid');
+wmGridEl.addEventListener('pointerover', e => {
+  const tok = e.target.closest('.tok');
+  if (tok) { hoveredTokEl = tok; if (e.shiftKey || shiftHeld) openDictPop(tok); }
+});
+wmGridEl.addEventListener('pointerout', e => {
+  const tok = e.target.closest('.tok');
+  if (tok && hoveredTokEl === tok) { hoveredTokEl = null; if (popOpen) scheduleCloseDictPop(); }
+});
+wmGridEl.addEventListener('click', e => {
+  const tok = e.target.closest('.tok'); if (!tok) return;
+  if (e.shiftKey) { openDictPop(tok); return; }
+  const w = tok.dataset.word;
+  const curSt = getWordStatus(w, false);
+  setWordStatus(w, curSt === 'known' ? 'unknown' : 'known');
+});
+
+// Theme swatches in Settings
+$('#theme-row').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme]');
+  if (b) applyTheme(b.dataset.theme);
+});
+
+// Hover tracking + Shift+Hover Yomitan popout
+const subFeedEl = $('#sub-feed');
+subFeedEl.addEventListener('pointerover', e => {
+  const tok = e.target.closest('.tok');
+  if (tok) {
+    hoveredTokEl = tok;
+    if (e.shiftKey || shiftHeld) openDictPop(tok);
+  }
+});
+subFeedEl.addEventListener('pointerout', e => {
+  const tok = e.target.closest('.tok');
+  if (tok && hoveredTokEl === tok) {
+    hoveredTokEl = null;
+    if (popOpen) scheduleCloseDictPop();
+  }
+});
+
+// Single click on a word quickly toggles known/unknown (zero friction!); Shift+click opens popout
+subFeedEl.addEventListener('click', e => {
+  const seek = e.target.closest('[data-seek-cue]');
+  if (seek) {
+    const idx = +seek.dataset.seekCue;
+    if (subCues[idx]) {
+      audio.currentTime = Math.max(0, subCues[idx].start - subOffset);
+      closeDictPop(false);
+      syncSubtitleToAudio(true);
+    }
+    return;
+  }
+  const tok = e.target.closest('.tok');
+  if (!tok) return;
+  if (e.shiftKey) { openDictPop(tok); return; }
+  const w = tok.dataset.word;
+  const curSt = getWordStatus(w, tok.dataset.autoign === '1');
+  setWordStatus(w, curSt === 'known' ? 'unknown' : 'known');
+});
+
+const dictPopEl = $('#dict-pop');
+dictPopEl.addEventListener('pointerenter', () => clearTimeout(popCloseTimer));
+dictPopEl.addEventListener('pointerleave', () => scheduleCloseDictPop());
+dictPopEl.addEventListener('click', e => {
+  const more = e.target.closest('[data-pop-more]');
+  if (more) { popExpanded = !popExpanded; renderDictPop(); return; }
+  const stBtn = e.target.closest('[data-set-st]');
+  if (stBtn && popWord) { setWordStatus(popWord, stBtn.dataset.setSt); return; }
+});
+
+// Vocab export & import in Settings
+$('#s-vocab-exp').onclick = () => { window.location.href = '/api/vocab/export?format=json'; };
+$('#s-vocab-imp').onclick = () => $('#vocab-file-input').click();
+$('#vocab-file-input').onchange = async e => {
+  const f = e.target.files?.[0]; e.target.value = ''; if (!f) return;
+  try {
+    const text = await f.text();
+    const res = await api('/api/vocab/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, status: 'known' }) });
+    loadVocabFromState(res.vocab);
+    refreshVocabHighlights();
+    toast(`Imported ${res.imported} words`);
+  } catch (err) { toast(err.message, true); }
+};
+
+// Dock scrub & controls
+const scrub = $('#d-scrub');
+function seekAt(e) {
+  if (!audio.duration) return;
+  const r = scrub.getBoundingClientRect();
+  audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+  updateLiveTimers();
+}
+let scrubbing = false;
+scrub.addEventListener('pointerdown', e => { scrubbing = true; scrub.setPointerCapture(e.pointerId); seekAt(e); });
+scrub.addEventListener('pointermove', e => { if (scrubbing) seekAt(e); });
+scrub.addEventListener('pointerup', () => { scrubbing = false; saveTrackProgress(false, false); });
+
+$('#d-play').onclick = togglePlayPause;
+$('#d-prev').onclick = () => playQueueIndex(queueIdx - 1);
+$('#d-next').onclick = () => playQueueIndex(queueIdx + 1);
+$('#d-speed').onclick = () => { speedIdx = (speedIdx + 1) % SPEEDS.length; audio.playbackRate = SPEEDS[speedIdx]; renderDock(); };
+
+// Bulk upload modal & global drop
+$('#bu-target').onchange = renderBulkPreview;
+$('#bu-cancel').onclick = () => { $('#bulk-modal').hidden = true; };
+$('#bulk-modal').addEventListener('click', e => { if (e.target === $('#bulk-modal')) $('#bulk-modal').hidden = true; });
+$('#bu-pick-files').onclick = () => $('#bu-files-input').click();
+$('#bu-pick-folder').onclick = () => $('#bu-folder-input').click();
+$('#bu-files-input').onchange = e => { pendingBulkFiles = [...pendingBulkFiles, ...e.target.files]; e.target.value = ''; renderBulkPreview(); };
+$('#bu-folder-input').onchange = e => { pendingBulkFiles = [...pendingBulkFiles, ...e.target.files]; e.target.value = ''; renderBulkPreview(); };
+$('#bu-start').onclick = runBulkUpload;
+const buDrop = $('#bu-drop');
+buDrop.addEventListener('dragover', e => { e.preventDefault(); buDrop.classList.add('over'); });
+buDrop.addEventListener('dragleave', () => buDrop.classList.remove('over'));
+buDrop.addEventListener('drop', e => { e.preventDefault(); buDrop.classList.remove('over'); if (e.dataTransfer.files.length) { pendingBulkFiles = [...pendingBulkFiles, ...e.dataTransfer.files]; renderBulkPreview(); } });
+
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { if (e.dataTransfer?.types?.includes('Files')) { dragDepth++; if ($('#bulk-modal').hidden) $('#drop-veil').hidden = false; } });
+window.addEventListener('dragover', e => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
+window.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (dragDepth === 0) $('#drop-veil').hidden = true; });
+window.addEventListener('drop', e => {
+  dragDepth = 0; $('#drop-veil').hidden = true;
+  if (!$('#bulk-modal').hidden) return;
+  if (e.dataTransfer?.files?.length) { e.preventDefault(); openBulkModal(selectedAnimeId || 'auto', [...e.dataTransfer.files]); }
+});
+
+// Add anime modal
+$('#am-cancel').onclick = () => { $('#add-modal').hidden = true; };
+$('#add-modal').addEventListener('click', e => { if (e.target === $('#add-modal')) $('#add-modal').hidden = true; });
+$('#am-ok').onclick = async () => {
+  const title = $('#am-title').value.trim(); if (!title) return;
+  const res = await api('/api/anime', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, jp_title: $('#am-jp').value.trim() }) });
+  state.library = res.library; selectedAnimeId = res.id;
+  $('#am-title').value = ''; $('#am-jp').value = ''; $('#add-modal').hidden = true; renderAnimeView();
+};
+
+// Settings popover
+$('#b-set').onclick = () => { const p = $('#pop'); p.hidden = !p.hidden; if (!p.hidden) syncSettingsUI(); };
+document.addEventListener('click', e => {
+  const p = $('#pop'); if (!p.hidden && !p.contains(e.target) && !e.target.closest('#b-set')) p.hidden = true;
+});
+$('#s-connect').onclick = async () => {
+  const btn = $('#s-connect'); btn.disabled = true;
+  try {
+    const res = await api('/api/toggl/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: $('#s-token').value.trim() || null }) });
+    state.config = res.config; $('#s-token').value = '';
+    const t = res.toggl;
+    $('#s-toggl-status').innerHTML = `<span style="color:var(--g2)">${esc(t.fullname || t.email)}</span>`;
+    populateWsProj(t.workspaces, t.projects, state.config.toggl_workspace_id || t.default_workspace_id, state.config.toggl_project_id);
+    syncSettingsUI(); updateGoalBar(); toast('Toggl connected');
+  } catch (e) { $('#s-toggl-status').innerHTML = `<span style="color:var(--red)">${esc(e.message)}</span>`; }
+  finally { btn.disabled = false; }
+};
+$('#s-ws').onchange = async () => {
+  const wid = Number($('#s-ws').value); if (!wid) return;
+  const res = await api(`/api/toggl/projects?workspace_id=${wid}`);
+  populateWsProj(togglWorkspaces, res.projects, wid, null);
+};
+$('#s-save').onclick = async () => {
+  const ws = $('#s-ws'), pr = $('#s-proj'), wid = ws.value ? Number(ws.value) : null, pid = pr.value ? Number(pr.value) : null;
+  const res = await api('/api/config', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      toggl_api_token: $('#s-token').value.trim() || null,
+      toggl_workspace_id: wid, toggl_workspace_name: wid ? ws.options[ws.selectedIndex]?.text || '' : '',
+      toggl_project_id: pid, clear_toggl_project: !pid, toggl_project_name: pid ? pr.options[pr.selectedIndex]?.text || '' : '',
+      toggl_tags: $('#s-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+      toggl_tag_anime: $('#s-tag-anime').checked, toggl_auto_sync: $('#s-auto').checked,
+      toggl_min_seconds: Number($('#s-min').value) || 5, daily_goal_minutes: Number($('#s-goal').value) || 60
+    })
+  });
+  state.config = res.config; $('#s-token').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
+};
+$('#s-open-root').onclick = () => api('/api/open-media-root', { method: 'POST' });
+$('#s-rescan').onclick = async () => { state.library = (await api('/api/rescan', { method: 'POST' })).library; renderAll(); toast('Rescanned'); };
+
+// Keyboard (including Shift+Hover trigger & 1/2/3/4 instant word tagging!)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Shift') {
+    shiftHeld = true;
+    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap')) openDictPop(hoveredTokEl);
+    return;
+  }
+  const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');
+  if (e.altKey && e.key === '1') { e.preventDefault(); setTab('anime'); return; }
+  if (e.altKey && e.key === '2') { e.preventDefault(); setTab('playlists'); return; }
+  if (e.altKey && e.key === '3') { e.preventDefault(); setTab('history'); return; }
+  if (e.key === 'Escape') {
+    if (popOpen) { closeDictPop(true); return; }
+    if (curTab === 'wordmap') { setTab(wmReturnTab); return; }
+    if (curTab === 'subs') { setTab(lastNonSubTab); return; }
+    $('#pop').hidden = true; $('#add-modal').hidden = true; $('#bulk-modal').hidden = true; return;
+  }
+  if (typing) return;
+  // Instant 1/2/3/4 tagging for active lookup or hovered word
+  const activeWord = popOpen ? popWord : (hoveredTokEl ? hoveredTokEl.dataset.word : '');
+  if ((curTab === 'subs' || curTab === 'wordmap') && activeWord && !e.altKey && !e.ctrlKey) {
+    if (e.key === '1' || e.key === '!') { e.preventDefault(); setWordStatus(activeWord, 'known'); return; }
+    if (e.key === '2' || e.key === '@') { e.preventDefault(); setWordStatus(activeWord, 'learning'); return; }
+    if (e.key === '3' || e.key === '#') { e.preventDefault(); setWordStatus(activeWord, 'unknown'); return; }
+    if (e.key === '4' || e.key === '$') { e.preventDefault(); setWordStatus(activeWord, 'ignore'); return; }
+  }
+  if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
+  else if (e.key === 's' || e.key === 'S') { toggleSubsTab(); }
+  else if (e.key === 'j' || e.key === 'J') audio.currentTime = Math.max(0, audio.currentTime - 10);
+  else if (e.key === 'l' || e.key === 'L') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+  else if (e.key === 'n' || e.key === 'N') playQueueIndex(queueIdx + 1);
+  else if (e.key === 'p' || e.key === 'P') playQueueIndex(queueIdx - 1);
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'Shift') {
+    shiftHeld = false;
+    if (popOpen) scheduleCloseDictPop();
+  }
+});
+
+/* ================= AMBIENT IDLE SUBTITLE VEIL ================= */
+const IDLE_START_MS = 7000;   // Begin gradual blur after 7s of inactivity
+const IDLE_RAMP_MS  = 15000;  // Smoothly reach full ambient subtitles by 22s
+let lastActivityMs = Date.now();
+let lastPtrX = -1, lastPtrY = -1;
+let idleP = 0;                // Current visual blend [0..1]
+let idleRenderedIdx = -2;
+let idleRafId = 0;
+let idleLastFrameMs = 0;
+
+function isIdleEligible() {
+  if (!currentTrack || audio.paused || !subCues.length || subGenerating) return false;
+  if (curTab === 'subs') return false;
+  if (popOpen || shiftHeld) return false;
+  if (!$('#pop').hidden || !$('#bulk-modal').hidden || !$('#add-modal').hidden) return false;
+  return true;
+}
+
+function renderIdleSubtitles(force = false) {
+  const showIdx = subCueIdx >= 0 ? subCueIdx : subMaxSeen;
+  if (!force && showIdx === idleRenderedIdx) return;
+  idleRenderedIdx = showIdx;
+  const stage = $('#idle-stage');
+  if (showIdx < 0 || !subCues[showIdx]) { stage.innerHTML = ''; return; }
+
+  // Show ONLY the current subtitle rising gently to the surface (浮かぶ)
+  const cue = subCues[showIdx];
+  stage.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'idle-row cur';
+  const { html, unknownCount: n } = renderCueTokensHtml(cue, true);
+  if (n === 1) row.classList.add('t1');
+  else if (n === 2) row.classList.add('t2');
+  else if (n === 3) row.classList.add('t3');
+  row.innerHTML = `<div class="idle-line">${html}</div>`;
+  stage.appendChild(row);
+}
+
+function applyIdleVisual() {
+  const veil = $('#idle-veil');
+  if (idleP <= 0.002) {
+    idleP = 0;
+    veil.classList.remove('active');
+    veil.style.setProperty('--idle-p', '0');
+    veil.style.setProperty('--idle-sub-op', '0');
+    return;
+  }
+  veil.classList.add('active');
+  // Smoothstep for backdrop blur; reveal current subtitle ahead of blur so there is ZERO readability downtime!
+  const smooth = idleP * idleP * (3 - 2 * idleP);
+  const subOp = Math.min(1, Math.pow(smooth, 0.55) * 1.45);
+  veil.style.setProperty('--idle-p', smooth.toFixed(4));
+  veil.style.setProperty('--idle-sub-op', subOp.toFixed(4));
+  if (subOp > 0.01) renderIdleSubtitles(false);
+}
+
+function tickIdleVeil(now) {
+  idleRafId = 0;
+  const dt = idleLastFrameMs ? Math.min(120, now - idleLastFrameMs) : 16;
+  idleLastFrameMs = now;
+
+  let target = 0;
+  if (isIdleEligible()) {
+    const idleMs = Date.now() - lastActivityMs;
+    if (idleMs > IDLE_START_MS) {
+      target = Math.min(1, (idleMs - IDLE_START_MS) / IDLE_RAMP_MS);
+    }
+  }
+
+  if (target > idleP) {
+    // Gradual organic drift in
+    idleP = Math.min(target, idleP + dt / IDLE_RAMP_MS);
+  } else if (target < idleP) {
+    // Crisp ~240ms snap-back wake when user moves/clicks/scrolls!
+    idleP = Math.max(target, idleP - dt / 240);
+  }
+
+  applyIdleVisual();
+
+  if (idleP > 0 || target > 0) {
+    idleRafId = requestAnimationFrame(tickIdleVeil);
+  } else {
+    idleLastFrameMs = 0;
+  }
+}
+
+function noteUserActivity() {
+  const wasAmbient = idleP > 0.08;
+  lastActivityMs = Date.now();
+  // When snapping out of ambience on the Reader, land directly on the live current subtitle!
+  if (wasAmbient && curTab === 'subs' && subCues.length) {
+    scrollSubsToBottom(false);
+  }
+  if (idleP > 0 && !idleRafId) {
+    idleLastFrameMs = performance.now();
+    idleRafId = requestAnimationFrame(tickIdleVeil);
+  }
+}
+
+// Only break ambience when actively interacting INSIDE Kiku!
+// Passing the cursor over an unfocused Kiku window while working in other apps will NOT break ambience.
+window.addEventListener('pointermove', e => {
+  if (!document.hasFocus()) return;
+  if (lastPtrX >= 0 && Math.hypot(e.clientX - lastPtrX, e.clientY - lastPtrY) < 6) return;
+  lastPtrX = e.clientX; lastPtrY = e.clientY;
+  noteUserActivity();
+}, { passive: true });
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => {
+  window.addEventListener(ev, noteUserActivity, { passive: true, capture: true });
+});
+// Keep advancing smoothly even while Kiku is unfocused on a side monitor
+setInterval(() => {
+  if (!idleRafId) {
+    const eligible = isIdleEligible();
+    const idleMs = Date.now() - lastActivityMs;
+    if (eligible && idleMs >= IDLE_START_MS) {
+      const target = Math.min(1, (idleMs - IDLE_START_MS) / IDLE_RAMP_MS);
+      if (idleP < target) {
+        idleP = Math.min(target, idleP + 250 / IDLE_RAMP_MS);
+        applyIdleVisual();
+      }
+      idleLastFrameMs = performance.now();
+      idleRafId = requestAnimationFrame(tickIdleVeil);
+    } else if (idleP > 0 && !eligible) {
+      idleLastFrameMs = performance.now();
+      idleRafId = requestAnimationFrame(tickIdleVeil);
+    }
+  }
+}, 250);
+
+// Restore saved theme, subtitle font size & auto-scroll preference
+try { applyTheme(localStorage.getItem('kiku.theme') || 'split-flame'); } catch (e) { applyTheme('split-flame'); }
+try { const savedSz = localStorage.getItem('kiku.subSize'); if (savedSz) applySubFontSize(savedSz); } catch (e) {}
+try {
+  const savedAuto = localStorage.getItem('kiku.autoScroll');
+  if (savedAuto !== null) subAutoScroll = savedAuto !== '0';
+  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
+} catch (e) {}
+
+setInterval(updateLiveTimers, 200);
+loadState().catch(e => toast(e.message, true));
+</script>
+</body>
+</html>

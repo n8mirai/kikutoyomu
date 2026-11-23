@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#120A1C"/>
+      <stop offset="52%" stop-color="#24173A"/>
+      <stop offset="100%" stop-color="#3A1530"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="72%" cy="26%" r="36%">
+      <stop offset="0%" stop-color="#F9A893" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#EE4766" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#120A1C" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="lilacGlow" cx="24%" cy="30%" r="42%">
+      <stop offset="0%" stop-color="#B49DE0" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#120A1C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B49DE0"/>
+      <stop offset="50%" stop-color="#EE4766"/>
+      <stop offset="100%" stop-color="#F6E08A"/>
+    </linearGradient>
+    <linearGradient id="torii" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EE4766"/>
+      <stop offset="100%" stop-color="#730531"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="600" fill="url(#sky)"/>
+  <rect width="600" height="600" fill="url(#lilacGlow)"/>
+  <rect width="600" height="600" fill="url(#moonGlow)"/>
+
+  <!-- Subtle diagonal split-flame light beam -->
+  <polygon points="0,0 320,0 240,600 0,600" fill="#8C73B7" opacity="0.06"/>
+  <polygon points="320,0 600,0 600,600 240,600" fill="#EE4766" opacity="0.05"/>
+
+  <!-- Soundwave rings behind moon -->
+  <g fill="none" stroke-linecap="round">
+    <circle cx="428" cy="156" r="96" stroke="#B49DE0" stroke-opacity="0.16" stroke-width="2" stroke-dasharray="14 10"/>
+    <circle cx="428" cy="156" r="136" stroke="#EE4766" stroke-opacity="0.14" stroke-width="1.5" stroke-dasharray="22 14"/>
+    <circle cx="428" cy="156" r="176" stroke="#F6E08A" stroke-opacity="0.09" stroke-width="1.2"/>
+  </g>
+
+  <!-- Crescent moon -->
+  <circle cx="428" cy="156" r="56" fill="#F9E3C6"/>
+  <circle cx="448" cy="144" r="48" fill="#231333"/>
+
+  <!-- Stars -->
+  <g fill="#F3E6F2" opacity="0.7">
+    <circle cx="96" cy="94" r="2.2"/>
+    <circle cx="164" cy="68" r="1.5"/>
+    <circle cx="240" cy="118" r="2"/>
+    <circle cx="132" cy="176" r="1.4"/>
+    <circle cx="298" cy="76" r="1.8"/>
+    <circle cx="518" cy="88" r="2"/>
+    <circle cx="542" cy="240" r="1.6"/>
+    <circle cx="72" cy="238" r="1.8"/>
+  </g>
+
+  <!-- Distant mist mountains -->
+  <path d="M0,415 Q120,340 250,395 T510,370 L600,388 L600,600 L0,600 Z" fill="#170D25" opacity="0.88"/>
+  <path d="M0,455 Q170,395 340,445 T600,425 L600,600 L0,600 Z" fill="#10071B"/>
+
+  <!-- Stylized Torii gate silhouette with crimson glow -->
+  <g transform="translate(110, 260)">
+    <path d="M-12,24 Q190,-8 392,24 L384,42 Q190,14 -4,42 Z" fill="url(#torii)"/>
+    <rect x="24" y="64" width="332" height="16" rx="4" fill="#C93556"/>
+    <rect x="74" y="34" width="26" height="225" rx="4" fill="#1D0E2B" stroke="#EE4766" stroke-opacity="0.45" stroke-width="2"/>
+    <rect x="280" y="34" width="26" height="225" rx="4" fill="#1D0E2B" stroke="#EE4766" stroke-opacity="0.45" stroke-width="2"/>
+    <rect x="176" y="30" width="28" height="46" rx="3" fill="#120A1C" stroke="#F9A893" stroke-opacity="0.6" stroke-width="2"/>
+  </g>
+
+  <!-- Audio waveform bars across water reflection -->
+  <g transform="translate(0, 488)" fill="url(#flame)" opacity="0.85">
+    <rect x="92" y="14" width="8" height="26" rx="4"/>
+    <rect x="114" y="6" width="8" height="42" rx="4"/>
+    <rect x="136" y="-8" width="8" height="70" rx="4"/>
+    <rect x="158" y="4" width="8" height="46" rx="4"/>
+    <rect x="180" y="-14" width="8" height="82" rx="4"/>
+    <rect x="202" y="8" width="8" height="38" rx="4"/>
+    <rect x="224" y="-4" width="8" height="62" rx="4"/>
+    <rect x="246" y="12" width="8" height="30" rx="4"/>
+    <rect x="268" y="-18" width="8" height="90" rx="4"/>
+    <rect x="290" y="-6" width="8" height="66" rx="4"/>
+    <rect x="312" y="6" width="8" height="42" rx="4"/>
+    <rect x="334" y="-12" width="8" height="78" rx="4"/>
+    <rect x="356" y="2" width="8" height="50" rx="4"/>
+    <rect x="378" y="-8" width="8" height="70" rx="4"/>
+    <rect x="400" y="10" width="8" height="34" rx="4"/>
+    <rect x="422" y="-2" width="8" height="58" rx="4"/>
+    <rect x="444" y="8" width="8" height="38" rx="4"/>
+    <rect x="466" y="16" width="8" height="22" rx="4"/>
+    <rect x="488" y="20" width="8" height="14" rx="4"/>
+  </g>
+
+  <!-- Subtle Japanese calligraphy accent -->
+  <text x="58" y="120" font-family="'Yu Gothic UI','Meiryo',sans-serif" font-size="44" font-weight="700" fill="#F3E6F2" opacity="0.92" letter-spacing="6">聴く</text>
+  <text x="60" y="152" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="600" fill="#B49DE0" opacity="0.9" letter-spacing="4">PUBLIC DOMAIN JP</text>
+</svg>
