@@ -495,6 +495,36 @@
   ],
   "history": [
     {
+      "id": "ses-1795461801904",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-16",
+      "episode_title": "Ep 16: Gongitsune (Niimi) Pt 2",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T19:23:21Z",
+      "ended_at": "2026-11-23T19:26:18Z",
+      "duration_secs": 176,
+      "toggl_entry_id": 4631385558,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
+      "id": "ses-1795461750592",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-15",
+      "episode_title": "Ep 15: Gongitsune (Niimi) Pt 1",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-23T19:22:30Z",
+      "ended_at": "2026-11-23T19:23:21Z",
+      "duration_secs": 50,
+      "toggl_entry_id": 4631384638,
+      "toggl_synced": true,
+      "toggl_error": null
+    },
+    {
       "id": "ses-1795461558021",
       "anime_id": "example-japanese-stories",
       "anime_title": "Japanese Stories",
@@ -1157,10 +1187,16 @@
       "last_played_at": "2026-11-23T18:03:45Z"
     },
     "example-japanese-stories/ep-15": {
-      "position_secs": 272.248674,
+      "position_secs": 0.0,
       "duration_secs": 315.898776,
-      "completions": 0,
-      "last_played_at": "2026-11-23T18:09:37Z"
+      "completions": 1,
+      "last_played_at": "2026-11-23T19:23:21Z"
+    },
+    "example-japanese-stories/ep-16": {
+      "position_secs": 0.0,
+      "duration_secs": 177.580408,
+      "completions": 1,
+      "last_played_at": "2026-11-23T19:26:18Z"
     },
     "example-japanese-stories/ep-17": {
       "position_secs": 5.738079,
@@ -1190,7 +1226,7 @@
       "position_secs": 10.114584,
       "duration_secs": 3447.250068,
       "completions": 0,
-      "last_played_at": "2026-11-23T19:19:27Z"
+      "last_played_at": "2026-11-23T19:22:26Z"
     }
   },
   "custom_anime": []
