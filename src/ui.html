@@ -126,8 +126,11 @@ body::before{
   background-clip:padding-box;
   isolation:isolate;
 }
-.app-pill[aria-selected="true"],.yt-pill.on,#live-pill,.yt-trace-bar{
+.app-pill[aria-selected="true"],#live-pill,.yt-trace-bar{
   box-shadow:var(--lg-rim),0 8px 22px rgba(0,0,0,.14);
+}
+.yt-pill.on{
+  box-shadow:var(--lg-rim)!important;
 }
 .sub-row.cur .sub-row-inner{
   border-radius:16px;
@@ -1524,7 +1527,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 
   <!-- APP: VOCAB PLAYGROUND (Dedicated Calibration Queue + Priority / Learning / Known browser) -->
   <section id="v-vocab" class="view-pane" hidden>
-    <div style="max-width:780px;margin:0 auto">
+    <div style="width:100%">
       <div class="yt-pills" id="vp-pills" style="margin-bottom:16px">
         <button class="yt-pill on" data-vp-tab="cal">Calibrate</button>
         <button class="yt-pill" data-vp-tab="priority" id="vp-tab-pri">Priority</button>
@@ -4012,7 +4015,7 @@ async function loadAiCalibration(force = false) {
 function renderAiCalibrationBar() {
   const bar = $('#ai-cal-bar');
   if (!aiCalCandidates.length) { bar.innerHTML = ''; return; }
-  bar.innerHTML = aiCalCandidates.slice(0, 8).map((c, i) => renderCalChipHtml(c, `--stagger:${i * 55}ms`)).join('');
+  bar.innerHTML = aiCalCandidates.slice(0, 36).map((c, i) => renderCalChipHtml(c, `--stagger:${Math.min(i, 20) * 24}ms`)).join('');
 }
 
 function renderMd(raw) {

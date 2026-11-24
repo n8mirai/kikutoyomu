@@ -946,7 +946,7 @@ fn collect_calibration_words(
         }
     }
     let km = KnowledgeModel::build(&vocab);
-    km.suggest_calibration(&vocab, jm_g.as_ref(), &lemmas, limit.clamp(1, 20))
+    km.suggest_calibration(&vocab, jm_g.as_ref(), &lemmas, limit.clamp(1, 80))
 }
 
 fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
@@ -2512,11 +2512,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 }
             }
         }
-        let mut items = collect_calibration_words(&state_arc, 40);
+        let mut items = collect_calibration_words(&state_arc, 72);
         if !excluded.is_empty() {
             items.retain(|c| !excluded.contains(&c.word));
         }
-        items.truncate(12);
+        items.truncate(36);
         respond_json(req, 200, &serde_json::json!({ "candidates": items }));
         return;
     }
