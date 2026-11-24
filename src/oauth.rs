@@ -1,7 +1,8 @@
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::Engine;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::models::GoogleOAuthSecrets;
 
@@ -17,6 +18,7 @@ pub struct PendingOAuth {
 
 #[derive(Debug, Clone)]
 pub enum AiAuth {
+    GeminiCli(PathBuf),
     Bearer(String),
     ApiKey(String),
 }

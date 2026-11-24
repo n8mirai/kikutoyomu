@@ -10,10 +10,11 @@ data/dict_cache.json
 data/edge-profile/
 data/whisper-batch.log
 
-# Large downloadable dictionaries & Whisper models (>100 MB — run setup.ps1 to fetch)
+# Large downloadable dictionaries, Whisper models & portable Node/Gemini CLI (run setup.ps1 to fetch)
 data/jmdict-eng.json
 data/jmnedict.json
 tools/whisper/
+tools/node/
 
 # Audio files (add your own MP3s locally; synced .srt subtitles & covers are tracked!)
 media/**/*.mp3

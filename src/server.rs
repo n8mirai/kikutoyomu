@@ -10,6 +10,7 @@ use percent_encoding::percent_decode_str;
 use serde::{Deserialize, Serialize};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
+use crate::cloud_sync;
 use crate::dict::{LocalJmDict, LocalNameDict};
 use crate::library::{
     default_playlists, detect_anime_for_file, scan_library, slugify, sync_japanese_stories_playlist,
@@ -46,6 +47,7 @@ pub struct SharedState {
     pub synopses: SynopsisStore,
     pub google_oauth: GoogleOAuthSecrets,
     pub pending_oauth: Option<PendingOAuth>,
+    pub cloud_sync_secret: String,
 }
 
 impl SharedState {
@@ -116,6 +118,7 @@ impl SharedState {
             data.config.gemini_api_key = loaded_secrets.gemini_api_key;
         }
         let google_oauth = loaded_secrets.google_oauth;
+        let cloud_sync_secret = loaded_secrets.cloud_sync_secret;
         let synopses = SynopsisStore::load(&synopsis_file);
 
         let library = scan_library(&media_root, &data.custom_anime);
@@ -169,6 +172,7 @@ impl SharedState {
             synopses,
             google_oauth,
             pending_oauth: None,
+            cloud_sync_secret,
         };
         state.save();
         state
@@ -195,12 +199,11 @@ impl SharedState {
         None
     }
 
-    pub fn save(&self) {
-        // 1. Write portable, secret-free user profile to `profile/profile.json`
+    pub fn to_clean_profile(&self) -> UserProfile {
         let mut clean_cfg = self.data.config.clone();
         clean_cfg.toggl_api_token.clear();
         clean_cfg.gemini_api_key.clear();
-        let prof = UserProfile {
+        UserProfile {
             profile_name: "default".to_string(),
             vocab: self.vocab.clone(),
             config: clean_cfg,
@@ -208,7 +211,21 @@ impl SharedState {
             history: self.data.history.clone(),
             progress: self.data.progress.clone(),
             custom_anime: self.data.custom_anime.clone(),
-        };
+        }
+    }
+
+    pub fn apply_merged_profile(&mut self, prof: UserProfile) {
+        self.vocab = prof.vocab;
+        self.data.playlists = prof.playlists;
+        self.data.history = prof.history;
+        self.data.progress = prof.progress;
+        self.data.custom_anime = prof.custom_anime;
+        sync_japanese_stories_playlist(&mut self.data.playlists, &self.library);
+    }
+
+    pub fn save(&self) {
+        // 1. Write portable, secret-free user profile to `profile/profile.json`
+        let prof = self.to_clean_profile();
         if let Ok(json) = serde_json::to_string_pretty(&prof) {
             let tmp = self.profile_file.with_extension("json.tmp");
             if fs::write(&tmp, &json).is_ok() {
@@ -217,11 +234,12 @@ impl SharedState {
                 let _ = fs::write(&self.profile_file, &json);
             }
         }
-        // 2. Write machine-local secrets (Toggl + Gemini + Google OAuth) to gitignored `data/secrets.json`
+        // 2. Write machine-local secrets (Toggl + Gemini + Google OAuth + Cloud Sync) to gitignored `data/secrets.json`
         let sec = LocalSecrets {
             toggl_api_token: self.data.config.toggl_api_token.clone(),
             gemini_api_key: self.data.config.gemini_api_key.clone(),
             google_oauth: self.google_oauth.clone(),
+            cloud_sync_secret: self.cloud_sync_secret.clone(),
         };
         if let Ok(json) = serde_json::to_string_pretty(&sec) {
             let tmp = self.secrets_file.with_extension("json.tmp");
@@ -237,11 +255,17 @@ impl SharedState {
         let mut pc = PublicConfig::from(&self.data.config);
         let oauth_ok = !self.google_oauth.access_token.trim().is_empty()
             || !self.google_oauth.refresh_token.trim().is_empty();
+        let gcli_installed = cloud_sync::find_gemini_cli(&self.app_root).is_some();
+        let gcli_signed_in = gcli_installed && cloud_sync::is_gemini_cli_signed_in();
         pc.google_oauth_connected = oauth_ok;
         pc.google_oauth_email = self.google_oauth.email.clone();
         pc.google_oauth_client_id = self.google_oauth.client_id.clone();
         pc.has_google_client_secret = !self.google_oauth.client_secret.trim().is_empty();
-        pc.has_ai_auth = oauth_ok || pc.has_gemini_key;
+        pc.gemini_cli_installed = gcli_installed;
+        pc.gemini_cli_signed_in = gcli_signed_in;
+        pc.cloud_sync_url = self.data.config.cloud_sync_url.clone();
+        pc.has_cloud_sync_secret = !self.cloud_sync_secret.trim().is_empty();
+        pc.has_ai_auth = gcli_signed_in || oauth_ok || pc.has_gemini_key;
         pc
     }
 
@@ -580,6 +604,10 @@ struct ConfigUpdateReq {
     description_template: Option<String>,
     #[serde(default)]
     daily_goal_minutes: Option<u32>,
+    #[serde(default)]
+    cloud_sync_url: Option<String>,
+    #[serde(default)]
+    cloud_sync_secret: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -693,12 +721,24 @@ fn handle_stream(req: Request, file_path: &Path) {
     let _ = req.respond(resp);
 }
 
-/// Resolves active AI auth (prefers Google OAuth 2.0 Bearer with automatic token refresh, falls back to Gemini API key).
+/// Resolves active AI auth:
+/// (1) Official Google `gemini` CLI (personal Google / Google AI Plus sign-in),
+/// (2) Google OAuth 2.0 Bearer with automatic token refresh,
+/// (3) Fallback Gemini API key.
 fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String> {
-    let (mut oauth_sec, api_key) = {
+    let (app_root, mut oauth_sec, api_key) = {
         let st = state_arc.lock().unwrap();
-        (st.google_oauth.clone(), st.data.config.gemini_api_key.clone())
+        (
+            st.app_root.clone(),
+            st.google_oauth.clone(),
+            st.data.config.gemini_api_key.clone(),
+        )
     };
+    if let Some(bin) = cloud_sync::find_gemini_cli(&app_root) {
+        if cloud_sync::is_gemini_cli_signed_in() {
+            return Ok(AiAuth::GeminiCli(bin));
+        }
+    }
     if !oauth_sec.access_token.trim().is_empty() || !oauth_sec.refresh_token.trim().is_empty() {
         let now = oauth::now_unix_secs();
         if oauth_sec.access_token.trim().is_empty() || now >= oauth_sec.expires_at_unix.saturating_sub(60) {
@@ -712,7 +752,43 @@ fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String
     if !api_key.trim().is_empty() {
         return Ok(AiAuth::ApiKey(api_key));
     }
-    Err("Sign in with Google OAuth (or add a Gemini API key) in Settings first".into())
+    Err("Click 'Sign in with Google' in Settings first".into())
+}
+
+#[derive(Deserialize)]
+struct CloudSyncReq {
+    #[serde(default)]
+    url: Option<String>,
+    #[serde(default)]
+    secret: Option<String>,
+}
+
+fn sync_cloud_profile_internal(state_arc: &Arc<Mutex<SharedState>>) -> Result<(), String> {
+    let (url, secret) = {
+        let st = state_arc.lock().unwrap();
+        (
+            st.data.config.cloud_sync_url.trim().to_string(),
+            st.cloud_sync_secret.trim().to_string(),
+        )
+    };
+    if url.is_empty() {
+        return Err("Enter your Cloudflare Worker URL in Settings first".into());
+    }
+    let remote = cloud_sync::pull_profile(&url, &secret)?;
+    let merged_to_push = {
+        let mut st = state_arc.lock().unwrap();
+        let mut local = st.to_clean_profile();
+        if let Some(rem) = remote {
+            cloud_sync::merge_profiles(&mut local, rem);
+            st.apply_merged_profile(local.clone());
+            let vf = st.vocab_file.clone();
+            st.vocab.save(&vf);
+            st.save();
+        }
+        st.to_clean_profile()
+    };
+    cloud_sync::push_profile(&url, &secret, &merged_to_push)?;
+    Ok(())
 }
 
 #[derive(Deserialize)]
@@ -1891,10 +1967,107 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             if let Some(goal) = upd.daily_goal_minutes {
                 c.daily_goal_minutes = goal.clamp(5, 720);
             }
+            if let Some(curl) = upd.cloud_sync_url {
+                c.cloud_sync_url = curl.trim().trim_end_matches('/').to_string();
+            }
+            if let Some(csec) = upd.cloud_sync_secret {
+                if !csec.trim().is_empty() {
+                    st.cloud_sync_secret = csec.trim().to_string();
+                }
+            }
             st.save();
             st.public_config()
         };
         respond_json(req, 200, &serde_json::json!({ "config": pub_cfg }));
+        return;
+    }
+
+    // POST /api/ai/gemini-cli/login (launches official Google `gemini` CLI interactive Google sign-in)
+    if method == Method::Post && path_only == "/api/ai/gemini-cli/login" {
+        let app_root = { state_arc.lock().unwrap().app_root.clone() };
+        let Some(bin) = cloud_sync::find_gemini_cli(&app_root) else {
+            return respond_err(
+                req,
+                400,
+                "Gemini CLI not installed — run setup.ps1 to install portable Node + @google/gemini-cli",
+            );
+        };
+        let node_dir = bin
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let ps_cmd = format!(
+            "$env:Path = '{};' + $env:Path; Write-Host '=== Kiku: Sign in with Google (Google AI Plus) ===' -ForegroundColor Cyan; Write-Host 'Choose Login with Google in the prompt below. Once signed in, you can close this window.' -ForegroundColor DarkGray; & '{}'",
+            node_dir.replace('\'', "''"),
+            bin.to_string_lossy().replace('\'', "''"),
+        );
+        let launched = Command::new("cmd.exe")
+            .args([
+                "/C",
+                "start",
+                "Kiku — Sign in with Google",
+                "powershell.exe",
+                "-NoLogo",
+                "-NoProfile",
+                "-Command",
+                &ps_cmd,
+            ])
+            .spawn();
+        match launched {
+            Ok(_) => respond_json(req, 200, &serde_json::json!({ "launched": true })),
+            Err(e) => respond_err(req, 500, &format!("Could not launch Google sign-in: {}", e)),
+        }
+        return;
+    }
+
+    // POST /api/cloud/sync (pull remote profile -> union-merge -> save -> push merged profile to Cloudflare Worker)
+    if method == Method::Post && path_only == "/api/cloud/sync" {
+        let body = read_body_string(&mut req).unwrap_or_default();
+        let parsed: CloudSyncReq = serde_json::from_str(&body).unwrap_or(CloudSyncReq {
+            url: None,
+            secret: None,
+        });
+        {
+            let mut st = state_arc.lock().unwrap();
+            let mut changed = false;
+            if let Some(u) = parsed.url {
+                let clean = u.trim().trim_end_matches('/').to_string();
+                if !clean.is_empty() && st.data.config.cloud_sync_url != clean {
+                    st.data.config.cloud_sync_url = clean;
+                    changed = true;
+                }
+            }
+            if let Some(s) = parsed.secret {
+                let clean = s.trim().to_string();
+                if !clean.is_empty() && st.cloud_sync_secret != clean {
+                    st.cloud_sync_secret = clean;
+                    changed = true;
+                }
+            }
+            if changed {
+                st.save();
+            }
+        }
+        match sync_cloud_profile_internal(&state_arc) {
+            Ok(()) => {
+                let payload = {
+                    let st = state_arc.lock().unwrap();
+                    serde_json::json!({
+                        "ok": true,
+                        "config": st.public_config(),
+                        "vocab": st.vocab,
+                        "history": st.data.history,
+                        "progress": st.data.progress,
+                        "playlists": st.data.playlists,
+                        "stats": st.compute_stats(),
+                    })
+                };
+                respond_json(req, 200, &payload);
+            }
+            Err(e) => respond_err(req, 400, &e),
+        }
         return;
     }
 
@@ -2043,7 +2216,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         return;
     }
 
-    // POST /api/toggl/flush (called on app close or manually to batch-commit all pending local entries)
+    // POST /api/toggl/flush (called on app close or manually to batch-commit all pending local entries + cloud profile push)
     if method == Method::Post && path_only == "/api/toggl/flush" {
         let body = read_body_string(&mut req).unwrap_or_default();
         let parsed: SessionStopReq = serde_json::from_str(&body).unwrap_or(SessionStopReq {
@@ -2053,6 +2226,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let st_bg = Arc::clone(&state_arc);
         thread::spawn(move || {
             let _ = flush_pending_toggl(&st_bg);
+            let _ = sync_cloud_profile_internal(&st_bg);
         });
         respond_json(req, 200, &serde_json::json!({ "flushing": true }));
         return;
@@ -2085,7 +2259,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                         }
                     }
                     st.save();
-                    PublicConfig::from(&st.data.config)
+                    st.public_config()
                 };
                 respond_json(
                     req,
@@ -2140,12 +2314,20 @@ pub fn run_server(port: u16, state: Arc<Mutex<SharedState>>) -> Result<(u16, Ser
 }
 
 pub fn serve_loop(server: Server, state: Arc<Mutex<SharedState>>) {
-    // Airgapped Toggl periodic batch-sync thread (commits consolidated local sessions every 15 min)
+    // Background startup cloud profile pull & lossless union-merge (if Cloudflare Worker URL is configured)
+    {
+        let st_boot = Arc::clone(&state);
+        thread::spawn(move || {
+            let _ = sync_cloud_profile_internal(&st_boot);
+        });
+    }
+    // Airgapped Toggl + Cloud Profile periodic batch-sync thread (commits every 15 min)
     {
         let st_cycle = Arc::clone(&state);
         thread::spawn(move || loop {
             thread::sleep(std::time::Duration::from_secs(900));
             let _ = flush_pending_toggl(&st_cycle);
+            let _ = sync_cloud_profile_internal(&st_cycle);
         });
     }
     for req in server.incoming_requests() {

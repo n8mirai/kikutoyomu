@@ -341,8 +341,9 @@ pub fn build_offline_beats(
     beats
 }
 
-/// Optional 1-click AI narrative scene-trace & synopsis generator using Gemini 2.5 Flash via pure-Rust WinHTTP.
-/// Supports BOTH Google OAuth 2.0 Bearer tokens AND plain Gemini API keys!
+/// Optional 1-click AI narrative scene-trace & synopsis generator using Gemini 2.5 Flash.
+/// Supports: (1) Official `gemini` CLI (personal Google / Google AI Plus sign-in),
+/// (2) Google OAuth 2.0 Bearer token, and (3) plain Gemini API key.
 #[cfg(windows)]
 pub fn generate_ai_synopsis(
     auth: &AiAuth,
@@ -351,6 +352,9 @@ pub fn generate_ai_synopsis(
     cues: &[SubtitleCue],
 ) -> Result<EpisodeSynopsis, String> {
     use std::ffi::c_void;
+    use std::io::Write;
+    use std::os::windows::process::CommandExt;
+    use std::process::{Command, Stdio};
     use std::ptr::{null, null_mut};
     use windows_sys::Win32::Foundation::GetLastError;
     use windows_sys::Win32::Networking::WinHttp::*;
@@ -380,6 +384,56 @@ pub fn generate_ai_synopsis(
         Generate one beat roughly every 25-45 seconds of audio (covering the full transcript). Keep each beat subtle, natural, and present-tense like a calm scene trace.\n\nTranscript:\n{}",
         series_title, episode_title, transcript
     );
+
+    if let AiAuth::GeminiCli(bin_path) = auth {
+        let mut cmd = Command::new("cmd.exe");
+        cmd.arg("/C")
+            .arg(bin_path)
+            .arg("-m")
+            .arg("gemini-2.5-flash")
+            .arg("--output-format")
+            .arg("text")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+
+        // Ensure bundled portable Node.js directory is first in PATH so gemini.cmd finds node.exe
+        if let Some(node_dir) = bin_path
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+        {
+            let cur_path = std::env::var("PATH").unwrap_or_default();
+            cmd.env("PATH", format!("{};{}", node_dir.to_string_lossy(), cur_path));
+        }
+
+        let mut child = cmd
+            .spawn()
+            .map_err(|e| format!("Failed to start gemini CLI: {}", e))?;
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(prompt.as_bytes());
+        }
+        let out = child
+            .wait_with_output()
+            .map_err(|e| format!("Failed waiting for gemini CLI: {}", e))?;
+        if !out.status.success() {
+            let err_s = String::from_utf8_lossy(&out.stderr);
+            let tail: String = err_s.chars().rev().take(240).collect::<String>().chars().rev().collect();
+            return Err(format!("Gemini CLI failed: {}", tail.trim()));
+        }
+        let raw_stdout = String::from_utf8_lossy(&out.stdout).to_string();
+        let clean = match (raw_stdout.find('{'), raw_stdout.rfind('}')) {
+            (Some(s), Some(e)) if e > s => &raw_stdout[s..=e],
+            _ => raw_stdout.trim(),
+        };
+        let mut parsed: EpisodeSynopsis =
+            serde_json::from_str(clean).map_err(|e| format!("Failed parsing Gemini CLI JSON: {}", e))?;
+        parsed.ai_generated = true;
+        parsed.series_title = series_title.to_string();
+        parsed.beats.sort_by(|a, b| a.start.total_cmp(&b.start));
+        return Ok(parsed);
+    }
 
     let req_body = serde_json::json!({
         "contents": [{ "parts": [{ "text": prompt }] }],
@@ -417,6 +471,7 @@ pub fn generate_ai_synopsis(
             format!("/v1beta/models/gemini-2.5-flash:generateContent?key={}", key.trim()),
             "Content-Type: application/json\r\nAccept: application/json\r\n".to_string(),
         ),
+        AiAuth::GeminiCli(_) => unreachable!(),
     };
     let path = to_wide(&path_str);
 

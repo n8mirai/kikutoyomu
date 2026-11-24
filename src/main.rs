@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod cloud_sync;
 mod dict;
 mod library;
 mod models;

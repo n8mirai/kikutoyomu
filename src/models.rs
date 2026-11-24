@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub toggl_api_token: String,
     #[serde(default)]
     pub gemini_api_key: String,
+    #[serde(default)]
+    pub cloud_sync_url: String,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -25,6 +27,7 @@ impl Default for AppConfig {
         Self {
             toggl_api_token: String::new(),
             gemini_api_key: String::new(),
+            cloud_sync_url: String::new(),
             toggl_workspace_id: None,
             toggl_workspace_name: String::new(),
             toggl_project_id: None,
@@ -179,6 +182,8 @@ pub struct LocalSecrets {
     #[serde(default)]
     pub gemini_api_key: String,
     #[serde(default)]
+    pub cloud_sync_secret: String,
+    #[serde(default)]
     pub google_oauth: GoogleOAuthSecrets,
 }
 
@@ -214,7 +219,11 @@ pub struct PublicConfig {
     pub google_oauth_email: String,
     pub google_oauth_client_id: String,
     pub has_google_client_secret: bool,
+    pub gemini_cli_installed: bool,
+    pub gemini_cli_signed_in: bool,
     pub has_ai_auth: bool,
+    pub cloud_sync_url: String,
+    pub has_cloud_sync_secret: bool,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -249,7 +258,11 @@ impl From<&AppConfig> for PublicConfig {
             google_oauth_email: String::new(),
             google_oauth_client_id: String::new(),
             has_google_client_secret: false,
+            gemini_cli_installed: false,
+            gemini_cli_signed_in: false,
             has_ai_auth: has_gem,
+            cloud_sync_url: c.cloud_sync_url.clone(),
+            has_cloud_sync_secret: false,
             toggl_workspace_id: c.toggl_workspace_id,
             toggl_workspace_name: c.toggl_workspace_name.clone(),
             toggl_project_id: c.toggl_project_id,

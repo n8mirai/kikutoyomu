@@ -802,25 +802,46 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl (15m cycle & close)</label>
     <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
     <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)">
-      <div class="field" style="margin-bottom:6px">
-        <label>Google OAuth (AI) <span id="s-oauth-status" style="color:var(--g2)"></span></label>
-        <div id="s-oauth-setup">
-          <div class="row-inline" style="margin-bottom:5px">
-            <input id="s-oauth-cid" type="text" placeholder="Desktop OAuth Client ID" autocomplete="off">
-          </div>
-          <div class="row-inline">
-            <input id="s-oauth-csec" type="password" placeholder="Client Secret (optional)" autocomplete="off">
-            <button class="btn-pill" id="s-oauth-go">Sign in</button>
-          </div>
-        </div>
-        <div id="s-oauth-connected" class="row-inline" hidden>
-          <span id="s-oauth-email" style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis"></span>
-          <button class="btn-sub" id="s-oauth-disc">Disconnect</button>
+      <div class="field" style="margin-bottom:8px">
+        <label>Google AI <span id="s-gcli-status" style="color:var(--g2)"></span></label>
+        <div class="row-inline">
+          <button class="btn-pill" id="s-gcli-login" style="flex:1">Sign in with Google</button>
         </div>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label>Or Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
-        <input id="s-gemini" type="password" placeholder="Optional fallback key" autocomplete="off">
+      <details style="margin-bottom:8px">
+        <summary style="font-size:11px;color:var(--faint);cursor:pointer;user-select:none">Custom OAuth / API Key</summary>
+        <div style="margin-top:7px">
+          <div class="field" style="margin-bottom:6px">
+            <label>Google OAuth <span id="s-oauth-status" style="color:var(--g2)"></span></label>
+            <div id="s-oauth-setup">
+              <div class="row-inline" style="margin-bottom:5px">
+                <input id="s-oauth-cid" type="text" placeholder="Desktop OAuth Client ID" autocomplete="off">
+              </div>
+              <div class="row-inline">
+                <input id="s-oauth-csec" type="password" placeholder="Client Secret (optional)" autocomplete="off">
+                <button class="btn-pill" id="s-oauth-go">Sign in</button>
+              </div>
+            </div>
+            <div id="s-oauth-connected" class="row-inline" hidden>
+              <span id="s-oauth-email" style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis"></span>
+              <button class="btn-sub" id="s-oauth-disc">Disconnect</button>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
+            <input id="s-gemini" type="password" placeholder="Optional fallback key" autocomplete="off">
+          </div>
+        </div>
+      </details>
+      <div class="field" style="margin-bottom:0;padding-top:8px;border-top:1px solid var(--line)">
+        <label>Cloud Profile Sync <span id="s-cloud-status" style="color:var(--cool2)"></span></label>
+        <div class="row-inline" style="margin-bottom:5px">
+          <input id="s-cloud-url" type="text" placeholder="https://kiku-sync.your.workers.dev" autocomplete="off">
+        </div>
+        <div class="row-inline">
+          <input id="s-cloud-sec" type="password" placeholder="Sync Secret" autocomplete="off">
+          <button class="btn-sub" id="s-cloud-sync">Sync</button>
+        </div>
       </div>
     </div>
     <div style="margin-top:10px;display:flex;gap:7px">
@@ -1415,7 +1436,7 @@ function updateEphemeralSynopsis() {
 async function generateAiSynopsisForCurrent() {
   if (!currentTrack || synGenerating) return;
   if (!state.config?.has_ai_auth) {
-    toast('Sign in with Google OAuth (or add a Gemini key) in Settings first', true);
+    toast('Click "Sign in with Google" in Settings first', true);
     return;
   }
   synGenerating = true;
@@ -2476,12 +2497,18 @@ function syncSettingsUI() {
   const c = state.config || {};
   $('#s-tok-hint').textContent = c.has_toggl_token ? c.toggl_token_hint : '';
   $('#s-gem-hint').textContent = c.has_gemini_key ? 'saved' : '';
+  const gcliOk = !!c.gemini_cli_signed_in;
+  const gcliInst = !!c.gemini_cli_installed;
+  $('#s-gcli-status').textContent = gcliOk ? 'connected' : (gcliInst ? 'ready' : 'run setup.ps1');
+  $('#s-gcli-login').textContent = gcliOk ? 'Google connected (Re-sign in)' : 'Sign in with Google';
   const oauthOn = !!c.google_oauth_connected;
   $('#s-oauth-status').textContent = oauthOn ? 'connected' : '';
   $('#s-oauth-setup').hidden = oauthOn;
   $('#s-oauth-connected').hidden = !oauthOn;
   $('#s-oauth-email').textContent = c.google_oauth_email || 'Google OAuth connected';
   if (c.google_oauth_client_id && !$('#s-oauth-cid').value) $('#s-oauth-cid').value = c.google_oauth_client_id;
+  if (c.cloud_sync_url && !$('#s-cloud-url').value) $('#s-cloud-url').value = c.cloud_sync_url;
+  $('#s-cloud-status').textContent = c.cloud_sync_url ? (c.has_cloud_sync_secret ? 'configured' : 'no secret') : '';
   $('#s-tags').value = (c.toggl_tags || []).join(', ');
   $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
   $('#s-auto').checked = c.toggl_auto_sync !== false;
@@ -3165,6 +3192,8 @@ $('#s-save').onclick = async () => {
     body: JSON.stringify({
       toggl_api_token: $('#s-token').value.trim() || null,
       gemini_api_key: $('#s-gemini').value.trim() || null,
+      cloud_sync_url: $('#s-cloud-url').value.trim(),
+      cloud_sync_secret: $('#s-cloud-sec').value.trim() || null,
       toggl_workspace_id: wid, toggl_workspace_name: wid ? ws.options[ws.selectedIndex]?.text || '' : '',
       toggl_project_id: pid, clear_toggl_project: !pid, toggl_project_name: pid ? pr.options[pr.selectedIndex]?.text || '' : '',
       toggl_tags: $('#s-tags').value.split(',').map(s => s.trim()).filter(Boolean),
@@ -3172,10 +3201,58 @@ $('#s-save').onclick = async () => {
       toggl_min_seconds: Number($('#s-min').value) || 5, daily_goal_minutes: Number($('#s-goal').value) || 60
     })
   });
-  state.config = res.config; $('#s-token').value = ''; $('#s-gemini').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
+  state.config = res.config; $('#s-token').value = ''; $('#s-gemini').value = ''; $('#s-cloud-sec').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
 };
 $('#s-open-root').onclick = () => api('/api/open-media-root', { method: 'POST' });
 $('#s-rescan').onclick = async () => { state.library = (await api('/api/rescan', { method: 'POST' })).library; renderAll(); toast('Rescanned'); };
+
+// 1-click Sign in with Google via bundled @google/gemini-cli (uses personal Google / Google AI Plus quota)
+$('#s-gcli-login').onclick = async () => {
+  const btn = $('#s-gcli-login'); btn.disabled = true;
+  try {
+    await api('/api/ai/gemini-cli/login', { method: 'POST' });
+    toast('Choose "Login with Google" in the sign-in window');
+    const poll = setInterval(async () => {
+      try {
+        const st = await api('/api/state');
+        if (st.config?.gemini_cli_signed_in) {
+          clearInterval(poll);
+          state.config = st.config;
+          syncSettingsUI();
+          toast('Google AI connected');
+        }
+      } catch (e) {}
+    }, 3000);
+    setTimeout(() => clearInterval(poll), 180000);
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+
+// Cloud Profile Sync (Cloudflare Worker + R2 union-merge for known words, history, progress & playlists)
+$('#s-cloud-sync').onclick = async () => {
+  const btn = $('#s-cloud-sync'); btn.disabled = true; btn.textContent = 'Syncing…';
+  try {
+    const res = await api('/api/cloud/sync', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: $('#s-cloud-url').value.trim() || null,
+        secret: $('#s-cloud-sec').value.trim() || null
+      })
+    });
+    state.config = res.config;
+    state.history = res.history || state.history;
+    state.progress = res.progress || state.progress;
+    state.playlists = res.playlists || state.playlists;
+    state.stats = res.stats || state.stats;
+    if (res.vocab) loadVocabFromState(res.vocab);
+    $('#s-cloud-sec').value = '';
+    syncSettingsUI();
+    renderAll();
+    refreshVocabHighlights();
+    toast('Cloud profile synced');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = 'Sync'; }
+};
 
 // Google OAuth 2.0 (PKCE) Sign-in & Disconnect
 $('#s-oauth-go').onclick = async () => {

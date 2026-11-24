@@ -9,6 +9,7 @@
       "ありま",
       "あんなに",
       "いつ",
+      "いつか",
       "いつの間にか",
       "いつも",
       "いや",
@@ -21,7 +22,9 @@
       "お話",
       "お金",
       "かわいそう",
+      "きっと",
       "くれる",
+      "こう",
       "こうして",
       "こっち",
       "こんな",
@@ -80,9 +83,11 @@
       "やっと",
       "やっぱり",
       "やみ",
+      "やる",
       "よく",
       "んで",
       "シャツ",
+      "パブリックドメイン",
       "ブリ",
       "ベッド",
       "ボックス",
@@ -95,6 +100,7 @@
       "一面",
       "上",
       "上げ",
+      "上げる",
       "不安",
       "不思議",
       "不満",
@@ -129,8 +135,10 @@
       "入",
       "入れ",
       "全て",
+      "全然",
       "写真",
       "冬",
+      "冷たい",
       "出",
       "出し",
       "分る",
@@ -153,6 +161,7 @@
       "場合",
       "声",
       "夏",
+      "夕方",
       "多い",
       "夜中",
       "大",
@@ -167,6 +176,7 @@
       "子",
       "子供",
       "学校",
+      "完全",
       "実は",
       "寒",
       "寝",
@@ -190,8 +200,11 @@
       "急",
       "恋",
       "悪い",
+      "悲しい",
       "愛す",
       "感じ",
+      "感じる",
+      "感動",
       "我",
       "我慢",
       "所",
@@ -212,6 +225,7 @@
       "時間",
       "晴れ",
       "暗い",
+      "最後",
       "月",
       "朝",
       "木",
@@ -256,6 +270,7 @@
       "笑",
       "答える",
       "終",
+      "終わる",
       "続",
       "続ける",
       "繰り返し",
@@ -292,6 +307,7 @@
       "込",
       "遊び",
       "違い",
+      "違う",
       "遠く",
       "重い",
       "金",
@@ -316,11 +332,12 @@
     "ignored": [
       "ろう"
     ],
-    "updated_at": "2026-11-24T14:01:52Z"
+    "updated_at": "2026-11-24T14:17:20Z"
   },
   "config": {
     "toggl_api_token": "",
     "gemini_api_key": "",
+    "cloud_sync_url": "",
     "toggl_workspace_id": 21203036,
     "toggl_workspace_name": "日本語",
     "toggl_project_id": 223282025,
@@ -584,6 +601,21 @@
     }
   ],
   "history": [
+    {
+      "id": "ses-1795528881517",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-41",
+      "episode_title": "Ep 41: Kaze Tachinu (Hori) Ch 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-24T14:01:21Z",
+      "ended_at": "2026-11-24T14:06:26Z",
+      "duration_secs": 268,
+      "toggl_entry_id": null,
+      "toggl_synced": false,
+      "toggl_error": null
+    },
     {
       "id": "ses-1795527794051",
       "anime_id": "example-japanese-stories",
@@ -1418,10 +1450,16 @@
       "last_played_at": "2026-11-23T19:19:17Z"
     },
     "example-japanese-stories/ep-41": {
-      "position_secs": 3229.556303,
+      "position_secs": 0.0,
       "duration_secs": 3447.250068,
+      "completions": 1,
+      "last_played_at": "2026-11-24T14:06:26Z"
+    },
+    "example-japanese-stories/ep-42": {
+      "position_secs": 667.093993,
+      "duration_secs": 2198.361905,
       "completions": 0,
-      "last_played_at": "2026-11-24T14:02:06Z"
+      "last_played_at": "2026-11-24T14:17:36Z"
     }
   },
   "custom_anime": []

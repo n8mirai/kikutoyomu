@@ -62,6 +62,36 @@ if (-not (Test-Path $whisperModel)) {
   Write-Host "  Installed ggml-small-q5_1.bin" -ForegroundColor Green
 }
 
+# 5. Portable Node.js 22 LTS + official @google/gemini-cli (for 1-click "Sign in with Google" AI features)
+$NodeDir = Join-Path $Root "tools\node"
+$GeminiCmd = Join-Path $NodeDir "node_modules\.bin\gemini.cmd"
+if (-not (Test-Path $GeminiCmd)) {
+  Write-Host "==> Installing portable Node.js + @google/gemini-cli..." -ForegroundColor Cyan
+  New-Item -ItemType Directory -Force $NodeDir | Out-Null
+  if (-not (Test-Path (Join-Path $NodeDir "node.exe"))) {
+    $idx = Invoke-RestMethod "https://nodejs.org/dist/index.json"
+    $lts = $idx | Where-Object { $_.lts -and $_.version -like "v22.*" } | Select-Object -First 1
+    $ver = $lts.version
+    $zipUrl = "https://nodejs.org/dist/$ver/node-$ver-win-x64.zip"
+    $nzip = Join-Path $Root "tools\node.zip"
+    Invoke-WebRequest -Uri $zipUrl -OutFile $nzip
+    Expand-Archive -Path $nzip -DestinationPath (Join-Path $Root "tools") -Force
+    $extracted = Join-Path $Root "tools\node-$ver-win-x64"
+    Copy-Item -Recurse -Force (Join-Path $extracted "*") $NodeDir
+    Remove-Item -Recurse -Force $extracted, $nzip
+  }
+  $env:Path = "$NodeDir;" + $env:Path
+  $prevPref = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  & (Join-Path $NodeDir "npm.cmd") install --prefix $NodeDir @google/gemini-cli --no-audit --no-fund
+  $ErrorActionPreference = $prevPref
+  if (Test-Path $GeminiCmd) {
+    Write-Host "  Installed @google/gemini-cli (Sign in with Google ready!)" -ForegroundColor Green
+  }
+} else {
+  Write-Host "  @google/gemini-cli already present." -ForegroundColor DarkGray
+}
+
 Write-Host "==> Building Kiku release binary..." -ForegroundColor Cyan
 Set-Location $Root
 cargo build --release
