@@ -112,6 +112,12 @@ pub struct HistoryEntry {
     pub words_looked_up: u32,
     #[serde(default)]
     pub words_marked_known: u32,
+    #[serde(default)]
+    pub looked_up_words: Vec<String>,
+    #[serde(default)]
+    pub learning_words: Vec<String>,
+    #[serde(default)]
+    pub known_words: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +138,12 @@ pub struct ActiveSession {
     pub words_looked_up: u32,
     #[serde(default)]
     pub words_marked_known: u32,
+    #[serde(default)]
+    pub looked_up_words: Vec<String>,
+    #[serde(default)]
+    pub learning_words: Vec<String>,
+    #[serde(default)]
+    pub known_words: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

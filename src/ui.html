@@ -866,16 +866,37 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .nav-div{width:1px;height:16px;background:var(--line2);margin:0 2px}
 .icon-btn[aria-selected="true"]{color:var(--text);background:var(--bg2);border-color:var(--line2)}
 
-/* ================= YT APP (THUMBNAIL GRID + WATERFALL PLAYER) ================= */
+/* ================= YT APP (UNIFIED SEARCH + FLUSH SAVE DROPDOWN + THUMBNAIL GRID) ================= */
+.yt-search-shell{margin-bottom:14px}
 .yt-bar{
-  display:flex;align-items:center;gap:8px;margin-bottom:18px;
+  position:relative;display:flex;align-items:center;margin-bottom:0;
 }
 .yt-bar input{
-  flex:1;height:38px;padding:0 14px;border-radius:12px;
-  background:var(--bg1);border:1px solid var(--line2);color:var(--text);font-size:13px;
-  transition:border-color .18s,background .18s;
+  flex:1;height:40px;padding:0 44px 0 15px;border-radius:12px;
+  background:var(--bg1);border:1px solid var(--line2);color:var(--text);font-size:13.5px;
+  transition:border-color .18s,background .18s,border-radius .18s;
 }
+.yt-search-shell.has-drop .yt-bar input{border-radius:12px 12px 0 0;border-bottom-color:var(--line)}
 .yt-bar input:focus{outline:none;border-color:var(--line3);background:var(--bg2)}
+.yt-go-icon{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  color:var(--muted);background:transparent;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.yt-go-icon:hover{background:var(--bg3);color:var(--text)}
+.yt-save-drop{
+  display:flex;align-items:center;gap:8px;height:34px;padding:0 10px 0 14px;
+  border-radius:0 0 12px 12px;border:1px solid var(--line2);border-top:0;
+  background:color-mix(in srgb,var(--bg1) 92%,transparent);
+  font-size:12.5px;color:var(--muted);
+}
+.yt-save-plus{
+  width:24px;height:24px;border-radius:7px;display:grid;place-items:center;
+  background:var(--accsoft);color:var(--acc2);font-size:15px;font-weight:600;cursor:pointer;
+  transition:background .15s,color .15s,transform .15s var(--spring);
+}
+.yt-save-plus:hover{background:var(--acc);color:var(--onacc);transform:scale(1.06)}
 .yt-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;
 }
@@ -942,26 +963,56 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 }
 #v-yt-play.audio-only .yt-trace-wrap{margin-top:4px}
 
-/* Rich collapsible watch/listen history rows */
+/* Rich collapsible watch/listen history rows + dedicated color-coded expandable stats sub-row */
 .day-lbl{cursor:pointer;user-select:none}
 .day-lbl:hover{color:var(--text)}
 .day-chev{display:inline-block;margin-right:6px;transition:transform .2s var(--smooth);font-size:10px}
 .day-lbl.collapsed .day-chev{transform:rotate(-90deg)}
-.h-row{min-height:68px!important;padding:10px 14px!important;gap:14px!important}
+.h-entry{
+  display:flex;flex-direction:column;border-radius:12px;overflow:hidden;
+  border:1px solid transparent;transition:background .16s,border-color .16s;
+}
+.h-entry:hover{background:var(--bg1);border-color:var(--line)}
+.h-row{min-height:66px!important;padding:10px 14px!important;gap:14px!important;border-radius:0!important;background:transparent!important}
 .h-thumb{
   width:84px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;
   border:1px solid var(--line2);background:var(--bg2);
 }
 .h-thumb.sq{width:46px;height:54px}
-.h-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.h-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .h-title{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.h-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--faint)}
-.h-stat{
-  display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;
-  background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--muted);
-  font-variant-numeric:tabular-nums;
+.h-meta{font-size:11.5px;color:var(--faint)}
+.h-stats-bar{
+  display:flex;align-items:center;gap:14px;padding:6px 14px 9px 112px;
+  font-size:11.5px;font-weight:500;border-top:1px solid var(--line);
 }
-.h-stat.k{background:var(--gsoft);border-color:rgba(46,204,64,.22);color:var(--g2)}
+.h-stat-btn{
+  display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:1px 0;
+  background:none;border:0;font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;
+  transition:opacity .15s;
+}
+.h-stat-btn:hover{opacity:.78}
+.h-stat-btn.lu{color:var(--cool2)}
+.h-stat-btn.lr{color:#D97706}
+.h-stat-btn.kn{color:var(--g2)}
+.h-words-drawer{
+  display:flex;flex-wrap:wrap;gap:6px;padding:4px 14px 11px 112px;
+}
+.h-word-chip{
+  padding:2px 8px;border-radius:7px;font-size:12.5px;background:var(--bg2);
+  border:1px solid var(--line2);color:var(--text);
+}
+.yt-ch-btn{
+  display:inline-flex;align-items:center;gap:7px;padding:3px 9px 3px 4px;border-radius:999px;
+  background:var(--bg2);border:1px solid var(--line2);cursor:pointer;
+  font-size:11.5px;font-weight:500;color:var(--muted);transition:border-color .16s,color .16s;
+}
+.yt-ch-btn:hover,.yt-ch-btn.on{border-color:var(--line3);color:var(--text)}
+.yt-ch-pfp{
+  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;overflow:hidden;
+  background:var(--accsoft);color:var(--acc2);font-size:11px;font-weight:600;flex-shrink:0;
+}
+.yt-ch-pfp img{width:100%;height:100%;object-fit:cover;display:block}
 .yt-badge{
   position:absolute;top:8px;left:8px;padding:2px 7px;border-radius:999px;
   font-size:10.5px;font-weight:600;letter-spacing:.03em;backdrop-filter:blur(8px);
@@ -1347,19 +1398,22 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div id="drawer" hidden></div>
   </section>
 
-  <!-- APP: YT (ImmersionTube search / URL bar + editable category tabs + thumbnail feed) -->
+  <!-- APP: YT (Unified search/URL bar + flush save-tab dropdown + editable category tabs) -->
   <section id="v-yt" class="view-pane" hidden>
-    <div class="yt-bar">
-      <input id="yt-url" type="text" placeholder="Search Japanese YouTube or paste link…" autocomplete="off">
-      <button class="btn-pill" id="yt-add">Go</button>
-    </div>
-    <div class="yt-search-trace" id="yt-search-trace" hidden>
-      <span style="color:var(--acc2);font-size:13px">✦</span>
-      <span style="font-size:12px;color:var(--muted);white-space:nowrap">Save tab</span>
-      <input id="yt-save-tab-name" type="text" autocomplete="off">
-      <button class="btn-pill" id="yt-save-tab-ok" style="height:26px;padding:0 11px;font-size:12px">Save</button>
-      <span class="sp"></span>
-      <button class="icon-btn" id="yt-search-clear" title="Clear search" style="width:26px;height:26px">×</button>
+    <div class="yt-search-shell" id="yt-search-shell">
+      <div class="yt-bar">
+        <input id="yt-url" type="text" placeholder="Search Japanese YouTube or paste link…" autocomplete="off">
+        <button class="yt-go-icon" id="yt-add" title="Search or open link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+      <div class="yt-save-drop" id="yt-search-trace" hidden>
+        <span style="color:var(--acc2);font-size:12px">✦</span>
+        <span id="yt-save-drop-lbl">Save tab?</span>
+        <button class="yt-save-plus" id="yt-save-tab-ok" title="Save as category tab">+</button>
+        <span class="sp"></span>
+        <button class="icon-btn" id="yt-search-clear" title="Clear search" style="width:24px;height:24px">×</button>
+      </div>
     </div>
     <div class="yt-pills" id="yt-pills"></div>
     <div class="yt-grid" id="yt-grid"></div>
@@ -3070,6 +3124,7 @@ async function addEpisodeToPlaylist(plId, animeId, episodeId) {
 
 /* ================= RENDER: HISTORY (RICH THUMBNAILS + INTRA-ENTRY STATS + COLLAPSIBLE DAYS) ================= */
 const collapsedHistoryDays = new Set();
+const expandedHistoryStat = new Map(); // historyId -> 'lu' | 'lr' | 'kn'
 
 function renderHistoryView() {
   const st = state.stats || { today_secs: 0, total_secs: 0, streak_days: 0 };
@@ -3096,37 +3151,59 @@ function renderHistoryView() {
         <span><span class="day-chev">▾</span>${esc(g.label)} <span style="opacity:.55;font-weight:400">· ${g.rows.length}</span></span>
         <span>${fmtHuman(g.secs)}</span>
       </div>
-      <ul class="rows"${isCol ? ' hidden' : ''}>
+      <div class="rows"${isCol ? ' hidden' : ''}>
         ${g.rows.map(h => {
           const isYt = h.anime_id === 'yt';
           const a = isYt ? null : getAnime(h.anime_id);
           const thumbHtml = isYt
             ? `<img class="h-thumb" src="https://i.ytimg.com/vi/${encodeURIComponent(h.episode_id)}/hqdefault.jpg" alt="" loading="lazy">`
             : (a?.has_cover ? `<img class="h-thumb sq" src="${coverUrl(a)}" alt="" loading="lazy">` : '');
-          const lookups = h.words_looked_up > 0 ? `<span class="h-stat">${h.words_looked_up} lookup${h.words_looked_up === 1 ? '' : 's'}</span>` : '';
-          const knownAdd = h.words_marked_known > 0 ? `<span class="h-stat k">+${h.words_marked_known} known</span>` : '';
+          const luList = h.looked_up_words || [];
+          const lrList = h.learning_words || [];
+          const knList = h.known_words || [];
+          const luCnt = Math.max(h.words_looked_up || 0, luList.length);
+          const lrCnt = lrList.length;
+          const knCnt = Math.max(h.words_marked_known || 0, knList.length);
+          const hasStats = luCnt > 0 || lrCnt > 0 || knCnt > 0;
+          const openCat = expandedHistoryStat.get(h.id) || '';
+          const openWords = openCat === 'lu' ? luList : (openCat === 'lr' ? lrList : (openCat === 'kn' ? knList : []));
           return `
-            <li class="r h-row" style="cursor:default">
-              ${thumbHtml}
-              <div class="h-body">
-                <div class="h-title">${esc(h.episode_title)}</div>
-                <div class="h-meta">
-                  <span>${esc(h.anime_title)}</span>
-                  ${lookups}${knownAdd}
+            <div class="h-entry">
+              <div class="r h-row" style="cursor:default">
+                ${thumbHtml}
+                <div class="h-body">
+                  <div class="h-title">${esc(h.episode_title)}</div>
+                  <div class="h-meta">${esc(h.anime_title)}</div>
                 </div>
+                <span class="r-dur">${fmtClock(h.duration_secs)}</span>
+                ${h.toggl_synced ? `<span class="sync-ok" title="Synced to Toggl">✓</span>` : `<button class="r-act-ic" data-sync="${esc(h.id)}" title="Sync to Toggl">↻</button>`}
+                <span class="r-hover-acts"><button class="r-act-ic del" data-hdel="${esc(h.id)}" title="Remove">${IC_X}</button></span>
               </div>
-              <span class="r-dur">${fmtClock(h.duration_secs)}</span>
-              ${h.toggl_synced ? `<span class="sync-ok" title="Synced to Toggl">✓</span>` : `<button class="r-act-ic" data-sync="${esc(h.id)}" title="Sync to Toggl">↻</button>`}
-              <span class="r-hover-acts"><button class="r-act-ic del" data-hdel="${esc(h.id)}" title="Remove">${IC_X}</button></span>
-            </li>`;
+              ${hasStats ? `
+                <div class="h-stats-bar">
+                  ${luCnt ? `<button class="h-stat-btn lu" data-hstat="${esc(h.id)}:lu">${luCnt} looked up ${openCat === 'lu' ? '▴' : '▾'}</button>` : ''}
+                  ${lrCnt ? `<button class="h-stat-btn lr" data-hstat="${esc(h.id)}:lr">${lrCnt} learning ${openCat === 'lr' ? '▴' : '▾'}</button>` : ''}
+                  ${knCnt ? `<button class="h-stat-btn kn" data-hstat="${esc(h.id)}:kn">+${knCnt} known ${openCat === 'kn' ? '▴' : '▾'}</button>` : ''}
+                </div>` : ''}
+              ${openCat && openWords.length ? `
+                <div class="h-words-drawer">
+                  ${openWords.map(w => `<span class="h-word-chip tok" data-word="${esc(w)}" data-surf="${esc(w)}" data-pos="" data-ctx="${esc(w)}" data-autoign="0">${esc(w)}</span>`).join('')}
+                </div>` : ''}
+            </div>`;
         }).join('')}
-      </ul>`;
+      </div>`;
   }).join('');
 
   $$('[data-hday]', $('#h-list')).forEach(el => el.onclick = () => {
     const k = el.dataset.hday;
     if (collapsedHistoryDays.has(k)) collapsedHistoryDays.delete(k);
     else collapsedHistoryDays.add(k);
+    renderHistoryView();
+  });
+  $$('[data-hstat]', $('#h-list')).forEach(btn => btn.onclick = () => {
+    const [hid, cat] = btn.dataset.hstat.split(':');
+    if (expandedHistoryStat.get(hid) === cat) expandedHistoryStat.delete(hid);
+    else expandedHistoryStat.set(hid, cat);
     renderHistoryView();
   });
   $$('[data-sync]', $('#h-list')).forEach(b => b.onclick = async () => {
@@ -3621,6 +3698,7 @@ let ytSubsOn = true;
 let ytAudioOnly = false;
 let ytAutoScroll = true;
 let ytSearchQuery = '';
+let ytSuggestedTab = '';
 let ytSearchResults = null; // null when browsing feed, Array when viewing search results
 const ytCustomTabCache = new Map(); // tabId -> FeedVideo[]
 let ytRevealAll = false;
@@ -3690,7 +3768,8 @@ async function saveYtProgress(forceCompleted = false, useBeacon = false) {
   } catch (e) {}
 }
 
-let ytTraceStage = 0; // 0 = 1-line shimmer, 1 = Video synopsis, 2 = Video + Channel
+let ytTraceStage = 0; // 0 = 1-line trace, 1 = Video synopsis (with clickable channel PFP for channel info)
+let ytChannelOpen = false;
 let ytAiAutoInflight = new Set();
 
 function updateYtTraceUI() {
@@ -3717,15 +3796,26 @@ function updateYtTraceUI() {
   if (lineEl.textContent !== text) lineEl.textContent = text;
 
   drawer.classList.toggle('open', ytTraceStage > 0);
-  const generating = ytCurrentVideo && ytAiAutoInflight.has(ytCurrentVideo.id);
-  const epSum = synData.episode_summary || (generating ? 'Generating video context…' : ytCurrentVideo.title);
-  const chSum = synData.series_summary || (generating ? 'Generating channel context…' : '');
-  if (ytTraceStage === 1) {
-    card.innerHTML = `<h4>Video</h4><p>${esc(epSum)}</p>`;
-  } else if (ytTraceStage === 2) {
+  if (ytTraceStage > 0) {
+    const generating = ytCurrentVideo && ytAiAutoInflight.has(ytCurrentVideo.id);
+    const epSum = synData.episode_summary || (generating ? 'Generating video context…' : ytCurrentVideo.title);
+    const chName = synData.series_title || ytCurrentVideo.channel || 'Channel';
+    const chSum = synData.series_summary || (generating ? 'Generating channel context…' : '');
+    const chInit = (chName.trim()[0] || 'Y').toUpperCase();
     card.innerHTML = `
-      <h4>Video</h4><p>${esc(epSum)}</p>
-      ${chSum ? `<div class="yt-ch-sec"><h4>${esc(synData.series_title || ytCurrentVideo.channel || 'Channel')}</h4><p>${esc(chSum)}</p></div>` : ''}`;
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <h4 style="margin:0">Video</h4>
+        ${chSum ? `<button class="yt-ch-btn${ytChannelOpen ? ' on' : ''}" id="yt-ch-pfp-btn" title="Toggle channel overview"><span class="yt-ch-pfp">${esc(chInit)}</span><span>${esc(chName)}</span></button>` : ''}
+      </div>
+      <p>${esc(epSum)}</p>
+      ${ytChannelOpen && chSum ? `<div class="yt-ch-sec"><h4>${esc(chName)}</h4><p>${esc(chSum)}</p></div>` : ''}`;
+    if ($('#yt-ch-pfp-btn')) {
+      $('#yt-ch-pfp-btn').onclick = e => {
+        e.stopPropagation();
+        ytChannelOpen = !ytChannelOpen;
+        updateYtTraceUI();
+      };
+    }
   }
 }
 
@@ -3806,7 +3896,8 @@ $('#yt-ai-input').addEventListener('keydown', e => {
   if (e.key === 'Escape') { $('#yt-trace-bar').classList.remove('asking'); $('#yt-ai-btn').classList.remove('on'); }
 });
 $('#yt-trace-click').onclick = () => {
-  ytTraceStage = (ytTraceStage + 1) % 3;
+  ytTraceStage = ytTraceStage === 0 ? 1 : 0;
+  if (ytTraceStage === 0) ytChannelOpen = false;
   updateYtTraceUI();
 };
 
@@ -3820,8 +3911,8 @@ function renderCalChipHtml(c, extraStyle = '') {
   return `
     <span class="ai-cal-chip" data-cal-chip="${esc(c.word)}"${extraStyle ? ` style="${extraStyle}"` : ''}>
       <button class="ai-cal-btn no" data-cal-no="${esc(c.word)}" title="Don't know (Priority Purple)"><span>×</span></button>
-      <span class="ai-cal-mid">
-        <span class="tok cal-w" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">${esc(c.word)}</span>
+      <span class="ai-cal-mid tok" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">
+        <span class="cal-w">${esc(c.word)}</span>
       </span>
       <button class="ai-cal-btn yes" data-cal-yes="${esc(c.word)}" title="Mark known"><span>✓</span></button>
     </span>`;
@@ -4068,7 +4159,9 @@ function renderYtGrid() {
 
   // Active search results view
   if (ytSearchResults !== null) {
+    $('#yt-search-shell').classList.add('has-drop');
     $('#yt-search-trace').hidden = false;
+    $('#yt-save-drop-lbl').textContent = `Save "${ytSuggestedTab || ytSearchQuery}" as tab?`;
     $('#yt-grid').innerHTML = ytSearchResults.length
       ? ytSearchResults.map(v => {
           const tierCls = v.tier ? v.tier.toLowerCase() : '';
@@ -4084,6 +4177,7 @@ function renderYtGrid() {
       : `<div class="sub-empty-box" style="grid-column:1/-1">No results found</div>`;
     return;
   }
+  $('#yt-search-shell').classList.remove('has-drop');
   $('#yt-search-trace').hidden = true;
 
   if (ytCat === 'saved') {
@@ -4336,7 +4430,7 @@ async function addYtUrl() {
   const raw = inp.value.trim();
   if (!raw) return;
   const btn = $('#yt-add');
-  btn.disabled = true; btn.textContent = '…';
+  btn.disabled = true;
   const looksLikeUrl = /(youtube\.com|youtu\.be)/i.test(raw) || /^[a-zA-Z0-9_-]{11}$/.test(raw);
   try {
     if (looksLikeUrl) {
@@ -4357,11 +4451,11 @@ async function addYtUrl() {
         body: JSON.stringify({ query: raw })
       });
       ytSearchResults = res.items || [];
-      $('#yt-save-tab-name').value = res.suggested_category || raw;
+      ytSuggestedTab = res.suggested_category || raw;
       renderYtGrid();
     }
   } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; btn.textContent = 'Go'; }
+  finally { btn.disabled = false; }
 }
 
 async function saveCustomYtTabs(tabs) {
@@ -4374,9 +4468,9 @@ async function saveCustomYtTabs(tabs) {
 
 $('#yt-add').onclick = addYtUrl;
 $('#yt-url').addEventListener('keydown', e => { if (e.key === 'Enter') addYtUrl(); });
-$('#yt-search-clear').onclick = () => { ytSearchResults = null; ytSearchQuery = ''; $('#yt-url').value = ''; renderYtGrid(); };
+$('#yt-search-clear').onclick = () => { ytSearchResults = null; ytSearchQuery = ''; ytSuggestedTab = ''; $('#yt-url').value = ''; renderYtGrid(); };
 $('#yt-save-tab-ok').onclick = async () => {
-  const label = $('#yt-save-tab-name').value.trim();
+  const label = (ytSuggestedTab || ytSearchQuery || '').trim();
   if (!label || !ytSearchQuery) return;
   const cur = (state.config?.yt_tabs || []).slice();
   const id = 't-' + Date.now();
@@ -4387,7 +4481,7 @@ $('#yt-save-tab-ok').onclick = async () => {
   ytCat = 'custom:' + id;
   $('#yt-url').value = '';
   renderYtGrid();
-  toast(`Saved "${label}" tab`);
+  toast(`Saved "${label}"`);
 };
 $('#yt-pills').addEventListener('click', async e => {
   const rm = e.target.closest('[data-yt-rmtab]');

@@ -472,6 +472,15 @@ fn stop_active_session_internal(
             prev.ended_at = ended_at;
             prev.words_looked_up = prev.words_looked_up.saturating_add(active.words_looked_up);
             prev.words_marked_known = prev.words_marked_known.saturating_add(active.words_marked_known);
+            for w in active.looked_up_words {
+                if !prev.looked_up_words.contains(&w) { prev.looked_up_words.push(w); }
+            }
+            for w in active.learning_words {
+                if !prev.learning_words.contains(&w) { prev.learning_words.push(w); }
+            }
+            for w in active.known_words {
+                if !prev.known_words.contains(&w) { prev.known_words.push(w); }
+            }
             let merged = prev.clone();
             st.save();
             return Some(merged);
@@ -494,6 +503,9 @@ fn stop_active_session_internal(
         toggl_error: None,
         words_looked_up: active.words_looked_up,
         words_marked_known: active.words_marked_known,
+        looked_up_words: active.looked_up_words,
+        learning_words: active.learning_words,
+        known_words: active.known_words,
     };
     st.data.history.insert(0, entry.clone());
     st.save();
@@ -1389,7 +1401,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let (jmdict_arc, jmnedict_arc) = {
             let mut st = state_arc.lock().unwrap();
             if let Some(ref mut sess) = st.active_session {
-                sess.words_looked_up = sess.words_looked_up.saturating_add(1);
+                let w = if !lemma.is_empty() { lemma.clone() } else { q.clone() };
+                if !w.is_empty() && !sess.looked_up_words.contains(&w) {
+                    sess.looked_up_words.push(w);
+                    sess.words_looked_up = sess.looked_up_words.len() as u32;
+                }
             }
             (Arc::clone(&st.jmdict), Arc::clone(&st.jmnedict))
         };
@@ -1425,11 +1441,19 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let vocab = {
             let mut st = state_arc.lock().unwrap();
             let vf = st.vocab_file.clone();
-            let was_known = st.vocab.known.contains(parsed.word.trim());
-            st.vocab.set_status(&parsed.word, &parsed.status);
-            if parsed.status == "known" && !was_known {
-                if let Some(ref mut sess) = st.active_session {
-                    sess.words_marked_known = sess.words_marked_known.saturating_add(1);
+            let clean_w = parsed.word.trim().to_string();
+            let was_known = st.vocab.known.contains(&clean_w);
+            st.vocab.set_status(&clean_w, &parsed.status);
+            if let Some(ref mut sess) = st.active_session {
+                if parsed.status == "known" && !was_known && !clean_w.is_empty() {
+                    if !sess.known_words.contains(&clean_w) {
+                        sess.known_words.push(clean_w.clone());
+                        sess.words_marked_known = sess.known_words.len() as u32;
+                    }
+                } else if parsed.status == "learning" && !clean_w.is_empty() {
+                    if !sess.learning_words.contains(&clean_w) {
+                        sess.learning_words.push(clean_w);
+                    }
                 }
             }
             st.vocab.save(&vf);
@@ -1942,6 +1966,9 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             toggl_error: None,
             words_looked_up: 0,
             words_marked_known: 0,
+            looked_up_words: Vec::new(),
+            learning_words: Vec::new(),
+            known_words: Vec::new(),
         };
 
         let (history, stats) = {
