@@ -820,35 +820,45 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   animation:fadeIn .22s var(--smooth) both;
 }
 .yt-play-inner{
-  width:100%;max-width:860px;height:100%;margin:0 auto;padding:0 18px;
+  width:100%;max-width:1160px;height:100%;margin:0 auto;padding:0 16px 14px;
   display:flex;flex-direction:column;min-height:0;
 }
 .yt-stage-wrap{
-  flex:0 0 auto;width:100%;max-width:740px;margin:2px auto 0;
+  flex:0 0 auto;width:100%;display:flex;justify-content:center;align-items:center;
   position:relative;z-index:4;
+  transition:flex .32s var(--smooth);
 }
+#v-yt-play.subs-off .yt-stage-wrap{flex:1;min-height:0}
 .yt-stage{
-  width:100%;aspect-ratio:16/9;max-height:44vh;margin:0 auto;
-  border-radius:16px;overflow:hidden;background:#000;
+  width:min(100%,calc(48vh * 16 / 9));aspect-ratio:16/9;max-height:48vh;
+  border-radius:14px;overflow:hidden;background:#000;
   border:1px solid var(--line2);
-  box-shadow:0 18px 44px rgba(0,0,0,.42);
+  box-shadow:0 18px 44px rgba(0,0,0,.38);
+  transition:width .32s var(--smooth),max-height .32s var(--smooth);
 }
-.yt-stage iframe{width:100%;height:100%;border:0;display:block}
+#v-yt-play.subs-off .yt-stage{
+  width:min(100%,calc((100vh - 76px) * 16 / 9));
+  max-height:calc(100vh - 76px);
+}
+#yt-iframe-slot,#yt-iframe-slot iframe{width:100%;height:100%;border:0;display:block}
 .yt-waterfall-scroll{
   flex:1;min-height:0;overflow-y:auto;position:relative;
   padding:14px 4px 120px;
   mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
   -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
 }
+#v-yt-play.subs-off .yt-waterfall-scroll{display:none}
+#v-yt-play.subs-off .yt-sub-only{display:none}
 .yt-waterfall-feed{
   display:flex;flex-direction:column-reverse;gap:10px;
-  max-width:740px;margin:0 auto;
+  max-width:780px;margin:0 auto;
 }
 .yt-waterfall-feed.reveal-all{flex-direction:column}
 .yt-waterfall-feed .sub-row{
   font-size:var(--sub-size,20px);
   animation:ukabuDown .72s cubic-bezier(.19,1,.22,1) both;
 }
+.yt-waterfall-feed .sub-row.submerged{display:none}
 @keyframes ukabuDown{
   0%{opacity:0;transform:translateY(-10px) scale(.94);filter:blur(9px)}
   60%{opacity:.95;filter:blur(.8px)}
@@ -1014,7 +1024,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   </section>
 
   <!-- APP: YT WATERFALL PLAYER (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) -->
-  <section id="v-yt-play" hidden>
+  <section id="v-yt-play" class="subs-off" hidden>
     <div class="yt-play-inner">
       <div class="sub-head">
         <button class="icon-btn" id="yt-back" title="Back (Esc)">
@@ -1023,13 +1033,14 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
         <span class="sub-head-title" id="yt-play-title"></span>
         <span class="sp"></span>
         <div class="sub-head-tools">
-          <input type="range" class="size-slider" id="yt-size" min="15" max="32" step="1" value="20" title="Font size">
-          <button class="sub-mini-btn on" id="yt-autoscroll" title="Auto-follow waterfall">Auto</button>
-          <button class="sub-mini-btn" id="yt-reveal" title="Show all lines">All</button>
-          <button class="sub-mini-btn" id="yt-off-m" title="Earlier 0.5s">−0.5s</button>
-          <button class="sub-mini-btn" id="yt-off-p" title="Later 0.5s">+0.5s</button>
-          <span id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
-          <button class="sub-mini-btn on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
+          <input type="range" class="size-slider yt-sub-only" id="yt-size" min="15" max="32" step="1" value="20" title="Font size">
+          <button class="sub-mini-btn yt-sub-only on" id="yt-autoscroll" title="Auto-follow waterfall">Auto</button>
+          <button class="sub-mini-btn yt-sub-only" id="yt-reveal" title="Show all lines">All</button>
+          <button class="sub-mini-btn yt-sub-only" id="yt-off-m" title="Earlier 0.5s">−0.5s</button>
+          <button class="sub-mini-btn yt-sub-only" id="yt-off-p" title="Later 0.5s">+0.5s</button>
+          <span class="yt-sub-only" id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
+          <button class="sub-mini-btn yt-sub-only on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
+          <button class="sub-mini-btn" id="yt-subs-toggle" title="Toggle Japanese subtitles (S)">字</button>
         </div>
       </div>
       <div class="yt-stage-wrap">
@@ -3097,6 +3108,7 @@ let ytCues = [];
 let ytCueIdx = -1;
 let ytMaxSeen = -1;
 let ytOffset = 0;
+let ytSubsOn = false;
 let ytAutoScroll = true;
 let ytRevealAll = false;
 let ytUserAtTop = true;
@@ -3151,7 +3163,7 @@ function mountYtPlayer(videoId) {
       videoId,
       width: '100%',
       height: '100%',
-      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1 },
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1, cc_load_policy: 0, iv_load_policy: 3 },
       events: {
         onReady: () => {
           if (ytPendingId && ytPendingId !== videoId && ytPlayer?.loadVideoById) ytPlayer.loadVideoById(ytPendingId);
@@ -3173,11 +3185,19 @@ function renderYtGrid() {
 }
 
 function updateYtHeadUI() {
+  $('#v-yt-play').classList.toggle('subs-off', !ytSubsOn);
+  $('#yt-subs-toggle').classList.toggle('on', ytSubsOn);
   $('#yt-play-title').textContent = ytCurrentVideo ? ytCurrentVideo.title : '';
   $('#yt-off-val').textContent = ytOffset ? `${ytOffset > 0 ? '+' : ''}${ytOffset.toFixed(1)}s` : '';
   $('#yt-reveal').classList.toggle('on', ytRevealAll);
   $('#yt-autoscroll').classList.toggle('on', ytAutoScroll);
   $('#yt-autopause').classList.toggle('on', subAutoPause);
+}
+function toggleYtSubs() {
+  ytSubsOn = !ytSubsOn;
+  ytUserAtTop = true;
+  updateYtHeadUI();
+  if (ytSubsOn) syncYtSubtitles(true);
 }
 
 function updateYtWaterfallDepth() {
@@ -3265,6 +3285,7 @@ async function openYtVideo(video, prefetchedCues = null) {
   ytCueIdx = -1;
   ytMaxSeen = -1;
   ytOffset = 0;
+  ytSubsOn = false;
   ytUserAtTop = true;
   setTab('yt-play');
   updateYtHeadUI();
@@ -3319,6 +3340,7 @@ $('#yt-grid').addEventListener('click', async e => {
   }
 });
 $('#yt-back').onclick = () => { clearInterval(ytPollTimer); closeDictPop(false); setTab('yt'); };
+$('#yt-subs-toggle').onclick = toggleYtSubs;
 $('#yt-size').oninput = e => { $('#v-yt-play').style.setProperty('--sub-size', e.target.value + 'px'); };
 $('#yt-autoscroll').onclick = () => { ytAutoScroll = !ytAutoScroll; ytUserAtTop = true; updateYtHeadUI(); if (ytAutoScroll) applyYtCueStates(true); };
 $('#yt-reveal').onclick = () => { ytRevealAll = !ytRevealAll; rebuildYtFeed(); syncYtSubtitles(true); };
@@ -3833,6 +3855,7 @@ document.addEventListener('keydown', e => {
   }
   if (curTab === 'yt-play') {
     if (e.code === 'Space') { e.preventDefault(); ytAdapter.toggle(); return; }
+    if (e.key === 's' || e.key === 'S') { toggleYtSubs(); return; }
     if (e.key === 'j' || e.key === 'J') { ytAdapter.seek(ytAdapter.getTime() - 10); return; }
     if (e.key === 'l' || e.key === 'L') { ytAdapter.seek(ytAdapter.getTime() + 10); return; }
   }
