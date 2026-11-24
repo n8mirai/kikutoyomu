@@ -109,7 +109,62 @@ fn parse_srt_or_vtt(content: &str) -> Vec<SubtitleCue> {
     }
 
     cues.sort_by(|a, b| a.start.total_cmp(&b.start));
-    cues
+    dedupe_rolling_captions(cues)
+}
+
+/// Cleans YouTube auto-generated rolling WebVTT cues where consecutive cues repeat the previous
+/// line as a 2-line window (e.g. "A" -> "A\nB" -> "B\nC") or emit 10ms duplicate micro-cues.
+fn dedupe_rolling_captions(raw: Vec<SubtitleCue>) -> Vec<SubtitleCue> {
+    let mut out: Vec<SubtitleCue> = Vec::with_capacity(raw.len());
+    let mut prev_line = String::new();
+
+    for cue in raw {
+        let mut kept_lines: Vec<String> = Vec::new();
+        for line in cue.text.lines() {
+            let t = line.trim();
+            if t.is_empty() {
+                continue;
+            }
+            if t == prev_line {
+                continue;
+            }
+            kept_lines.push(t.to_string());
+        }
+        let cleaned = kept_lines.join(" ").trim().to_string();
+        if cleaned.is_empty() {
+            if let Some(last) = out.last_mut() {
+                if cue.end > last.end {
+                    last.end = cue.end;
+                }
+            }
+            continue;
+        }
+        if let Some(last_kept) = kept_lines.last() {
+            prev_line = last_kept.clone();
+        }
+        // Skip ultra-short duplicate/prefix flashes (<0.08s) when identical to previous cue
+        if let Some(last) = out.last_mut() {
+            if last.text == cleaned {
+                if cue.end > last.end {
+                    last.end = cue.end;
+                }
+                continue;
+            }
+            if cleaned.starts_with(&last.text) && (cue.start - last.start).abs() < 0.25 {
+                last.text = cleaned;
+                if cue.end > last.end {
+                    last.end = cue.end;
+                }
+                continue;
+            }
+        }
+        out.push(SubtitleCue {
+            start: cue.start,
+            end: cue.end,
+            text: cleaned,
+        });
+    }
+    out
 }
 
 fn parse_ass(content: &str) -> Vec<SubtitleCue> {

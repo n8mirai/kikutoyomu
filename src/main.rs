@@ -12,6 +12,7 @@ mod synopsis;
 mod timeutil;
 mod toggl;
 mod vocab;
+mod youtube;
 
 use std::env;
 use std::io::{Read, Write};

@@ -92,6 +92,18 @@ if (-not (Test-Path $GeminiCmd)) {
   Write-Host "  @google/gemini-cli already present." -ForegroundColor DarkGray
 }
 
+# 6. Standalone yt-dlp for YouTube JP subtitle extraction
+$YtDlpDir = Join-Path $Root "tools\yt-dlp"
+$YtDlpExe = Join-Path $YtDlpDir "yt-dlp.exe"
+if (-not (Test-Path $YtDlpExe)) {
+  Write-Host "==> Downloading yt-dlp.exe..." -ForegroundColor Cyan
+  New-Item -ItemType Directory -Force $YtDlpDir | Out-Null
+  Invoke-WebRequest -Uri "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile $YtDlpExe
+  Write-Host "  Installed yt-dlp.exe" -ForegroundColor Green
+} else {
+  Write-Host "  yt-dlp.exe already present." -ForegroundColor DarkGray
+}
+
 Write-Host "==> Building Kiku release binary..." -ForegroundColor Cyan
 Set-Location $Root
 cargo build --release

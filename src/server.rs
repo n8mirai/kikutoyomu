@@ -27,6 +27,7 @@ use crate::synopsis::{self, EpisodeSynopsis, SynopsisStore};
 use crate::timeutil;
 use crate::toggl;
 use crate::vocab::VocabStore;
+use crate::youtube::{self, YoutubeStore};
 
 const UI_HTML: &str = include_str!("ui.html");
 
@@ -36,6 +37,8 @@ pub struct SharedState {
     pub secrets_file: PathBuf,
     pub vocab_file: PathBuf,
     pub synopsis_file: PathBuf,
+    pub youtube_file: PathBuf,
+    pub yt_subs_dir: PathBuf,
     pub media_root: PathBuf,
     pub data: PersistedData,
     pub library: Vec<AnimeSeries>,
@@ -45,6 +48,7 @@ pub struct SharedState {
     pub jmnedict: Arc<Mutex<Option<LocalNameDict>>>,
     pub vocab: VocabStore,
     pub synopses: SynopsisStore,
+    pub youtube: YoutubeStore,
     pub google_oauth: GoogleOAuthSecrets,
     pub pending_oauth: Option<PendingOAuth>,
     pub cloud_sync_secret: String,
@@ -62,6 +66,9 @@ impl SharedState {
         let legacy_state_file = data_dir.join("state.json");
         let vocab_file = data_dir.join("vocab.json");
         let synopsis_file = data_dir.join("synopses.json");
+        let youtube_file = data_dir.join("youtube.json");
+        let yt_subs_dir = data_dir.join("yt_subs");
+        let _ = fs::create_dir_all(&yt_subs_dir);
         let ipadic_file = data_dir.join("ipadic.dic.zst");
         let jmdict_file = data_dir.join("jmdict-eng.json");
         let jmnedict_file = data_dir.join("jmnedict.json");
@@ -120,6 +127,7 @@ impl SharedState {
         let google_oauth = loaded_secrets.google_oauth;
         let cloud_sync_secret = loaded_secrets.cloud_sync_secret;
         let synopses = SynopsisStore::load(&synopsis_file);
+        let youtube = YoutubeStore::load(&youtube_file);
 
         let library = scan_library(&media_root, &data.custom_anime);
         if data.playlists.is_empty() {
@@ -161,6 +169,8 @@ impl SharedState {
             secrets_file,
             vocab_file,
             synopsis_file,
+            youtube_file,
+            yt_subs_dir,
             media_root,
             data,
             library,
@@ -170,6 +180,7 @@ impl SharedState {
             jmnedict,
             vocab,
             synopses,
+            youtube,
             google_oauth,
             pending_oauth: None,
             cloud_sync_secret,
@@ -753,6 +764,11 @@ fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String
         return Ok(AiAuth::ApiKey(api_key));
     }
     Err("Click 'Sign in with Google' in Settings first".into())
+}
+
+#[derive(Deserialize)]
+struct YtAddReq {
+    url: String,
 }
 
 #[derive(Deserialize)]
@@ -1422,6 +1438,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 "whisper_ready": st.find_whisper().is_some(),
                 "vocab": st.vocab,
                 "progress": st.data.progress,
+                "youtube": st.youtube.videos,
             })
         };
         respond_json(req, 200, &payload);
@@ -1979,6 +1996,109 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             st.public_config()
         };
         respond_json(req, 200, &serde_json::json!({ "config": pub_cfg }));
+        return;
+    }
+
+    // POST /api/yt/add (extract YouTube ID, fetch title + Japanese subtitles via yt-dlp, return tokenized cues)
+    if method == Method::Post && path_only == "/api/yt/add" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let parsed: YtAddReq = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let Some(video_id) = youtube::extract_video_id(&parsed.url) else {
+            return respond_err(req, 400, "Paste a valid YouTube URL or 11-char video ID");
+        };
+        let (app_root, yt_subs_dir, yt_file, morph_arc, jmdict_arc) = {
+            let st = state_arc.lock().unwrap();
+            (
+                st.app_root.clone(),
+                st.yt_subs_dir.clone(),
+                st.youtube_file.clone(),
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+            )
+        };
+        let video = match youtube::fetch_video_and_subs(&app_root, &yt_subs_dir, &video_id) {
+            Ok(v) => v,
+            Err(e) => return respond_err(req, 500, &e),
+        };
+        let videos = {
+            let mut st = state_arc.lock().unwrap();
+            st.youtube.videos.retain(|v| v.id != video.id);
+            st.youtube.videos.insert(0, video.clone());
+            st.youtube.save(&yt_file);
+            st.youtube.videos.clone()
+        };
+        let rich_cues = if let Some(sub_p) = youtube::find_sub_file(&yt_subs_dir, &video_id) {
+            match subs::load_subtitles(&sub_p) {
+                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc),
+                Err(_) => Vec::new(),
+            }
+        } else {
+            Vec::new()
+        };
+        respond_json(
+            req,
+            200,
+            &serde_json::json!({ "video": video, "videos": videos, "cues": rich_cues }),
+        );
+        return;
+    }
+
+    // GET /api/yt/{id}/subtitles (MeCab/IPADIC tokenized Japanese captions for a YouTube video)
+    if method == Method::Get
+        && path_only.starts_with("/api/yt/")
+        && path_only.ends_with("/subtitles")
+    {
+        let id_raw = path_only
+            .trim_start_matches("/api/yt/")
+            .trim_end_matches("/subtitles");
+        let Some(video_id) = youtube::extract_video_id(id_raw) else {
+            return respond_err(req, 400, "Invalid YouTube video ID");
+        };
+        let (app_root, yt_subs_dir, morph_arc, jmdict_arc) = {
+            let st = state_arc.lock().unwrap();
+            (
+                st.app_root.clone(),
+                st.yt_subs_dir.clone(),
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+            )
+        };
+        let sub_path = youtube::find_sub_file(&yt_subs_dir, &video_id).or_else(|| {
+            let _ = youtube::fetch_video_and_subs(&app_root, &yt_subs_dir, &video_id);
+            youtube::find_sub_file(&yt_subs_dir, &video_id)
+        });
+        let rich_cues = if let Some(p) = sub_path {
+            match subs::load_subtitles(&p) {
+                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc),
+                Err(_) => Vec::new(),
+            }
+        } else {
+            Vec::new()
+        };
+        respond_json(req, 200, &serde_json::json!({ "cues": rich_cues }));
+        return;
+    }
+
+    // DELETE /api/yt/{id}
+    if method == Method::Delete && path_only.starts_with("/api/yt/") {
+        let id_raw = path_only.trim_start_matches("/api/yt/");
+        let Some(video_id) = safe_segment(id_raw) else {
+            return respond_err(req, 400, "Invalid YouTube ID");
+        };
+        let videos = {
+            let mut st = state_arc.lock().unwrap();
+            let yf = st.youtube_file.clone();
+            st.youtube.videos.retain(|v| v.id != video_id);
+            st.youtube.save(&yf);
+            st.youtube.videos.clone()
+        };
+        respond_json(req, 200, &serde_json::json!({ "videos": videos }));
         return;
     }
 

@@ -752,6 +752,131 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   #pop{right:12px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ================= CONSOLE APP BAR ================= */
+.app-pill{
+  display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;
+  font-size:12.5px;font-weight:500;color:var(--muted);
+  border:1px solid transparent;background:transparent;
+  transition:color .18s,background .18s,border-color .18s,transform .16s var(--spring);
+}
+.app-pill:hover{color:var(--text);background:var(--bg2)}
+.app-pill:active{transform:scale(.96)}
+.app-pill[aria-selected="true"]{
+  color:var(--text);background:var(--bg2);border-color:var(--line2);
+  box-shadow:0 2px 10px rgba(0,0,0,.16);
+}
+.app-pill svg{opacity:.78;transition:opacity .18s}
+.app-pill[aria-selected="true"] svg{opacity:1;color:var(--flame)}
+.nav-div{width:1px;height:16px;background:var(--line2);margin:0 2px}
+.icon-btn[aria-selected="true"]{color:var(--text);background:var(--bg2);border-color:var(--line2)}
+
+/* ================= YT APP (THUMBNAIL GRID + WATERFALL PLAYER) ================= */
+.yt-bar{
+  display:flex;align-items:center;gap:8px;margin-bottom:18px;
+}
+.yt-bar input{
+  flex:1;height:38px;padding:0 14px;border-radius:12px;
+  background:var(--bg1);border:1px solid var(--line2);color:var(--text);font-size:13px;
+  transition:border-color .18s,background .18s;
+}
+.yt-bar input:focus{outline:none;border-color:var(--line3);background:var(--bg2)}
+.yt-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;
+}
+.yt-card{
+  position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;cursor:pointer;
+  background:var(--bg1);border:1px solid var(--line);
+  transition:transform .24s var(--spring),border-color .2s,box-shadow .24s;
+}
+.yt-card:hover{transform:translateY(-3px);border-color:var(--line3);box-shadow:0 14px 32px rgba(0,0,0,.3)}
+.yt-card img{width:100%;height:100%;object-fit:cover;display:block}
+.yt-card-veil{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px 12px;
+  background:linear-gradient(180deg,transparent 38%,rgba(10,6,16,.84) 100%);
+  opacity:0;transition:opacity .2s;
+}
+.yt-card:hover .yt-card-veil{opacity:1}
+.yt-card-title{
+  font-size:12.5px;font-weight:500;color:#F6F1F8;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.yt-card-del{
+  position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(14,9,22,.72);color:#F4EAF3;
+  opacity:0;transition:opacity .18s,background .18s;border:1px solid rgba(255,255,255,.14);
+}
+.yt-card:hover .yt-card-del{opacity:1}
+.yt-card-del:hover{background:var(--flame)}
+.yt-sub-dot{
+  position:absolute;top:9px;left:9px;width:7px;height:7px;border-radius:50%;
+  background:var(--g2);box-shadow:0 0 8px rgba(46,204,64,.65);
+}
+
+/* Full-screen YT Waterfall Player (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) */
+#v-yt-play{
+  position:fixed;inset:0;z-index:30;background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:fadeIn .22s var(--smooth) both;
+}
+.yt-play-inner{
+  width:100%;max-width:860px;height:100%;margin:0 auto;padding:0 18px;
+  display:flex;flex-direction:column;min-height:0;
+}
+.yt-stage-wrap{
+  flex:0 0 auto;width:100%;max-width:740px;margin:2px auto 0;
+  position:relative;z-index:4;
+}
+.yt-stage{
+  width:100%;aspect-ratio:16/9;max-height:44vh;margin:0 auto;
+  border-radius:16px;overflow:hidden;background:#000;
+  border:1px solid var(--line2);
+  box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.yt-stage iframe{width:100%;height:100%;border:0;display:block}
+.yt-waterfall-scroll{
+  flex:1;min-height:0;overflow-y:auto;position:relative;
+  padding:14px 4px 120px;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
+}
+.yt-waterfall-feed{
+  display:flex;flex-direction:column-reverse;gap:10px;
+  max-width:740px;margin:0 auto;
+}
+.yt-waterfall-feed.reveal-all{flex-direction:column}
+.yt-waterfall-feed .sub-row{
+  font-size:var(--sub-size,20px);
+  animation:ukabuDown .72s cubic-bezier(.19,1,.22,1) both;
+}
+@keyframes ukabuDown{
+  0%{opacity:0;transform:translateY(-10px) scale(.94);filter:blur(9px)}
+  60%{opacity:.95;filter:blur(.8px)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+
+/* ================= BOOKS APP (MINIMALIST AOZORA SHELF) ================= */
+.book-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;
+}
+.book-card{
+  position:relative;aspect-ratio:2/3;border-radius:14px;overflow:hidden;cursor:pointer;
+  padding:18px 14px;display:flex;flex-direction:column;justify-content:space-between;
+  border:1px solid var(--line2);
+  transition:transform .24s var(--spring),border-color .2s,box-shadow .24s;
+}
+.book-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:7px;
+  background:rgba(0,0,0,.22);border-right:1px solid rgba(255,255,255,.08);
+}
+.book-card:hover{transform:translateY(-3px);border-color:var(--line3);box-shadow:0 14px 32px rgba(0,0,0,.32)}
+.book-card.selected{border-color:var(--flame);box-shadow:0 0 0 1px var(--flame),0 14px 32px rgba(0,0,0,.32)}
+.book-jp{
+  writing-mode:vertical-rl;font-size:19px;font-weight:600;letter-spacing:.14em;
+  color:#F6F1F8;align-self:flex-end;line-height:1.3;text-shadow:0 2px 10px rgba(0,0,0,.35);
+}
+.book-en{font-size:11.5px;color:rgba(246,241,248,.74);line-height:1.35;padding-left:6px}
+.book-ch{font-size:10.5px;color:rgba(246,241,248,.46);font-variant-numeric:tabular-nums;margin-top:2px;padding-left:6px}
 </style>
 </head>
 <body>
@@ -760,11 +885,27 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 
 <main>
   <nav>
-    <button class="tab" id="t-anime" aria-selected="true">Anime</button>
-    <button class="tab" id="t-playlists" aria-selected="false">Playlists</button>
-    <button class="tab" id="t-history" aria-selected="false">History</button>
+    <button class="app-pill" id="t-anime" aria-selected="true" title="Anime">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg>
+      <span>Anime</span>
+    </button>
+    <button class="app-pill" id="t-yt" aria-selected="false" title="YouTube">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none"/></svg>
+      <span>YT</span>
+    </button>
+    <button class="app-pill" id="t-books" aria-selected="false" title="Books">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Books</span>
+    </button>
     <span class="sp"></span>
     <button id="live-pill" hidden><span class="pulse" id="live-dot"></span><span id="live-time">00:00</span></button>
+    <button class="icon-btn" id="t-playlists" aria-selected="false" title="Playlists">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+    <button class="icon-btn" id="t-history" aria-selected="false" title="History">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    </button>
+    <span class="nav-div"></span>
     <button class="icon-btn" id="b-bulk" title="Bulk upload MP3 / SRT">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     </button>
@@ -857,10 +998,53 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     </div>
   </div>
 
-  <!-- TAB 1: ANIME -->
+  <!-- APP: ANIME -->
   <section id="v-anime" class="view-pane">
     <div class="grid" id="anime-grid"></div>
     <div id="drawer" hidden></div>
+  </section>
+
+  <!-- APP: YT (Thumbnail grid + 1-line URL bar) -->
+  <section id="v-yt" class="view-pane" hidden>
+    <div class="yt-bar">
+      <input id="yt-url" type="text" placeholder="https://youtu.be/..." autocomplete="off">
+      <button class="btn-pill" id="yt-add">+</button>
+    </div>
+    <div class="yt-grid" id="yt-grid"></div>
+  </section>
+
+  <!-- APP: YT WATERFALL PLAYER (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) -->
+  <section id="v-yt-play" hidden>
+    <div class="yt-play-inner">
+      <div class="sub-head">
+        <button class="icon-btn" id="yt-back" title="Back (Esc)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="sub-head-title" id="yt-play-title"></span>
+        <span class="sp"></span>
+        <div class="sub-head-tools">
+          <input type="range" class="size-slider" id="yt-size" min="15" max="32" step="1" value="20" title="Font size">
+          <button class="sub-mini-btn on" id="yt-autoscroll" title="Auto-follow waterfall">Auto</button>
+          <button class="sub-mini-btn" id="yt-reveal" title="Show all lines">All</button>
+          <button class="sub-mini-btn" id="yt-off-m" title="Earlier 0.5s">−0.5s</button>
+          <button class="sub-mini-btn" id="yt-off-p" title="Later 0.5s">+0.5s</button>
+          <span id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
+          <button class="sub-mini-btn on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
+        </div>
+      </div>
+      <div class="yt-stage-wrap">
+        <div class="yt-stage"><div id="yt-iframe-slot"></div></div>
+      </div>
+      <div class="yt-waterfall-scroll" id="yt-scroll">
+        <div class="yt-waterfall-feed" id="yt-feed"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APP: BOOKS (Minimalist Aozora Bunko cover shelf) -->
+  <section id="v-books" class="view-pane" hidden>
+    <div class="book-grid" id="book-grid"></div>
+    <div id="book-drawer" hidden></div>
   </section>
 
   <!-- TAB 2: PLAYLISTS -->
@@ -1499,6 +1683,7 @@ function computeRowTier(rowEl) {
 
 function refreshVocabHighlights() {
   $('#sub-feed').querySelectorAll('.sub-row').forEach(computeRowTier);
+  $('#yt-feed').querySelectorAll('.sub-row').forEach(computeRowTier);
 }
 
 function renderCueTokensHtml(cue, forAmbient = false) {
@@ -1936,6 +2121,7 @@ async function openDictPop(tokEl) {
   popAnchorEl.classList.add('active-lookup');
 
   if (subAutoPause && !audio.paused && curTab === 'subs') { audio.pause(); pausedByDict = true; renderDock(); }
+  if (subAutoPause && curTab === 'yt-play' && ytAdapter.isPlaying()) { ytAdapter.pause(); pausedByDict = true; }
 
   const cacheKey = `${word}|${surf}|${pos}`;
   const sameLookup = popOpen && popWord === word && popCtx === ctx;
@@ -1979,8 +2165,8 @@ function closeDictPop(resumeIfPaused) {
   $('#dict-pop').classList.remove('open');
   if (resumeIfPaused && pausedByDict) {
     pausedByDict = false;
-    audio.play().catch(() => {});
-    renderDock();
+    if (curTab === 'yt-play') ytAdapter.play();
+    else { audio.play().catch(() => {}); renderDock(); }
   } else {
     pausedByDict = false;
   }
@@ -2859,12 +3045,14 @@ function renderWordMapGrid() {
 
 /* ================= NAV & EVENTS ================= */
 function setTab(t) {
-  if (t !== 'subs' && t !== 'wordmap') lastNonSubTab = t;
+  if (t !== 'subs' && t !== 'wordmap' && t !== 'yt-play') lastNonSubTab = t;
+  if (curTab === 'yt-play' && t !== 'yt-play') ytAdapter.pause();
   curTab = t;
-  ['anime', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
-    $('#v-' + k).hidden = k !== t;
+  ['anime', 'yt', 'yt-play', 'books', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
+    const v = $('#v-' + k);
+    if (v) v.hidden = k !== t;
     const tb = $('#t-' + k);
-    if (tb) tb.setAttribute('aria-selected', String(k === t));
+    if (tb) tb.setAttribute('aria-selected', String(k === t || (k === 'yt' && t === 'yt-play')));
   });
   $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
   if (t !== 'subs') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
@@ -2883,6 +3071,8 @@ function toggleSubsTab() {
 }
 function renderAll() {
   renderAnimeView();
+  if (curTab === 'yt') renderYtGrid();
+  if (curTab === 'books') renderBooksView();
   if (curTab === 'playlists') renderPlaylistsView();
   if (curTab === 'history') renderHistoryView();
   if (curTab === 'subs') { updateSubHeadUI(); applyCueStatesInPlace(false); }
@@ -2896,8 +3086,339 @@ async function loadState() {
 }
 
 $('#t-anime').onclick = () => setTab('anime');
+$('#t-yt').onclick = () => setTab('yt');
+$('#t-books').onclick = () => setTab('books');
 $('#t-playlists').onclick = () => setTab('playlists');
 $('#t-history').onclick = () => setTab('history');
+
+/* ================= YT APP + TOP-TO-BOTTOM WATERFALL PLAYER ================= */
+let ytCurrentVideo = null;
+let ytCues = [];
+let ytCueIdx = -1;
+let ytMaxSeen = -1;
+let ytOffset = 0;
+let ytAutoScroll = true;
+let ytRevealAll = false;
+let ytUserAtTop = true;
+let ytPlayer = null;
+let ytApiLoading = false;
+let ytApiReady = false;
+let ytPendingId = null;
+let ytPollTimer = 0;
+
+// Clean VideoAdapter interface — YouTube IFrame now, mpv JSON-IPC plugs into this exact interface later!
+const ytAdapter = {
+  getTime() {
+    try { return (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') ? (ytPlayer.getCurrentTime() || 0) : 0; }
+    catch (e) { return 0; }
+  },
+  isPlaying() {
+    try { return !!(ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === 1); }
+    catch (e) { return false; }
+  },
+  play() { try { if (ytPlayer?.playVideo) ytPlayer.playVideo(); } catch (e) {} },
+  pause() { try { if (ytPlayer?.pauseVideo) ytPlayer.pauseVideo(); } catch (e) {} },
+  toggle() { if (this.isPlaying()) this.pause(); else this.play(); },
+  seek(sec) { try { if (ytPlayer?.seekTo) ytPlayer.seekTo(Math.max(0, sec), true); } catch (e) {} }
+};
+
+function ensureYtIframeApi(onReady) {
+  if (ytApiReady && window.YT && window.YT.Player) { onReady(); return; }
+  const prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = () => {
+    ytApiReady = true;
+    if (prev) try { prev(); } catch (e) {}
+    onReady();
+  };
+  if (!ytApiLoading) {
+    ytApiLoading = true;
+    const s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(s);
+  }
+}
+
+function mountYtPlayer(videoId) {
+  ytPendingId = videoId;
+  ensureYtIframeApi(() => {
+    if (ytPendingId !== videoId) return;
+    if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+      ytPlayer.loadVideoById(videoId);
+      return;
+    }
+    $('#yt-iframe-slot').innerHTML = '<div id="yt-iframe-el"></div>';
+    ytPlayer = new window.YT.Player('yt-iframe-el', {
+      videoId,
+      width: '100%',
+      height: '100%',
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1 },
+      events: {
+        onReady: () => {
+          if (ytPendingId && ytPendingId !== videoId && ytPlayer?.loadVideoById) ytPlayer.loadVideoById(ytPendingId);
+        }
+      }
+    });
+  });
+}
+
+function renderYtGrid() {
+  const vids = state.youtube || [];
+  $('#yt-grid').innerHTML = vids.map(v => `
+    <div class="yt-card" data-yt-open="${esc(v.id)}">
+      <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+      ${v.has_subs ? `<span class="yt-sub-dot" title="JP subtitles ready"></span>` : ''}
+      <button class="yt-card-del" data-yt-del="${esc(v.id)}" title="Remove">×</button>
+      <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
+    </div>`).join('');
+}
+
+function updateYtHeadUI() {
+  $('#yt-play-title').textContent = ytCurrentVideo ? ytCurrentVideo.title : '';
+  $('#yt-off-val').textContent = ytOffset ? `${ytOffset > 0 ? '+' : ''}${ytOffset.toFixed(1)}s` : '';
+  $('#yt-reveal').classList.toggle('on', ytRevealAll);
+  $('#yt-autoscroll').classList.toggle('on', ytAutoScroll);
+  $('#yt-autopause').classList.toggle('on', subAutoPause);
+}
+
+function updateYtWaterfallDepth() {
+  const feed = $('#yt-feed');
+  const rows = [...feed.querySelectorAll('.sub-row:not(.submerged)')];
+  // In top-to-bottom waterfall (column-reverse), the last visible DOM child is visually at the TOP right under the video!
+  if (!ytRevealAll) {
+    const n = rows.length;
+    rows.forEach((r, idx) => {
+      const distFromTop = (n - 1) - idx; // 0 = newest right beneath video, 1 = just below, etc.
+      const op = distFromTop === 0 ? 1 : Math.max(0.28, 0.88 - distFromTop * 0.14);
+      const blur = distFromTop <= 1 ? 0 : Math.min(2.2, (distFromTop - 1) * 0.45);
+      r.style.opacity = op.toFixed(3);
+      r.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : '';
+    });
+  } else {
+    rows.forEach(r => { r.style.opacity = ''; r.style.filter = ''; });
+  }
+}
+
+function rebuildYtFeed() {
+  updateYtHeadUI();
+  const feed = $('#yt-feed');
+  feed.classList.toggle('reveal-all', ytRevealAll);
+  feed.innerHTML = '';
+  if (!ytCues.length) {
+    feed.innerHTML = `<div class="sub-empty-box">No Japanese subtitles found for this video</div>`;
+    return;
+  }
+  const revealThrough = Math.max(ytCueIdx, ytMaxSeen);
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < ytCues.length; i++) {
+    const submerged = !ytRevealAll && i > revealThrough;
+    frag.appendChild(createSubRowEl(ytCues[i], i, submerged));
+  }
+  feed.appendChild(frag);
+  applyYtCueStates(false);
+}
+
+function applyYtCueStates(forceScroll = false) {
+  const feed = $('#yt-feed');
+  const rows = feed.querySelectorAll('.sub-row');
+  if (!rows.length) return;
+  const revealThrough = Math.max(ytCueIdx, ytMaxSeen);
+  rows.forEach((r, i) => {
+    const shouldSub = !ytRevealAll && i > revealThrough;
+    const wasSub = r.classList.contains('submerged');
+    if (wasSub !== shouldSub) r.classList.toggle('submerged', shouldSub);
+    r.classList.toggle('cur', i === ytCueIdx);
+    r.classList.toggle('past', i < ytCueIdx);
+    if (wasSub && !shouldSub && i === ytCueIdx && r.classList.contains('t1')) {
+      playT1Chime();
+    }
+  });
+  updateYtWaterfallDepth();
+  if (ytAutoScroll && (ytUserAtTop || forceScroll)) {
+    const sc = $('#yt-scroll');
+    if (!ytRevealAll) {
+      sc.scrollTo({ top: 0, behavior: forceScroll ? 'smooth' : 'auto' });
+    } else if (ytCueIdx >= 0 && rows[ytCueIdx]) {
+      rows[ytCueIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function syncYtSubtitles(force = false) {
+  if (curTab !== 'yt-play' || !ytCues.length) return;
+  const t = ytAdapter.getTime() + ytOffset;
+  let active = -1;
+  for (let i = 0; i < ytCues.length; i++) {
+    if (t >= ytCues[i].start - 0.08 && t <= ytCues[i].end + 0.35) active = i;
+    else if (t > ytCues[i].end + 0.35) active = i;
+    else break;
+  }
+  if (active === ytCueIdx && !force) return;
+  ytCueIdx = active;
+  if (active > ytMaxSeen) ytMaxSeen = active;
+  applyYtCueStates(force);
+}
+
+async function openYtVideo(video, prefetchedCues = null) {
+  if (!audio.paused) { audio.pause(); renderDock(); }
+  ytCurrentVideo = video;
+  ytCues = prefetchedCues || [];
+  ytCueIdx = -1;
+  ytMaxSeen = -1;
+  ytOffset = 0;
+  ytUserAtTop = true;
+  setTab('yt-play');
+  updateYtHeadUI();
+  mountYtPlayer(video.id);
+  if (!prefetchedCues) {
+    $('#yt-feed').innerHTML = `<div class="sub-empty-box">Loading Japanese subtitles…</div>`;
+    try {
+      const res = await api(`/api/yt/${encodeURIComponent(video.id)}/subtitles`);
+      ytCues = res.cues || [];
+    } catch (e) { ytCues = []; }
+  }
+  rebuildYtFeed();
+  syncYtSubtitles(true);
+  clearInterval(ytPollTimer);
+  ytPollTimer = setInterval(() => syncYtSubtitles(false), 140);
+}
+
+async function addYtUrl() {
+  const inp = $('#yt-url');
+  const url = inp.value.trim();
+  if (!url) return;
+  const btn = $('#yt-add');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const res = await api('/api/yt/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    state.youtube = res.videos || state.youtube;
+    inp.value = '';
+    renderYtGrid();
+    if (res.video) openYtVideo(res.video, res.cues || []);
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = '+'; }
+}
+
+$('#yt-add').onclick = addYtUrl;
+$('#yt-url').addEventListener('keydown', e => { if (e.key === 'Enter') addYtUrl(); });
+$('#yt-grid').addEventListener('click', async e => {
+  const del = e.target.closest('[data-yt-del]');
+  if (del) {
+    e.stopPropagation();
+    const res = await api(`/api/yt/${encodeURIComponent(del.dataset.ytDel)}`, { method: 'DELETE' });
+    state.youtube = res.videos || [];
+    renderYtGrid();
+    return;
+  }
+  const card = e.target.closest('[data-yt-open]');
+  if (card) {
+    const v = (state.youtube || []).find(x => x.id === card.dataset.ytOpen);
+    if (v) openYtVideo(v);
+  }
+});
+$('#yt-back').onclick = () => { clearInterval(ytPollTimer); closeDictPop(false); setTab('yt'); };
+$('#yt-size').oninput = e => { $('#v-yt-play').style.setProperty('--sub-size', e.target.value + 'px'); };
+$('#yt-autoscroll').onclick = () => { ytAutoScroll = !ytAutoScroll; ytUserAtTop = true; updateYtHeadUI(); if (ytAutoScroll) applyYtCueStates(true); };
+$('#yt-reveal').onclick = () => { ytRevealAll = !ytRevealAll; rebuildYtFeed(); syncYtSubtitles(true); };
+$('#yt-off-m').onclick = () => { ytOffset = Math.round((ytOffset - 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); };
+$('#yt-off-p').onclick = () => { ytOffset = Math.round((ytOffset + 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); };
+$('#yt-autopause').onclick = () => { subAutoPause = !subAutoPause; updateYtHeadUI(); updateSubHeadUI(); };
+$('#yt-scroll').addEventListener('scroll', () => {
+  const top = $('#yt-scroll').scrollTop;
+  if (top > 100) ytUserAtTop = false;
+  else if (top < 70) ytUserAtTop = true;
+}, { passive: true });
+const ytFeedEl = $('#yt-feed');
+ytFeedEl.addEventListener('pointerover', e => {
+  const tok = e.target.closest('.tok');
+  if (tok) { hoveredTokEl = tok; if (e.shiftKey || shiftHeld) openDictPop(tok); }
+});
+ytFeedEl.addEventListener('pointerout', e => {
+  const tok = e.target.closest('.tok');
+  if (tok && hoveredTokEl === tok) { hoveredTokEl = null; if (popOpen) scheduleCloseDictPop(); }
+});
+ytFeedEl.addEventListener('click', e => {
+  const seek = e.target.closest('[data-seek-cue]');
+  if (seek) {
+    const idx = +seek.dataset.seekCue;
+    if (ytCues[idx]) { ytAdapter.seek(Math.max(0, ytCues[idx].start - ytOffset)); closeDictPop(false); syncYtSubtitles(true); }
+    return;
+  }
+  const tok = e.target.closest('.tok'); if (!tok) return;
+  if (e.shiftKey) { openDictPop(tok); return; }
+  const w = tok.dataset.word;
+  setWordStatus(w, getWordStatus(w, tok.dataset.autoign === '1') === 'known' ? 'unknown' : 'known');
+});
+
+/* ================= BOOKS APP (MINIMALIST AOZORA SHELF) ================= */
+let selectedBookKey = null;
+const AOZORA_BOOKS = [
+  { key: 'toshishun', jp: '杜子春', en: 'Toshishun', author: '芥川龍之介', bg: 'linear-gradient(155deg,#2B193D,#5C2344)' },
+  { key: 'gongitsune', jp: 'ごん狐', en: 'Gon, the Little Fox', author: '新美南吉', bg: 'linear-gradient(155deg,#3A2118,#7A3E24)' },
+  { key: 'kaze tachinu', jp: '風立ちぬ', en: 'The Wind Has Risen', author: '堀辰雄', bg: 'linear-gradient(155deg,#182B3A,#2B566E)' },
+  { key: 'botchan', jp: '坊っちゃん', en: 'Botchan', author: '夏目漱石', bg: 'linear-gradient(155deg,#1E3328,#36634C)' },
+  { key: 'good-bye', jp: 'グッド・バイ', en: 'Good-Bye', author: '太宰治', bg: 'linear-gradient(155deg,#2D1A2B,#692B4A)' },
+  { key: 'garasudo', jp: '硝子戸の中', en: 'Inside My Glass Doors', author: '夏目漱石', bg: 'linear-gradient(155deg,#1E2436,#3A486B)' },
+  { key: 'akai rosoku', jp: '赤い蝋燭と人魚', en: 'Red Candles', author: '小川未明', bg: 'linear-gradient(155deg,#3B1522,#852336)' },
+  { key: 'hyakunin', jp: '百人一首', en: 'Hyakunin Isshu', author: '藤原定家', bg: 'linear-gradient(155deg,#2A2618,#61532B)' }
+];
+
+function renderBooksView() {
+  const stories = getAnime('example-japanese-stories');
+  const eps = stories ? stories.episodes : [];
+  $('#book-grid').innerHTML = AOZORA_BOOKS.map(b => {
+    const chs = eps.filter(e => e.title.toLowerCase().includes(b.key));
+    return `
+      <div class="book-card${selectedBookKey === b.key ? ' selected' : ''}" data-book-key="${esc(b.key)}" style="background:${b.bg}">
+        <div class="book-jp">${esc(b.jp)}</div>
+        <div>
+          <div class="book-en">${esc(b.en)}</div>
+          <div class="book-ch">${esc(b.author)}${chs.length ? ` · ${chs.length}` : ''}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const dr = $('#book-drawer');
+  const sel = AOZORA_BOOKS.find(b => b.key === selectedBookKey);
+  if (!sel || !stories) { dr.hidden = true; dr.innerHTML = ''; return; }
+  const chs = eps.filter(e => e.title.toLowerCase().includes(sel.key));
+  dr.hidden = false;
+  dr.innerHTML = `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+      <div class="sec-bar">
+        <h2>${esc(sel.jp)} <span style="color:var(--faint);font-weight:400">${esc(sel.en)}</span></h2>
+        <span class="sp"></span>
+        <button class="icon-btn" id="bk-close">${IC_X}</button>
+      </div>
+      <ul class="rows">
+        ${chs.map((ep, i) => {
+          const isP = currentTrack && currentTrack.anime.id === stories.id && currentTrack.ep.id === ep.id;
+          return `
+            <li class="r${isP ? ' playing' : ''}${ep.available ? '' : ' unavail'}" data-bk-ep="${esc(ep.id)}">
+              <span class="r-num">${pad(i + 1)}</span>
+              <span class="r-title">${esc(ep.title)}</span>
+              ${ep.has_subtitles ? `<span class="r-subdot"></span>` : ''}
+              <span class="r-dur">${ep.duration_secs ? fmtClock(ep.duration_secs) : ''}</span>
+            </li>`;
+        }).join('')}
+      </ul>
+    </div>`;
+  $('#bk-close').onclick = () => { selectedBookKey = null; renderBooksView(); };
+  $$('[data-bk-ep]', dr).forEach(row => row.onclick = () => {
+    playAnime(stories.id, row.dataset.bkEp);
+    setTimeout(() => toggleSubsTab(), 120);
+  });
+}
+
+$('#book-grid').addEventListener('click', e => {
+  const c = e.target.closest('[data-book-key]');
+  if (!c) return;
+  selectedBookKey = selectedBookKey === c.dataset.bookKey ? null : c.dataset.bookKey;
+  renderBooksView();
+  if (selectedBookKey) requestAnimationFrame(() => $('#book-drawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+});
 $('#live-pill').onclick = () => { if (currentTrack) { selectedAnimeId = currentTrack.anime.id; setTab('anime'); } };
 $('#b-bulk').onclick = () => openBulkModal(selectedAnimeId || 'auto');
 
@@ -3286,16 +3807,17 @@ window.addEventListener('message', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
     shiftHeld = true;
-    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap')) openDictPop(hoveredTokEl);
+    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play')) openDictPop(hoveredTokEl);
     return;
   }
   const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');
   if (e.altKey && e.key === '1') { e.preventDefault(); setTab('anime'); return; }
-  if (e.altKey && e.key === '2') { e.preventDefault(); setTab('playlists'); return; }
-  if (e.altKey && e.key === '3') { e.preventDefault(); setTab('history'); return; }
+  if (e.altKey && e.key === '2') { e.preventDefault(); setTab('yt'); return; }
+  if (e.altKey && e.key === '3') { e.preventDefault(); setTab('books'); return; }
   if (e.key === 'Escape') {
     if (popOpen) { closeDictPop(true); return; }
     if (synStage > 0) { setSynopsisStage(0); return; }
+    if (curTab === 'yt-play') { clearInterval(ytPollTimer); setTab('yt'); return; }
     if (curTab === 'wordmap') { setTab(wmReturnTab); return; }
     if (curTab === 'subs') { setTab(lastNonSubTab); return; }
     $('#pop').hidden = true; $('#add-modal').hidden = true; $('#bulk-modal').hidden = true; return;
@@ -3303,11 +3825,16 @@ document.addEventListener('keydown', e => {
   if (typing) return;
   // Instant 1/2/3/4 tagging for active lookup or hovered word
   const activeWord = popOpen ? popWord : (hoveredTokEl ? hoveredTokEl.dataset.word : '');
-  if ((curTab === 'subs' || curTab === 'wordmap') && activeWord && !e.altKey && !e.ctrlKey) {
+  if ((curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play') && activeWord && !e.altKey && !e.ctrlKey) {
     if (e.key === '1' || e.key === '!') { e.preventDefault(); setWordStatus(activeWord, 'known'); return; }
     if (e.key === '2' || e.key === '@') { e.preventDefault(); setWordStatus(activeWord, 'learning'); return; }
     if (e.key === '3' || e.key === '#') { e.preventDefault(); setWordStatus(activeWord, 'unknown'); return; }
     if (e.key === '4' || e.key === '$') { e.preventDefault(); setWordStatus(activeWord, 'ignore'); return; }
+  }
+  if (curTab === 'yt-play') {
+    if (e.code === 'Space') { e.preventDefault(); ytAdapter.toggle(); return; }
+    if (e.key === 'j' || e.key === 'J') { ytAdapter.seek(ytAdapter.getTime() - 10); return; }
+    if (e.key === 'l' || e.key === 'L') { ytAdapter.seek(ytAdapter.getTime() + 10); return; }
   }
   if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
   else if (e.key === 's' || e.key === 'S') { toggleSubsTab(); }
@@ -3335,7 +3862,7 @@ let idleLastFrameMs = 0;
 
 function isIdleEligible() {
   if (!currentTrack || audio.paused || !subCues.length || subGenerating) return false;
-  if (curTab === 'subs') return false;
+  if (curTab === 'subs' || curTab === 'yt-play') return false;
   if (popOpen || shiftHeld) return false;
   if (!$('#pop').hidden || !$('#bulk-modal').hidden || !$('#add-modal').hidden) return false;
   return true;
