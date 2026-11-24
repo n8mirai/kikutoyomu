@@ -116,7 +116,7 @@ body::before{
     radial-gradient(580px 440px at 88% 82%,color-mix(in srgb,var(--cool2) 12%,transparent),transparent 72%);
 }
 #dock,#pop,#dict-pop,.modal,#syn-scroll,.yt-trace-bar,.yt-trace-card,.yt-ai-ans,
-.app-pill[aria-selected="true"],#live-pill,.yt-pill.on,.ai-msg,.sub-row.cur .sub-row-inner{
+.app-pill[aria-selected="true"],#live-pill,.ai-msg,.sub-row.cur .sub-row-inner{
   background-image:var(--lg-bg);
   background-color:var(--lg-tint);
   border-color:var(--lg-border);
@@ -129,8 +129,13 @@ body::before{
 .app-pill[aria-selected="true"],#live-pill,.yt-trace-bar{
   box-shadow:var(--lg-rim),0 8px 22px rgba(0,0,0,.14);
 }
+/* Active pills inside horizontally scrollable rows: strictly inset rim only (NEVER outer shadow or backdrop-filter bleed!) */
 .yt-pill.on{
-  box-shadow:var(--lg-rim)!important;
+  background-image:var(--lg-bg);
+  background-color:var(--bg2);
+  border-color:var(--line3);
+  box-shadow:var(--lg-rim);
+  color:var(--text);
 }
 .sub-row.cur .sub-row-inner{
   border-radius:16px;
@@ -1031,7 +1036,65 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .yt-badge.t1{background:rgba(22,163,74,.84);color:#fff}
 .yt-badge.t2{background:rgba(202,138,4,.84);color:#fff}
 .yt-badge.t3{background:rgba(161,98,7,.76);color:#fff}
-.yt-card-ch{font-size:11px;color:rgba(246,241,248,.68);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-dur{
+  position:absolute;top:8px;right:8px;padding:2px 6px;border-radius:6px;
+  font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;
+  background:rgba(14,9,22,.76);color:#F4EAF3;letter-spacing:.02em;
+  pointer-events:none;
+}
+.yt-card-ch-row{
+  display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;
+}
+.yt-card-pfp{
+  width:16px;height:16px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);
+}
+.yt-card-ch{font-size:11px;color:rgba(246,241,248,.74);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-card-ch-btn{
+  display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:100%;
+  background:none;border:0;padding:0;cursor:pointer;text-align:left;
+}
+.yt-card-ch-btn:hover .yt-card-ch{color:#fff;text-decoration:underline}
+.yt-ch-head{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px 12px;
+  border-radius:14px;background:var(--bg1);border:1px solid var(--line2);
+  animation:ukabuToken .55s cubic-bezier(.19,1,.22,1) both;
+}
+.yt-ch-head-pfp{
+  width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);background:var(--bg2);
+}
+.yt-ch-head-name{font-size:14px;font-weight:600;color:var(--text)}
+.yt-sentinel{
+  display:flex;justify-content:center;align-items:center;min-height:44px;margin-top:14px;
+}
+.yt-more-btn{
+  height:32px;padding:0 16px;border-radius:999px;font-size:12px;font-weight:500;
+  color:var(--muted);background:var(--bg1);border:1px solid var(--line2);
+  transition:color .16s,border-color .16s,background .16s;
+}
+.yt-more-btn:hover{color:var(--text);border-color:var(--line3);background:var(--bg2)}
+.yt-next-drawer{
+  width:100%;max-width:780px;margin:0 auto;
+  display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.19,1,.22,1);
+}
+.yt-next-drawer.open{grid-template-rows:1fr}
+.yt-next-drawer-in{overflow:hidden}
+.yt-next-strip{
+  display:flex;gap:10px;overflow-x:auto;padding:10px 2px 6px;scrollbar-width:none;
+}
+.yt-next-strip::-webkit-scrollbar{display:none}
+.yt-next-card{
+  flex:0 0 186px;position:relative;aspect-ratio:16/9;border-radius:11px;overflow:hidden;
+  background:var(--bg1);border:1px solid var(--line2);cursor:pointer;
+  transition:transform .22s var(--spring),border-color .16s;
+}
+.yt-next-card:hover{transform:translateY(-2px);border-color:var(--line3)}
+.yt-next-card img{width:100%;height:100%;object-fit:cover;display:block}
+.yt-next-card .yt-card-veil{padding:18px 8px 6px}
+.yt-next-card .yt-card-title{font-size:11px;line-height:1.28}
+.yt-next-card .yt-badge{top:5px;left:5px;padding:1px 5px;font-size:9.5px}
+.yt-next-card .yt-dur{top:5px;right:5px;padding:1px 5px;font-size:9.5px}
 
 /* Full-screen YT Waterfall Player (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) */
 #v-yt-play{
@@ -1456,7 +1519,9 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
       </div>
     </div>
     <div class="yt-pills" id="yt-pills"></div>
+    <div class="yt-ch-head" id="yt-ch-head" hidden></div>
     <div class="yt-grid" id="yt-grid"></div>
+    <div class="yt-sentinel" id="yt-sentinel"></div>
   </section>
 
   <!-- APP: YT WATERFALL PLAYER (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) -->
@@ -1476,6 +1541,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
           <button class="sub-mini-btn yt-sub-only" id="yt-off-p" title="Later 0.5s">+0.5s</button>
           <span class="yt-sub-only" id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
           <button class="sub-mini-btn yt-sub-only on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
+          <button class="sub-mini-btn" id="yt-next-toggle" title="Up Next related Japanese videos">Next</button>
           <button class="sub-mini-btn" id="yt-mode-toggle" title="Switch Watch / Audio-Only Listen mode">Watch</button>
           <button class="sub-mini-btn" id="yt-subs-toggle" title="Toggle Japanese subtitles (S)">字</button>
         </div>
@@ -1501,6 +1567,11 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
           </div>
         </div>
         <div class="yt-ai-ans" id="yt-ai-ans" hidden></div>
+      </div>
+      <div class="yt-next-drawer" id="yt-next-drawer">
+        <div class="yt-next-drawer-in">
+          <div class="yt-next-strip" id="yt-next-strip"></div>
+        </div>
       </div>
       <div class="yt-waterfall-scroll" id="yt-scroll">
         <div class="yt-waterfall-feed" id="yt-feed"></div>
@@ -3748,9 +3819,7 @@ $('#t-history').onclick = () => setTab('history');
 
 /* ================= YT APP + TOP-TO-BOTTOM WATERFALL PLAYER ================= */
 let ytCurrentVideo = null;
-let ytFeedItems = [];
-let ytFeedLoaded = false;
-let ytFeedLoading = false;
+const ytCatFeeds = new Map(); // cat -> { items: FeedVideo[], wave: number, loading: boolean, hasMore: boolean }
 let ytCat = 'foryou';
 let ytCues = [];
 let ytCueIdx = -1;
@@ -3760,9 +3829,15 @@ let ytSubsOn = true;
 let ytAudioOnly = false;
 let ytAutoScroll = true;
 let ytSearchQuery = '';
+let ytSearchLocalized = '';
+let ytSearchCont = null;
+let ytSearchLoadingMore = false;
 let ytSuggestedTab = '';
 let ytSearchResults = null; // null when browsing feed, Array when viewing search results
-const ytCustomTabCache = new Map(); // tabId -> FeedVideo[]
+const ytCustomTabCache = new Map(); // tabId -> { items: FeedVideo[], continuation: string|null, localizedQuery: string, loading: boolean }
+let ytChannelView = null; // null or { id, name, pfp, items, continuation, loading }
+let ytRelatedItems = [];
+let ytNextOpen = false;
 let ytRevealAll = false;
 let ytUserAtTop = true;
 let ytPlayer = null;
@@ -3878,22 +3953,36 @@ function updateYtTraceUI() {
     const epSum = synData.episode_summary || (generating ? 'Generating video context…' : ytCurrentVideo.title);
     const chName = synData.series_title || ytCurrentVideo.channel || 'Channel';
     const chSum = synData.series_summary || (generating ? 'Generating channel context…' : '');
-    const key = `${ytCurrentVideo.id}|${ytTraceStage}|${ytChannelOpen}|${generating}|${epSum}|${chSum}`;
+    const chPfp = ytCurrentVideo.channel_pfp || '';
+    const chId = ytCurrentVideo.channel_id || '';
+    const key = `${ytCurrentVideo.id}|${ytTraceStage}|${ytChannelOpen}|${generating}|${chPfp}|${chId}|${epSum}|${chSum}`;
     if (key === ytCardRenderKey) return; // Zero DOM churn during playback -> zero flashing!
     ytCardRenderKey = key;
     const chInit = (chName.trim()[0] || 'Y').toUpperCase();
+    const pfpHtml = chPfp
+      ? `<img src="${esc(chPfp)}" alt="" onerror="this.remove()">`
+      : esc(chInit);
     card.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px">
         <h4 style="margin:0">Video</h4>
-        ${chSum ? `<button class="yt-ch-btn${ytChannelOpen ? ' on' : ''}" id="yt-ch-pfp-btn" title="Toggle channel overview"><span class="yt-ch-pfp"><img src="https://i.ytimg.com/vi/${encodeURIComponent(ytCurrentVideo.id)}/default.jpg" alt="" onerror="this.remove()">${esc(chInit)}</span><span>${esc(chName)}</span></button>` : ''}
+        ${(chSum || chId) ? `<button class="yt-ch-btn${ytChannelOpen ? ' on' : ''}" id="yt-ch-pfp-btn" title="Channel info"><span class="yt-ch-pfp">${pfpHtml}</span><span>${esc(chName)}</span></button>` : ''}
       </div>
       <p>${esc(epSum)}</p>
-      ${ytChannelOpen && chSum ? `<div class="yt-ch-sec"><h4>${esc(chName)}</h4><p>${esc(chSum)}</p></div>` : ''}`;
+      ${ytChannelOpen && (chSum || chId) ? `<div class="yt-ch-sec"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px"><h4 style="margin:0">${esc(chName)}</h4>${chId ? `<button class="sub-mini-btn" id="yt-ch-browse-btn" title="Browse channel videos">Videos ↗</button>` : ''}</div>${chSum ? `<p>${esc(chSum)}</p>` : ''}</div>` : ''}`;
     if ($('#yt-ch-pfp-btn')) {
       $('#yt-ch-pfp-btn').onclick = e => {
         e.stopPropagation();
         ytChannelOpen = !ytChannelOpen;
         updateYtTraceUI();
+      };
+    }
+    if ($('#yt-ch-browse-btn')) {
+      $('#yt-ch-browse-btn').onclick = e => {
+        e.stopPropagation();
+        const cid = ytCurrentVideo?.channel_id;
+        const cname = ytCurrentVideo?.channel || chName;
+        const cpfp = ytCurrentVideo?.channel_pfp || '';
+        if (cid) { setTab('yt'); openYtChannel(cid, cname, cpfp); }
       };
     }
   } else {
@@ -4281,19 +4370,128 @@ function mountYtPlayer(videoId, startSecs = 0) {
   });
 }
 
-async function ensureYtFeed(force = false) {
-  if (ytFeedLoading) return;
-  if (ytFeedLoaded && !force) return;
-  ytFeedLoading = true;
+async function ensureYtFeed(force = false, catOverride = null) {
+  const cat = catOverride || ytCat;
+  if (cat === 'saved' || cat.startsWith('custom:')) return;
+  let slot = ytCatFeeds.get(cat);
+  if (slot && slot.loading) return;
+  if (slot && slot.items.length && !force) return;
+  if (!slot || force) {
+    slot = { items: [], wave: 0, loading: true, hasMore: true };
+    ytCatFeeds.set(cat, slot);
+  } else {
+    slot.loading = true;
+  }
   renderYtGrid();
   try {
-    const res = await api('/api/yt/feed' + (force ? '?refresh=1' : ''));
-    ytFeedItems = res.items || [];
-    ytFeedLoaded = true;
+    const res = await api(`/api/yt/feed?cat=${encodeURIComponent(cat)}&wave=0${force ? '&refresh=1' : ''}`);
+    slot.items = res.items || [];
+    slot.wave = 0;
+    slot.hasMore = res.has_more !== false;
   } catch (e) {}
   finally {
-    ytFeedLoading = false;
+    slot.loading = false;
     renderYtGrid();
+  }
+}
+
+async function loadMoreYt() {
+  // 1. Channel browse pagination
+  if (ytChannelView) {
+    if (ytChannelView.loading || !ytChannelView.continuation) return;
+    ytChannelView.loading = true;
+    renderYtSentinel();
+    try {
+      const res = await api(`/api/yt/channel/${encodeURIComponent(ytChannelView.id)}?continuation=${encodeURIComponent(ytChannelView.continuation)}`);
+      const seen = new Set(ytChannelView.items.map(x => x.id));
+      for (const it of (res.items || [])) {
+        if (!seen.has(it.id)) { seen.add(it.id); ytChannelView.items.push(it); }
+      }
+      ytChannelView.continuation = res.continuation || null;
+    } catch (e) { ytChannelView.continuation = null; }
+    finally { ytChannelView.loading = false; renderYtGrid(); }
+    return;
+  }
+  // 2. Active search pagination
+  if (ytSearchResults !== null) {
+    if (ytSearchLoadingMore || !ytSearchCont) return;
+    ytSearchLoadingMore = true;
+    renderYtSentinel();
+    try {
+      const res = await api('/api/yt/search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: ytSearchQuery, localized_query: ytSearchLocalized, continuation: ytSearchCont })
+      });
+      const seen = new Set(ytSearchResults.map(x => x.id));
+      for (const it of (res.items || [])) {
+        if (!seen.has(it.id)) { seen.add(it.id); ytSearchResults.push(it); }
+      }
+      ytSearchCont = res.continuation || null;
+    } catch (e) { ytSearchCont = null; }
+    finally { ytSearchLoadingMore = false; renderYtGrid(); }
+    return;
+  }
+  // 3. Custom saved tab pagination
+  if (ytCat.startsWith('custom:')) {
+    const tid = ytCat.slice(7);
+    const tab = (state.config?.yt_tabs || []).find(t => t.id === tid);
+    const meta = ytCustomTabCache.get(tid);
+    if (!tab || !meta || meta.loading || !meta.continuation) return;
+    meta.loading = true;
+    renderYtSentinel();
+    try {
+      const res = await api('/api/yt/search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: tab.query, localized_query: meta.localizedQuery, continuation: meta.continuation })
+      });
+      const seen = new Set(meta.items.map(x => x.id));
+      for (const it of (res.items || [])) {
+        if (!seen.has(it.id)) { seen.add(it.id); meta.items.push(it); }
+      }
+      meta.continuation = res.continuation || null;
+    } catch (e) { meta.continuation = null; }
+    finally { meta.loading = false; renderYtGrid(); }
+    return;
+  }
+  // 4. Built-in hybrid category infinite waves
+  if (ytCat === 'saved') return;
+  const slot = ytCatFeeds.get(ytCat);
+  if (!slot || slot.loading || !slot.hasMore || slot.wave >= 12) return;
+  slot.loading = true;
+  renderYtSentinel();
+  try {
+    const nextWave = slot.wave + 1;
+    const res = await api(`/api/yt/feed?cat=${encodeURIComponent(ytCat)}&wave=${nextWave}`);
+    const seen = new Set(slot.items.map(x => x.id));
+    let added = 0;
+    for (const it of (res.items || [])) {
+      if (!seen.has(it.id)) { seen.add(it.id); slot.items.push(it); added++; }
+    }
+    slot.wave = nextWave;
+    slot.hasMore = added > 0 && nextWave < 12;
+  } catch (e) { slot.hasMore = false; }
+  finally { slot.loading = false; renderYtGrid(); }
+}
+
+async function openYtChannel(channelId, channelName = '', channelPfp = '') {
+  if (!channelId) return;
+  ytSearchResults = null;
+  ytChannelView = { id: channelId, name: channelName || 'Channel', pfp: channelPfp || '', items: [], continuation: null, loading: true };
+  renderYtGrid();
+  try {
+    const res = await api(`/api/yt/channel/${encodeURIComponent(channelId)}`);
+    if (ytChannelView && ytChannelView.id === channelId) {
+      ytChannelView.name = res.channel_name || ytChannelView.name;
+      ytChannelView.pfp = res.channel_pfp || ytChannelView.pfp;
+      ytChannelView.items = res.items || [];
+      ytChannelView.continuation = res.continuation || null;
+    }
+  } catch (e) { toast('Could not load channel', true); }
+  finally {
+    if (ytChannelView && ytChannelView.id === channelId) {
+      ytChannelView.loading = false;
+      renderYtGrid();
+    }
   }
 }
 
@@ -4309,6 +4507,8 @@ const YT_BUILTIN_TABS = [
   { id: 'all', label: 'All' },
   { id: 'vlog', label: 'Vlog' },
   { id: 'talk', label: 'Talk' },
+  { id: 'gaming', label: 'Gaming' },
+  { id: 'tech', label: 'Tech' },
   { id: 'jp', label: 'JP' },
   { id: 'news', label: 'News' },
   { id: 'saved', label: 'Saved' }
@@ -4317,21 +4517,23 @@ const YT_BUILTIN_TABS = [
 function renderYtPills() {
   const custom = state.config?.yt_tabs || [];
   const customHtml = custom.map(t => `
-    <button class="yt-pill${ytCat === ('custom:' + t.id) ? ' on' : ''}" data-yt-cat="custom:${esc(t.id)}">
+    <button class="yt-pill${!ytChannelView && ytSearchResults === null && ytCat === ('custom:' + t.id) ? ' on' : ''}" data-yt-cat="custom:${esc(t.id)}">
       <span>${esc(t.label)}</span>
       <span class="yt-pill-x" data-yt-rmtab="${esc(t.id)}" title="Remove tab">×</span>
     </button>`).join('');
   const builtHtml = YT_BUILTIN_TABS.map(t =>
-    `<button class="yt-pill${ytCat === t.id ? ' on' : ''}" data-yt-cat="${t.id}">${t.label}</button>`
+    `<button class="yt-pill${!ytChannelView && ytSearchResults === null && ytCat === t.id ? ' on' : ''}" data-yt-cat="${t.id}">${t.label}</button>`
   ).join('');
   $('#yt-pills').innerHTML = builtHtml + customHtml + `<span class="sp"></span><button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>`;
   $('#yt-feed-refresh').onclick = () => {
-    if (ytCat.startsWith('custom:')) {
+    if (ytChannelView) {
+      openYtChannel(ytChannelView.id, ytChannelView.name, ytChannelView.pfp);
+    } else if (ytCat.startsWith('custom:')) {
       const tid = ytCat.slice(7);
       ytCustomTabCache.delete(tid);
       loadYtCustomTab(tid);
     } else {
-      ensureYtFeed(true);
+      ensureYtFeed(true, ytCat);
     }
   };
 }
@@ -4340,20 +4542,103 @@ async function loadYtCustomTab(tabId) {
   const tab = (state.config?.yt_tabs || []).find(t => t.id === tabId);
   if (!tab) return;
   if (ytCustomTabCache.has(tabId)) { renderYtGrid(); return; }
+  ytCustomTabCache.set(tabId, { items: [], continuation: null, localizedQuery: '', loading: true });
   $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ${esc(tab.label)}…</div>`;
   try {
     const res = await api('/api/yt/search', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: tab.query })
     });
-    ytCustomTabCache.set(tabId, res.items || []);
-  } catch (e) { ytCustomTabCache.set(tabId, []); }
+    ytCustomTabCache.set(tabId, {
+      items: res.items || [],
+      continuation: res.continuation || null,
+      localizedQuery: res.localized_query || tab.query,
+      loading: false
+    });
+  } catch (e) {
+    ytCustomTabCache.set(tabId, { items: [], continuation: null, localizedQuery: '', loading: false });
+  }
   renderYtGrid();
+}
+
+function ytCardHtml(v, dataAttr, savedIds) {
+  const tierCls = v.tier ? v.tier.toLowerCase() : '';
+  const badge = v.tier
+    ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>`
+    : (savedIds && savedIds.has(v.id) ? `<span class="yt-sub-dot"></span>` : '');
+  const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
+  const pfp = v.channel_pfp ? `<img class="yt-card-pfp" src="${esc(v.channel_pfp)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const chInner = `${pfp}<span class="yt-card-ch">${esc(v.channel || '')}</span>`;
+  const chRow = v.channel_id
+    ? `<div class="yt-card-ch-row"><button class="yt-card-ch-btn" data-yt-ch-id="${esc(v.channel_id)}" data-yt-ch-name="${esc(v.channel || '')}" data-yt-ch-pfp="${esc(v.channel_pfp || '')}" title="Browse channel">${chInner}</button></div>`
+    : (v.channel ? `<div class="yt-card-ch-row">${chInner}</div>` : '');
+  return `
+    <div class="yt-card" ${dataAttr}="${esc(v.id)}">
+      <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+      ${badge}${dur}
+      <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div>${chRow}</div>
+      ${ytProgBarHtml(v.id)}
+    </div>`;
+}
+
+function renderYtSentinel() {
+  const el = $('#yt-sentinel');
+  if (!el) return;
+  let loading = false;
+  let hasMore = false;
+  if (ytChannelView) {
+    loading = ytChannelView.loading;
+    hasMore = !!ytChannelView.continuation;
+  } else if (ytSearchResults !== null) {
+    loading = ytSearchLoadingMore;
+    hasMore = !!ytSearchCont;
+  } else if (ytCat.startsWith('custom:')) {
+    const meta = ytCustomTabCache.get(ytCat.slice(7));
+    loading = !!(meta && meta.loading);
+    hasMore = !!(meta && meta.continuation);
+  } else if (ytCat !== 'saved') {
+    const slot = ytCatFeeds.get(ytCat);
+    loading = !!(slot && slot.loading);
+    hasMore = !!(slot && slot.hasMore && slot.items.length > 0 && slot.wave < 12);
+  }
+  if (loading) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--faint)">Loading more Japanese videos…</span>`;
+  } else if (hasMore) {
+    el.innerHTML = `<button class="yt-more-btn" id="yt-load-more">Load more</button>`;
+    $('#yt-load-more').onclick = () => loadMoreYt();
+  } else {
+    el.innerHTML = '';
+  }
 }
 
 function renderYtGrid() {
   renderYtPills();
   const savedIds = new Set((state.youtube || []).map(v => v.id));
+
+  // Channel browse view
+  const chHead = $('#yt-ch-head');
+  if (ytChannelView) {
+    $('#yt-search-shell').classList.remove('has-drop');
+    $('#yt-search-trace').hidden = true;
+    chHead.hidden = false;
+    const pfp = ytChannelView.pfp ? `<img class="yt-ch-head-pfp" src="${esc(ytChannelView.pfp)}" alt="" onerror="this.remove()">` : '';
+    chHead.innerHTML = `
+      <button class="icon-btn" id="yt-ch-back" title="Back" style="width:28px;height:28px">←</button>
+      ${pfp}
+      <span class="yt-ch-head-name">${esc(ytChannelView.name)}</span>
+      <span class="sp"></span>`;
+    $('#yt-ch-back').onclick = () => { ytChannelView = null; renderYtGrid(); };
+    if (ytChannelView.loading && !ytChannelView.items.length) {
+      $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ${esc(ytChannelView.name)}…</div>`;
+    } else {
+      $('#yt-grid').innerHTML = ytChannelView.items.length
+        ? ytChannelView.items.map(v => ytCardHtml(v, 'data-yt-ch-item', savedIds)).join('')
+        : `<div class="sub-empty-box" style="grid-column:1/-1">No videos found</div>`;
+    }
+    renderYtSentinel();
+    return;
+  }
+  chHead.hidden = true;
 
   // Active search results view
   if (ytSearchResults !== null) {
@@ -4361,18 +4646,9 @@ function renderYtGrid() {
     $('#yt-search-trace').hidden = false;
     $('#yt-save-drop-lbl').textContent = 'Save tab?';
     $('#yt-grid').innerHTML = ytSearchResults.length
-      ? ytSearchResults.map(v => {
-          const tierCls = v.tier ? v.tier.toLowerCase() : '';
-          const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>` : '';
-          return `
-            <div class="yt-card" data-yt-search-item="${esc(v.id)}">
-              <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
-              ${badge}
-              <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
-              ${ytProgBarHtml(v.id)}
-            </div>`;
-        }).join('')
+      ? ytSearchResults.map(v => ytCardHtml(v, 'data-yt-search-item', savedIds)).join('')
       : `<div class="sub-empty-box" style="grid-column:1/-1">No results found</div>`;
+    renderYtSentinel();
     return;
   }
   $('#yt-search-shell').classList.remove('has-drop');
@@ -4388,56 +4664,70 @@ function renderYtGrid() {
         <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
         ${ytProgBarHtml(v.id)}
       </div>`).join('');
+    renderYtSentinel();
     return;
   }
 
   if (ytCat.startsWith('custom:')) {
     const tid = ytCat.slice(7);
     if (!ytCustomTabCache.has(tid)) { loadYtCustomTab(tid); return; }
-    const list = ytCustomTabCache.get(tid) || [];
-    $('#yt-grid').innerHTML = list.map(v => {
-      const tierCls = v.tier ? v.tier.toLowerCase() : '';
-      const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>` : '';
-      return `
-        <div class="yt-card" data-yt-custom-item="${esc(v.id)}">
-          <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
-          ${badge}
-          <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
-          ${ytProgBarHtml(v.id)}
-        </div>`;
-    }).join('');
+    const meta = ytCustomTabCache.get(tid);
+    const list = meta?.items || [];
+    if (meta?.loading && !list.length) {
+      $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading…</div>`;
+    } else {
+      $('#yt-grid').innerHTML = list.map(v => ytCardHtml(v, 'data-yt-custom-item', savedIds)).join('');
+    }
+    renderYtSentinel();
     return;
   }
 
-  if (!ytFeedLoaded && !ytFeedLoading) { ensureYtFeed(false); return; }
-  if (ytFeedLoading && !ytFeedItems.length) {
+  const slot = ytCatFeeds.get(ytCat);
+  if (!slot) { ensureYtFeed(false, ytCat); return; }
+  if (slot.loading && !slot.items.length) {
     $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ImmersionTube…</div>`;
+    renderYtSentinel();
     return;
   }
 
-  let list = ytFeedItems.slice();
-  if (ytCat === 'all') {
-    list.sort((a, b) => (b.published || '').localeCompare(a.published || ''));
-  } else if (ytCat !== 'foryou') {
-    list = list.filter(x => x.category === ytCat);
-  }
+  $('#yt-grid').innerHTML = slot.items.map(v => ytCardHtml(v, 'data-yt-feed', savedIds)).join('');
+  renderYtSentinel();
+}
 
-  $('#yt-grid').innerHTML = list.slice(0, 48).map(v => {
+function renderYtNextStrip() {
+  const drawer = $('#yt-next-drawer');
+  const strip = $('#yt-next-strip');
+  const btn = $('#yt-next-toggle');
+  if (btn) btn.classList.toggle('on', ytNextOpen);
+  if (!drawer || !strip) return;
+  drawer.classList.toggle('open', ytNextOpen && ytRelatedItems.length > 0);
+  if (!ytRelatedItems.length) { strip.innerHTML = ''; return; }
+  strip.innerHTML = ytRelatedItems.slice(0, 20).map(v => {
     const tierCls = v.tier ? v.tier.toLowerCase() : '';
-    const badge = v.tier
-      ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>`
-      : (savedIds.has(v.id) ? `<span class="yt-sub-dot"></span>` : '');
+    const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}</span>` : '';
+    const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
     return `
-      <div class="yt-card" data-yt-feed="${esc(v.id)}">
-        <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
-        ${badge}
-        <div class="yt-card-veil">
-          <div class="yt-card-title">${esc(v.title)}</div>
-          <div class="yt-card-ch">${esc(v.channel)}</div>
-        </div>
-        ${ytProgBarHtml(v.id)}
+      <div class="yt-next-card" data-yt-rel="${esc(v.id)}" title="${esc(v.title)}">
+        <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg" alt="" loading="lazy">
+        ${badge}${dur}
+        <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
       </div>`;
   }).join('');
+}
+
+async function loadRelatedForYt(videoId) {
+  ytRelatedItems = [];
+  renderYtNextStrip();
+  try {
+    const res = await api(`/api/yt/${encodeURIComponent(videoId)}/related`);
+    if (!ytCurrentVideo || ytCurrentVideo.id !== videoId) return;
+    if (res.channel_pfp) ytCurrentVideo.channel_pfp = res.channel_pfp;
+    if (res.channel_id) ytCurrentVideo.channel_id = res.channel_id;
+    if (res.channel_name && !ytCurrentVideo.channel) ytCurrentVideo.channel = res.channel_name;
+    ytRelatedItems = res.items || [];
+    updateYtTraceUI();
+    renderYtNextStrip();
+  } catch (e) {}
 }
 
 function updateYtHeadUI() {
@@ -4608,7 +4898,9 @@ async function openYtVideo(video, prefetchedCues = null) {
           body: JSON.stringify({ url: video.id })
         });
         if (res.videos) state.youtube = res.videos;
-        if (res.video) ytCurrentVideo = res.video;
+        if (res.video) {
+          ytCurrentVideo = { ...res.video, channel_id: video.channel_id || '', channel_pfp: video.channel_pfp || '' };
+        }
         ytCues = res.cues || [];
       } else {
         const res = await api(`/api/yt/${encodeURIComponent(video.id)}/subtitles`);
@@ -4619,6 +4911,7 @@ async function openYtVideo(video, prefetchedCues = null) {
   rebuildYtFeed();
   syncYtSubtitles(true);
   loadSynopsisForYt(video.id);
+  loadRelatedForYt(video.id);
   clearInterval(ytPollTimer);
   ytPollTimer = setInterval(() => syncYtSubtitles(false), 140);
 }
@@ -4639,16 +4932,22 @@ async function addYtUrl() {
       state.youtube = res.videos || state.youtube;
       inp.value = '';
       ytSearchResults = null;
+      ytChannelView = null;
       renderYtGrid();
       if (res.video) openYtVideo(res.video, res.cues || []);
     } else {
+      ytChannelView = null;
       ytSearchQuery = raw;
+      ytSearchCont = null;
+      ytSearchLocalized = '';
       $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Searching Japanese YouTube…</div>`;
       const res = await api('/api/yt/search', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: raw })
       });
       ytSearchResults = res.items || [];
+      ytSearchCont = res.continuation || null;
+      ytSearchLocalized = res.localized_query || raw;
       ytSuggestedTab = res.suggested_category || raw;
       renderYtGrid();
     }
@@ -4666,7 +4965,10 @@ async function saveCustomYtTabs(tabs) {
 
 $('#yt-add').onclick = addYtUrl;
 $('#yt-url').addEventListener('keydown', e => { if (e.key === 'Enter') addYtUrl(); });
-$('#yt-search-clear').onclick = () => { ytSearchResults = null; ytSearchQuery = ''; ytSuggestedTab = ''; $('#yt-url').value = ''; renderYtGrid(); };
+$('#yt-search-clear').onclick = () => {
+  ytSearchResults = null; ytSearchQuery = ''; ytSearchLocalized = ''; ytSearchCont = null; ytSuggestedTab = '';
+  $('#yt-url').value = ''; renderYtGrid();
+};
 $('#yt-save-tab-ok').onclick = async () => {
   const label = (ytSuggestedTab || ytSearchQuery || '').trim();
   if (!label || !ytSearchQuery) return;
@@ -4674,8 +4976,14 @@ $('#yt-save-tab-ok').onclick = async () => {
   const id = 't-' + Date.now();
   cur.push({ id, label, query: ytSearchQuery });
   await saveCustomYtTabs(cur);
-  ytCustomTabCache.set(id, ytSearchResults || []);
+  ytCustomTabCache.set(id, {
+    items: (ytSearchResults || []).slice(),
+    continuation: ytSearchCont,
+    localizedQuery: ytSearchLocalized || ytSearchQuery,
+    loading: false
+  });
   ytSearchResults = null;
+  ytSearchCont = null;
   ytCat = 'custom:' + id;
   $('#yt-url').value = '';
   renderYtGrid();
@@ -4693,9 +5001,15 @@ $('#yt-pills').addEventListener('click', async e => {
     return;
   }
   const b = e.target.closest('[data-yt-cat]');
-  if (b) { ytSearchResults = null; ytCat = b.dataset.ytCat; renderYtGrid(); }
+  if (b) { ytSearchResults = null; ytChannelView = null; ytCat = b.dataset.ytCat; renderYtGrid(); }
 });
 $('#yt-grid').addEventListener('click', async e => {
+  const chBtn = e.target.closest('[data-yt-ch-id]');
+  if (chBtn) {
+    e.stopPropagation();
+    openYtChannel(chBtn.dataset.ytChId, chBtn.dataset.ytChName, chBtn.dataset.ytChPfp);
+    return;
+  }
   const del = e.target.closest('[data-yt-del]');
   if (del) {
     e.stopPropagation();
@@ -4704,24 +5018,31 @@ $('#yt-grid').addEventListener('click', async e => {
     renderYtGrid();
     return;
   }
+  const chCard = e.target.closest('[data-yt-ch-item]');
+  if (chCard && ytChannelView) {
+    const item = ytChannelView.items.find(x => x.id === chCard.dataset.ytChItem);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
+    return;
+  }
   const sCard = e.target.closest('[data-yt-search-item]');
   if (sCard) {
     const item = (ytSearchResults || []).find(x => x.id === sCard.dataset.ytSearchItem);
-    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
     return;
   }
   const cCard = e.target.closest('[data-yt-custom-item]');
   if (cCard) {
-    const list = ytCustomTabCache.get(ytCat.slice(7)) || [];
-    const item = list.find(x => x.id === cCard.dataset.ytCustomItem);
-    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
+    const meta = ytCustomTabCache.get(ytCat.slice(7));
+    const item = (meta?.items || []).find(x => x.id === cCard.dataset.ytCustomItem);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
     return;
   }
   const feedCard = e.target.closest('[data-yt-feed]');
   if (feedCard) {
     const vid = feedCard.dataset.ytFeed;
-    const item = ytFeedItems.find(x => x.id === vid);
-    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
+    const slot = ytCatFeeds.get(ytCat);
+    const item = (slot?.items || []).find(x => x.id === vid);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
     return;
   }
   const card = e.target.closest('[data-yt-open]');
@@ -4730,6 +5051,22 @@ $('#yt-grid').addEventListener('click', async e => {
     if (v) openYtVideo(v);
   }
 });
+$('#yt-next-toggle').onclick = () => { ytNextOpen = !ytNextOpen; renderYtNextStrip(); };
+$('#yt-next-strip').addEventListener('click', e => {
+  const card = e.target.closest('[data-yt-rel]');
+  if (!card) return;
+  const item = ytRelatedItems.find(x => x.id === card.dataset.ytRel);
+  if (item) {
+    ytNextOpen = false;
+    openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
+  }
+});
+if ('IntersectionObserver' in window) {
+  const ytIo = new IntersectionObserver(entries => {
+    if (curTab === 'yt' && entries.some(en => en.isIntersecting)) loadMoreYt();
+  }, { rootMargin: '260px 0px' });
+  ytIo.observe($('#yt-sentinel'));
+}
 $('#yt-back').onclick = () => { closeDictPop(false); setTab('yt'); };
 $('#yt-mode-toggle').onclick = () => { ytAudioOnly = !ytAudioOnly; if (ytAudioOnly) ytSubsOn = true; updateYtHeadUI(); };
 $('#yt-subs-toggle').onclick = toggleYtSubs;

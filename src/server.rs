@@ -51,8 +51,8 @@ pub struct SharedState {
     pub vocab: VocabStore,
     pub synopses: SynopsisStore,
     pub youtube: YoutubeStore,
-    pub yt_feed_cache: Vec<youtube::FeedVideo>,
-    pub yt_feed_fetched_unix: u64,
+    pub yt_cat_cache: HashMap<String, (Vec<youtube::FeedVideo>, u64)>,
+    pub yt_query_loc_cache: HashMap<String, String>,
     pub google_oauth: GoogleOAuthSecrets,
     pub pending_oauth: Option<PendingOAuth>,
     pub cloud_sync_secret: String,
@@ -185,8 +185,8 @@ impl SharedState {
             vocab,
             synopses,
             youtube,
-            yt_feed_cache: Vec::new(),
-            yt_feed_fetched_unix: 0,
+            yt_cat_cache: HashMap::new(),
+            yt_query_loc_cache: HashMap::new(),
             google_oauth,
             pending_oauth: None,
             cloud_sync_secret,
@@ -1912,7 +1912,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             let st = state_arc.lock().unwrap();
             if parsed.anime_id == "yt" {
                 let yt_vid = st.youtube.videos.iter().find(|v| v.id == parsed.episode_id);
-                let feed_vid = st.yt_feed_cache.iter().find(|v| v.id == parsed.episode_id);
+                let feed_vid = st
+                    .yt_cat_cache
+                    .values()
+                    .flat_map(|(list, _)| list.iter())
+                    .find(|v| v.id == parsed.episode_id);
                 let ch = yt_vid
                     .map(|v| v.channel.as_str())
                     .filter(|s| !s.is_empty())
@@ -2173,49 +2177,146 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         return;
     }
 
-    // GET /api/yt/feed (Curated ImmersionTube feed ranked by T+1 comprehensibility against user's VocabStore)
+    // Helper: extract personalization context from SharedState (recent YT watches, custom tabs, priority/learning words, watched set)
+    let collect_yt_ctx = |st: &SharedState| {
+        let mut recent_ids: Vec<String> = Vec::new();
+        let mut seen_recent: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for h in st.data.history.iter().rev() {
+            if h.anime_id == "yt" && youtube::is_valid_yt_id(&h.episode_id) && seen_recent.insert(h.episode_id.clone()) {
+                recent_ids.push(h.episode_id.clone());
+                if recent_ids.len() >= 8 {
+                    break;
+                }
+            }
+        }
+        for v in st.youtube.videos.iter().rev() {
+            if youtube::is_valid_yt_id(&v.id) && seen_recent.insert(v.id.clone()) {
+                recent_ids.push(v.id.clone());
+                if recent_ids.len() >= 10 {
+                    break;
+                }
+            }
+        }
+        let tab_queries: Vec<String> = st
+            .data
+            .config
+            .yt_tabs
+            .iter()
+            .map(|t| t.query.clone())
+            .collect();
+        let mut pri_words: Vec<String> = st.vocab.priority.iter().cloned().collect();
+        for w in &st.vocab.learning {
+            if !pri_words.contains(w) {
+                pri_words.push(w.clone());
+            }
+        }
+        let mut watched_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for (k, pr) in &st.data.progress {
+            if let Some(vid) = k.strip_prefix("yt/") {
+                if pr.completions > 0 || (pr.duration_secs > 30.0 && pr.position_secs / pr.duration_secs > 0.65) {
+                    watched_ids.insert(vid.to_string());
+                }
+            }
+        }
+        (recent_ids, tab_queries, pri_words, watched_ids)
+    };
+
+    // GET /api/yt/feed?cat=foryou&wave=0&refresh=1 (Hybrid Japanese YouTube Breadth & Depth Engine)
     if method == Method::Get && path_only == "/api/yt/feed" {
-        let force_refresh = query.contains("refresh=1");
+        let mut force_refresh = false;
+        let mut cat = "foryou".to_string();
+        let mut wave: usize = 0;
+        for kv in query.split('&') {
+            if let Some((k, v)) = kv.split_once('=') {
+                match k {
+                    "refresh" if v == "1" || v == "true" => force_refresh = true,
+                    "cat" if !v.is_empty() => {
+                        if let Ok(dec) = percent_decode_str(v).decode_utf8() {
+                            cat = dec.to_string();
+                        }
+                    }
+                    "wave" => {
+                        if let Ok(n) = v.parse::<usize>() {
+                            wave = n;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
         let now = oauth::now_unix_secs();
-        let cached_opt = {
+        let (cached_opt, recent_ids, tab_queries, pri_words, watched_ids, morph_arc, jmdict_arc, vocab_snap) = {
             let st = state_arc.lock().unwrap();
-            if !force_refresh
-                && !st.yt_feed_cache.is_empty()
-                && now.saturating_sub(st.yt_feed_fetched_unix) < 600
-            {
-                Some(st.yt_feed_cache.clone())
+            let cached = if wave == 0 && !force_refresh {
+                st.yt_cat_cache.get(&cat).and_then(|(list, ts)| {
+                    if !list.is_empty() && now.saturating_sub(*ts) < 600 {
+                        Some(list.clone())
+                    } else {
+                        None
+                    }
+                })
             } else {
                 None
-            }
+            };
+            let (rids, tqs, pws, wids) = collect_yt_ctx(&st);
+            (
+                cached,
+                rids,
+                tqs,
+                pws,
+                wids,
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+                st.vocab.clone(),
+            )
         };
 
         let mut items = match cached_opt {
             Some(c) => c,
             None => {
-                let fresh = youtube::fetch_raw_immersion_feed();
-                let mut st = state_arc.lock().unwrap();
-                st.yt_feed_cache = fresh.clone();
-                st.yt_feed_fetched_unix = now;
+                let fresh = youtube::fetch_hybrid_immersion_wave(
+                    &recent_ids,
+                    &tab_queries,
+                    &pri_words,
+                    &cat,
+                    wave,
+                );
+                if wave == 0 && !fresh.is_empty() {
+                    let mut st = state_arc.lock().unwrap();
+                    st.yt_cat_cache.insert(cat.clone(), (fresh.clone(), now));
+                }
                 fresh
             }
         };
 
-        // Always re-score live against the user's current VocabStore & MeCab/IPADIC!
-        let (morph_arc, jmdict_arc, vocab_snap) = {
-            let st = state_arc.lock().unwrap();
-            (Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
-        };
+        // Always re-score live against the user's current VocabStore, KnowledgeModel, & MeCab/IPADIC!
         {
             let mp_g = morph_arc.lock().unwrap();
             let jm_g = jmdict_arc.lock().unwrap();
-            youtube::score_immersion_feed(&mut items, mp_g.as_ref(), jm_g.as_ref(), &vocab_snap);
+            youtube::score_immersion_feed_smart(
+                &mut items,
+                mp_g.as_ref(),
+                jm_g.as_ref(),
+                &vocab_snap,
+                &watched_ids,
+            );
         }
 
-        respond_json(req, 200, &serde_json::json!({ "items": items }));
+        respond_json(
+            req,
+            200,
+            &serde_json::json!({
+                "cat": cat,
+                "wave": wave,
+                "has_more": true,
+                "items": items
+            }),
+        );
         return;
     }
 
-    // POST /api/yt/search (Japanese YouTube search + T+1 scoring + AI category suggestion for messy queries)
+    // POST /api/yt/search (Native Japan-region InnerTube search + infinite continuation + English->JP query localization + T+1 scoring)
     if method == Method::Post && path_only == "/api/yt/search" {
         let body = match read_body_string(&mut req) {
             Ok(b) => b,
@@ -2226,50 +2327,198 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
         };
         let q = v["query"].as_str().unwrap_or("").trim().to_string();
-        if q.is_empty() {
+        let cont_in = v["continuation"]
+            .as_str()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+        let loc_in = v["localized_query"]
+            .as_str()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        if q.is_empty() && cont_in.is_none() {
             return respond_err(req, 400, "Enter a search term or YouTube URL");
         }
-        let (app_root, morph_arc, jmdict_arc, vocab_snap) = {
+
+        let (app_root, cached_loc, watched_ids, morph_arc, jmdict_arc, vocab_snap) = {
             let st = state_arc.lock().unwrap();
+            let (_, _, _, wids) = collect_yt_ctx(&st);
+            let cloc = st.yt_query_loc_cache.get(&q.to_lowercase()).cloned();
             (
                 st.app_root.clone(),
+                cloc,
+                wids,
                 Arc::clone(&st.morph),
                 Arc::clone(&st.jmdict),
                 st.vocab.clone(),
             )
         };
-        let mut items = match youtube::search_youtube_jp(&app_root, &q, 16) {
-            Ok(list) => list,
-            Err(e) => return respond_err(req, 400, &e),
+
+        // Resolve natural native Japanese YouTube search query (instant map -> cache -> Gemini Flash -> "{q} 日本語")
+        let localized_q = if let Some(l) = loc_in {
+            l
+        } else if let Some(l) = cached_loc {
+            l
+        } else if let Some(l) = youtube::quick_localize_jp(&q) {
+            l
+        } else {
+            let ai_loc = resolve_ai_auth(&state_arc)
+                .ok()
+                .and_then(|auth| agent::localize_search_query_jp(&auth, &q));
+            let resolved = ai_loc.unwrap_or_else(|| format!("{} 日本語", q));
+            state_arc
+                .lock()
+                .unwrap()
+                .yt_query_loc_cache
+                .insert(q.to_lowercase(), resolved.clone());
+            resolved
         };
+
+        let page = match youtube::innertube_search_jp(&localized_q, cont_in.as_deref(), "search", "search") {
+            Ok(sp) if !sp.items.is_empty() => sp,
+            _ => {
+                // Only fall back to yt-dlp on page 1 if InnerTube returned empty/error
+                if cont_in.is_none() {
+                    let fb = youtube::search_youtube_jp_fallback(&app_root, &localized_q, 20)
+                        .unwrap_or_default();
+                    youtube::SearchPage {
+                        items: fb,
+                        continuation: None,
+                        localized_query: localized_q.clone(),
+                    }
+                } else {
+                    youtube::SearchPage {
+                        items: Vec::new(),
+                        continuation: None,
+                        localized_query: localized_q.clone(),
+                    }
+                }
+            }
+        };
+
+        let mut items = page.items;
         {
             let mp_g = morph_arc.lock().unwrap();
             let jm_g = jmdict_arc.lock().unwrap();
-            youtube::score_immersion_feed(&mut items, mp_g.as_ref(), jm_g.as_ref(), &vocab_snap);
+            youtube::score_immersion_feed_smart(
+                &mut items,
+                mp_g.as_ref(),
+                jm_g.as_ref(),
+                &vocab_snap,
+                &watched_ids,
+            );
         }
-        // If the query is messy/long, ask the agent for a clean broad category name; otherwise title-case cleanly
-        let word_count = q.split_whitespace().count();
-        let suggested = if word_count > 2 || q.chars().count() > 16 {
-            resolve_ai_auth(&state_arc)
-                .ok()
-                .and_then(|auth| agent::suggest_search_category(&auth, &q))
-                .unwrap_or_else(|| q.split_whitespace().next().unwrap_or(&q).to_string())
+
+        // Only suggest category name on initial search (not pagination waves)
+        let suggested = if cont_in.is_some() {
+            String::new()
         } else {
-            let mut chs = q.chars();
-            match chs.next() {
-                Some(first) => first.to_uppercase().collect::<String>() + chs.as_str(),
-                None => q.clone(),
+            let word_count = q.split_whitespace().count();
+            if word_count > 2 || q.chars().count() > 16 {
+                resolve_ai_auth(&state_arc)
+                    .ok()
+                    .and_then(|auth| agent::suggest_search_category(&auth, &q))
+                    .unwrap_or_else(|| q.split_whitespace().next().unwrap_or(&q).to_string())
+            } else {
+                let mut chs = q.chars();
+                match chs.next() {
+                    Some(first) => first.to_uppercase().collect::<String>() + chs.as_str(),
+                    None => q.clone(),
+                }
             }
         };
+
         respond_json(
             req,
             200,
             &serde_json::json!({
                 "query": q,
+                "localized_query": localized_q,
                 "suggested_category": suggested,
+                "continuation": page.continuation,
                 "items": items,
             }),
         );
+        return;
+    }
+
+    // GET /api/yt/channel/{channel_id} (Browse any Japanese YouTube channel's catalog with infinite continuation)
+    if method == Method::Get && path_only.starts_with("/api/yt/channel/") {
+        let ch_raw = path_only.trim_start_matches("/api/yt/channel/");
+        let channel_id = percent_decode_str(ch_raw).decode_utf8_lossy().to_string();
+        if channel_id.is_empty() {
+            return respond_err(req, 400, "Missing channel id");
+        }
+        let cont_in: Option<String> = query.split('&').find_map(|kv| {
+            let (k, v) = kv.split_once('=')?;
+            if k == "continuation" && !v.is_empty() {
+                percent_decode_str(v).decode_utf8().ok().map(|s| s.to_string())
+            } else {
+                None
+            }
+        });
+        let (watched_ids, morph_arc, jmdict_arc, vocab_snap) = {
+            let st = state_arc.lock().unwrap();
+            let (_, _, _, wids) = collect_yt_ctx(&st);
+            (wids, Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
+        };
+        let mut page = match youtube::innertube_channel_videos(&channel_id, cont_in.as_deref()) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 502, &e),
+        };
+        {
+            let mp_g = morph_arc.lock().unwrap();
+            let jm_g = jmdict_arc.lock().unwrap();
+            youtube::score_immersion_feed_smart(
+                &mut page.items,
+                mp_g.as_ref(),
+                jm_g.as_ref(),
+                &vocab_snap,
+                &watched_ids,
+            );
+        }
+        respond_json(req, 200, &page);
+        return;
+    }
+
+    // GET /api/yt/{id}/related (Real YouTube "Up Next" Japanese recommendations + real channel PFP/ID)
+    if method == Method::Get
+        && path_only.starts_with("/api/yt/")
+        && path_only.ends_with("/related")
+    {
+        let vid_raw = path_only
+            .trim_start_matches("/api/yt/")
+            .trim_end_matches("/related");
+        let vid = percent_decode_str(vid_raw).decode_utf8_lossy().to_string();
+        let cont_in: Option<String> = query.split('&').find_map(|kv| {
+            let (k, v) = kv.split_once('=')?;
+            if k == "continuation" && !v.is_empty() {
+                percent_decode_str(v).decode_utf8().ok().map(|s| s.to_string())
+            } else {
+                None
+            }
+        });
+        let (watched_ids, morph_arc, jmdict_arc, vocab_snap) = {
+            let st = state_arc.lock().unwrap();
+            let (_, _, _, wids) = collect_yt_ctx(&st);
+            (wids, Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
+        };
+        let mut page = match youtube::innertube_next_jp(&vid, cont_in.as_deref()) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 502, &e),
+        };
+        {
+            let mp_g = morph_arc.lock().unwrap();
+            let jm_g = jmdict_arc.lock().unwrap();
+            youtube::score_immersion_feed_smart(
+                &mut page.items,
+                mp_g.as_ref(),
+                jm_g.as_ref(),
+                &vocab_snap,
+                &watched_ids,
+            );
+        }
+        respond_json(req, 200, &page);
         return;
     }
 
@@ -2358,7 +2607,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let (yt_subs_dir, syn_file, title, channel) = {
             let st = state_arc.lock().unwrap();
             let yt_v = st.youtube.videos.iter().find(|v| v.id == video_id);
-            let fd_v = st.yt_feed_cache.iter().find(|v| v.id == video_id);
+            let fd_v = st
+                .yt_cat_cache
+                .values()
+                .flat_map(|(list, _)| list.iter())
+                .find(|v| v.id == video_id);
             let t = yt_v
                 .map(|v| v.title.clone())
                 .or_else(|| fd_v.map(|v| v.title.clone()))
@@ -2407,7 +2660,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let (cached_ep, yt_subs_dir, title, channel, morph_arc, jmdict_arc) = {
             let st = state_arc.lock().unwrap();
             let yt_v = st.youtube.videos.iter().find(|v| v.id == video_id);
-            let fd_v = st.yt_feed_cache.iter().find(|v| v.id == video_id);
+            let fd_v = st
+                .yt_cat_cache
+                .values()
+                .flat_map(|(list, _)| list.iter())
+                .find(|v| v.id == video_id);
             let t = yt_v
                 .map(|v| v.title.clone())
                 .or_else(|| fd_v.map(|v| v.title.clone()))

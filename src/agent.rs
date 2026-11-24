@@ -295,6 +295,34 @@ pub fn suggest_search_category(auth: &AiAuth, raw_query: &str) -> Option<String>
     }
 }
 
+/// Converts a non-Japanese search query into a natural native Japanese YouTube search phrase
+/// (e.g. "horror games" -> "ホラーゲーム 実況", "street food" -> "屋台 グルメ 日本").
+pub fn localize_search_query_jp(auth: &AiAuth, raw_query: &str) -> Option<String> {
+    let payload = serde_json::json!({
+        "contents": [{ "parts": [{ "text": format!(
+            "Translate/adapt this search query into the most natural 1-3 word Japanese YouTube search query that a native Japanese viewer would type to find Japanese videos on this topic. Return ONLY the Japanese search words, no quotes, no explanation.\nQuery: {}",
+            raw_query
+        ) }] }],
+        "generationConfig": { "temperature": 0.2, "maxOutputTokens": 24 }
+    });
+    let root = gemini_generate_flash(auth, &payload).ok()?;
+    let txt = root["candidates"][0]["content"]["parts"][0]["text"]
+        .as_str()?
+        .trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .lines()
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    if txt.is_empty() || txt.chars().count() > 40 {
+        None
+    } else {
+        Some(txt)
+    }
+}
+
 /// Token-efficient multimodal YouTube synopsis generator:
 /// Intakes compact timestamped Japanese transcript + 4 YouTube keyframe JPEGs (`hqdefault`, `hq1`, `hq2`, `hq3`)
 /// using `gemini-2.5-flash-lite` (~$0.0005 per video, permanently cached in `synopses.json`!).
