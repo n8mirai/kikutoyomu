@@ -84,6 +84,51 @@
 :root[data-theme="washi"] #toast{background:#1C1917;color:#F6F2E9;border-color:rgba(28,25,23,.2)}
 :root[data-theme="washi"] .tok.st-learning{color:#92400E}
 :root[data-theme="washi"] .tok.active-lookup{color:#1C1917}
+
+/* ================= APP-WIDE LIQUID GLASS MATERIAL SYSTEM ================= */
+:root{
+  --lg-bg:linear-gradient(152deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 48%,rgba(255,255,255,.07) 100%);
+  --lg-tint:color-mix(in srgb,var(--bg2) 62%,transparent);
+  --lg-border:rgba(255,255,255,.16);
+  --lg-rim:inset 0 1px 0 rgba(255,255,255,.26),inset 1px 0 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.22);
+  --lg-shadow:0 14px 38px rgba(0,0,0,.32),0 2px 8px rgba(0,0,0,.14);
+  --lg-blur:blur(22px) saturate(185%);
+}
+:root[data-theme="washi"]{
+  --lg-bg:linear-gradient(152deg,rgba(255,255,255,.68) 0%,rgba(255,255,255,.32) 52%,rgba(255,255,255,.52) 100%);
+  --lg-tint:rgba(246,242,233,.66);
+  --lg-border:rgba(255,255,255,.78);
+  --lg-rim:inset 0 1px 0 rgba(255,255,255,.92),inset 1px 0 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(28,25,23,.08);
+  --lg-shadow:0 12px 32px rgba(28,25,23,.10),0 2px 6px rgba(28,25,23,.05);
+  --lg-blur:blur(24px) saturate(165%);
+}
+/* Subtle ambient depth glow so frosted Liquid Glass refracts gentle warmth & cool tone */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(620px 420px at 14% 6%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 70%),
+    radial-gradient(560px 420px at 88% 82%,color-mix(in srgb,var(--cool2) 9%,transparent),transparent 72%);
+}
+#dock,#pop,#dict-pop,.modal,#syn-scroll,.yt-trace-bar,.yt-trace-card,.yt-ai-ans,
+.app-pill[aria-selected="true"],#live-pill,.yt-pill.on,.ai-msg,.sub-row.cur{
+  background-image:var(--lg-bg);
+  background-color:var(--lg-tint);
+  border-color:var(--lg-border);
+  box-shadow:var(--lg-rim),var(--lg-shadow);
+  backdrop-filter:var(--lg-blur);
+  -webkit-backdrop-filter:var(--lg-blur);
+}
+.app-pill[aria-selected="true"],.yt-pill.on,#live-pill,.yt-trace-bar{
+  box-shadow:var(--lg-rim),0 6px 18px rgba(0,0,0,.14);
+}
+.sub-row.cur{
+  box-shadow:var(--lg-rim),0 10px 28px rgba(0,0,0,.18);
+}
+.icon-btn:hover,.sub-mini-btn.on,.yt-ai-btn{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+}
 /* Legendary Purple highlighting:
    (1) High-confidence words explicitly marked unknown ("priority") in the wild (ANY sentence!), and
    (2) T1-T3 target words the Knowledge Model predicts you likely already know! */
@@ -967,35 +1012,66 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 }
 .ai-cal-chip{
   display:inline-flex;align-items:stretch;gap:0;padding:0;border-radius:999px;overflow:hidden;
-  font-size:13px;min-height:34px;
-  background:rgba(168,85,247,.14);border:1px solid rgba(192,132,252,.38);color:var(--text);
-  transition:border-color .16s,box-shadow .16s;
+  font-size:15.5px;min-height:40px;
+  background-image:var(--lg-bg);
+  background-color:color-mix(in srgb,rgba(168,85,247,.20) 65%,var(--lg-tint));
+  border:1px solid rgba(192,132,252,.42);color:var(--text);
+  box-shadow:var(--lg-rim),0 6px 18px rgba(168,85,247,.14);
+  backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
+  transition:border-color .2s,box-shadow .22s,transform .22s var(--spring);
 }
-.ai-cal-chip:hover{border-color:rgba(192,132,252,.62);box-shadow:0 4px 14px rgba(168,85,247,.16)}
-.ai-cal-mid{display:inline-flex;align-items:center;gap:5px;padding:0 10px}
-.ai-cal-chip .cal-w{padding:2px 2px;border-radius:6px;cursor:default;font-weight:500}
-.ai-cal-chip .p{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.ai-cal-chip:hover{border-color:rgba(192,132,252,.68);box-shadow:var(--lg-rim),0 10px 26px rgba(168,85,247,.22)}
+.ai-cal-mid{
+  display:inline-flex;align-items:center;justify-content:center;padding:0 13px;
+  transition:padding .26s cubic-bezier(.19,1,.22,1),opacity .2s;
+}
+.ai-cal-chip .cal-w{padding:2px 2px;border-radius:6px;cursor:default;font-weight:500;letter-spacing:.02em;white-space:nowrap}
 .ai-cal-btn{
-  min-width:34px;padding:0 10px;display:grid;place-items:center;cursor:pointer;
-  font-size:13px;font-weight:700;line-height:1;
-  transition:background .15s var(--smooth),color .15s var(--smooth);
+  min-width:36px;padding:0 11px;display:grid;place-items:center;cursor:pointer;overflow:hidden;
+  font-size:14px;font-weight:700;line-height:1;
+  transition:min-width .28s cubic-bezier(.19,1,.22,1),width .28s cubic-bezier(.19,1,.22,1),padding .28s cubic-bezier(.19,1,.22,1),flex .28s cubic-bezier(.19,1,.22,1),opacity .2s,background .18s var(--smooth),color .18s var(--smooth),border-color .2s;
 }
-.ai-cal-btn span{display:inline-block;transition:transform .18s var(--spring)}
+.ai-cal-btn span{display:inline-block;transition:transform .24s var(--spring)}
 .ai-cal-btn.no{
-  background:rgba(239,68,68,.18);color:#EF4444;border-right:1px solid rgba(239,68,68,.24);
+  background:rgba(239,68,68,.20);color:#EF4444;border-right:1px solid rgba(239,68,68,.26);
 }
-.ai-cal-btn.no:hover{background:#EF4444;color:#FFFFFF}
-.ai-cal-btn.no:hover span{transform:scale(1.32)}
 .ai-cal-btn.yes{
-  background:rgba(34,197,94,.18);color:#22C55E;border-left:1px solid rgba(34,197,94,.24);
+  background:rgba(34,197,94,.20);color:#22C55E;border-left:1px solid rgba(34,197,94,.26);
 }
-.ai-cal-btn.yes:hover{background:#22C55E;color:#FFFFFF}
-.ai-cal-btn.yes:hover span{transform:scale(1.32)}
-.ai-cal-btn:active span{transform:scale(.95)}
-:root[data-theme="washi"] .ai-cal-btn.no{background:rgba(220,38,38,.14);color:#DC2626;border-right-color:rgba(220,38,38,.2)}
-:root[data-theme="washi"] .ai-cal-btn.no:hover{background:#DC2626;color:#FFFFFF}
-:root[data-theme="washi"] .ai-cal-btn.yes{background:rgba(22,163,74,.14);color:#16A34A;border-left-color:rgba(22,163,74,.2)}
-:root[data-theme="washi"] .ai-cal-btn.yes:hover{background:#16A34A;color:#FFFFFF}
+/* Magnetic morph-fill: hovering X collapses ✓ and expands X to fill most of the pill (and vice versa!) */
+.ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.yes{
+  min-width:0;width:0;padding:0;opacity:0;border-left-width:0;pointer-events:none;
+}
+.ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no{
+  min-width:74px;flex:1;background:#EF4444;color:#FFFFFF;border-right-color:transparent;
+}
+.ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no span{transform:scale(1.42)}
+.ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-mid{padding:0 10px 0 8px}
+
+.ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.no{
+  min-width:0;width:0;padding:0;opacity:0;border-right-width:0;pointer-events:none;
+}
+.ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes{
+  min-width:74px;flex:1;background:#22C55E;color:#FFFFFF;border-left-color:transparent;
+}
+.ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes span{transform:scale(1.42)}
+.ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-mid{padding:0 8px 0 10px}
+.ai-cal-btn:active span{transform:scale(.96)}
+
+/* Reverse of 浮かぶ: gently sink & dissolve back into the water when sorted */
+.ai-cal-chip.sinking{
+  pointer-events:none;
+  animation:shizumu .42s cubic-bezier(.19,1,.22,1) forwards;
+}
+@keyframes shizumu{
+  0%{opacity:1;transform:scale(1);filter:blur(0)}
+  60%{opacity:.22;transform:scale(.88);filter:blur(7px)}
+  100%{opacity:0;transform:scale(.80);filter:blur(12px)}
+}
+:root[data-theme="washi"] .ai-cal-btn.no{background:rgba(220,38,38,.16);color:#DC2626;border-right-color:rgba(220,38,38,.22)}
+:root[data-theme="washi"] .ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no{background:#DC2626;color:#FFFFFF}
+:root[data-theme="washi"] .ai-cal-btn.yes{background:rgba(22,163,74,.16);color:#16A34A;border-left-color:rgba(22,163,74,.22)}
+:root[data-theme="washi"] .ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes{background:#16A34A;color:#FFFFFF}
 .ai-msgs{
   flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;
 }
@@ -3573,7 +3649,6 @@ function renderCalChipHtml(c, extraStyle = '') {
       <button class="ai-cal-btn no" data-cal-no="${esc(c.word)}" title="Don't know (Priority Purple)"><span>×</span></button>
       <span class="ai-cal-mid">
         <span class="tok cal-w" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">${esc(c.word)}</span>
-        <span class="p">${Math.round(c.prob * 100)}%</span>
       </span>
       <button class="ai-cal-btn yes" data-cal-yes="${esc(c.word)}" title="Mark known"><span>✓</span></button>
     </span>`;
@@ -3661,21 +3736,25 @@ aiViewEl.addEventListener('click', async e => {
   if (!yes && !no) return;
   const w = yes ? yes.dataset.calYes : no.dataset.calNo;
   const chip = e.target.closest('[data-cal-chip]');
+  if (chip && chip.classList.contains('sinking')) return;
+  if (chip) chip.classList.add('sinking');
   if (yes) {
-    await setWordStatus(w, 'known');
+    setWordStatus(w, 'known');
     toast(`${w} → Known`);
   } else {
     aiCalDismissed.add(w);
-    await setWordStatus(w, 'priority');
-    toast(`${w} → Priority watch (Purple)`);
+    setWordStatus(w, 'priority');
+    toast(`${w} → Priority watch`);
   }
   aiCalCandidates = aiCalCandidates.filter(c => c.word !== w);
-  if (chip) chip.remove();
-  // Auto-refill queue as soon as all calibration tokens are cleared!
-  if (!$('#ai-cal-bar').querySelector('[data-cal-chip]')) {
-    if (aiCalCandidates.length > 0) renderAiCalibrationBar();
-    else loadAiCalibration(true);
-  }
+  setTimeout(() => {
+    if (chip) chip.remove();
+    // Auto-refill queue as soon as all calibration tokens have sunk into the water!
+    if (!$('#ai-cal-bar').querySelector('[data-cal-chip]')) {
+      if (aiCalCandidates.length > 0) renderAiCalibrationBar();
+      else loadAiCalibration(true);
+    }
+  }, 410);
 });
 
 function ensureYtIframeApi(onReady) {
