@@ -1117,11 +1117,25 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .yt-trace-click{
   flex:1;min-width:0;display:flex;align-items:center;gap:7px;cursor:pointer;
 }
+.yt-trace-marquee{
+  flex:1;min-width:0;overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 8px,#000 calc(100% - 12px),transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 8px,#000 calc(100% - 12px),transparent 100%);
+}
 .yt-trace-line{
-  flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:inline-block;font-size:12.5px;white-space:nowrap;padding:0 4px;
   background:linear-gradient(90deg,var(--faint) 0%,var(--muted) 32%,var(--text) 50%,var(--muted) 68%,var(--faint) 100%);
   background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
   animation:synShine 5.2s linear infinite;
+}
+.yt-trace-line.scrolling{
+  animation:synShine 5.2s linear infinite,traceMarquee var(--marquee-dur,12s) ease-in-out infinite;
+}
+.yt-trace-click:hover .yt-trace-line.scrolling{animation-play-state:running,paused}
+@keyframes traceMarquee{
+  0%,14%{transform:translate3d(0,0,0)}
+  80%,90%{transform:translate3d(var(--marquee-dist,0px),0,0)}
+  100%{transform:translate3d(0,0,0)}
 }
 .yt-trace-drawer{
   display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.19,1,.22,1);
@@ -1465,8 +1479,8 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
             <input id="yt-ai-input" type="text" placeholder="Ask about this moment or video…" autocomplete="off">
             <button class="sub-mini-btn on" id="yt-ai-send">↵</button>
           </div>
-          <div class="yt-trace-click" id="yt-trace-click" title="Click to expand Video / Channel synopsis">
-            <span class="yt-trace-line" id="yt-trace-line"></span>
+          <div class="yt-trace-click" id="yt-trace-click" title="Click to expand Video synopsis">
+            <div class="yt-trace-marquee" id="yt-trace-marquee"><span class="yt-trace-line" id="yt-trace-line"></span></div>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--faint);flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
@@ -3810,7 +3824,20 @@ function updateYtTraceUI() {
     text = beats[idx]?.text || '';
   }
   if (!text) text = synData.episode_summary || ytCurrentVideo.title || '';
-  if (lineEl.textContent !== text) lineEl.textContent = text;
+  if (lineEl.textContent !== text) {
+    lineEl.textContent = text;
+    lineEl.classList.remove('scrolling');
+    requestAnimationFrame(() => {
+      const box = $('#yt-trace-marquee');
+      if (!box) return;
+      const overflow = lineEl.scrollWidth - box.clientWidth;
+      if (overflow > 6) {
+        lineEl.style.setProperty('--marquee-dist', `${-(overflow + 14)}px`);
+        lineEl.style.setProperty('--marquee-dur', `${Math.max(9, (overflow + 14) / 24).toFixed(1)}s`);
+        lineEl.classList.add('scrolling');
+      }
+    });
+  }
 
   drawer.classList.toggle('open', ytTraceStage > 0);
   if (ytTraceStage > 0) {
