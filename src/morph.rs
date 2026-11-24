@@ -429,25 +429,34 @@ fn merge_compound_nouns(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> 
     out
 }
 
-/// Attaches bound inflectional conjugation suffixes (causative せ/させ, passive/potential れ/られ,
-/// tense/negation/politeness た/ない/ます/たい/ぬ/う/よう) directly onto the main verb or i-adjective
-/// so `上がらせ`, `離れた`, `食べられなかった`, `高かった` highlight & hover as ONE cohesive word
-/// while preserving the canonical base form lemma (`上がる`, `離れる`, `食べる`, `高い`)!
+/// General Japanese predicate conjugation merger (活用語 + 活用語尾):
+/// Attaches every bound inflectional morpheme of a verb or i-adjective (including basic verbs like
+/// なる/ある/する so なって, あったら, 思って never get sliced mid-conjugation!) into ONE cohesive
+/// surface unit while preserving the canonical dictionary base form (`lemma`):
+///   - `動詞,接尾` (causative せる/させる, passive/potential れる/られる)
+///   - `助動詞` (tense/negation/politeness/volitional: た/だ[lemma=た]/ない/ます/たい/ぬ/ず/う/よう/まい)
+///   - Conjugational `助詞,接続助詞` (te-form て/で, conditionals ば/たら, たり, ちゃ/じゃ)
+/// True independent clause conjunctions (ながら, から, ので, けど, のに) stay cleanly separate.
 fn merge_verb_adj_conjugations(tokens: Vec<MorphToken>) -> Vec<MorphToken> {
     let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len());
     let mut i = 0;
     while i < tokens.len() {
         let mut cur = tokens[i].clone();
-        let is_conjugatable = !cur.ignore
-            && ((cur.pos == "動詞" && cur.sub_pos == "自立")
-                || (cur.pos == "形容詞" && cur.sub_pos == "自立"));
-        if is_conjugatable {
+        let is_predicate = matches!(cur.pos.as_str(), "動詞" | "形容詞")
+            && matches!(cur.sub_pos.as_str(), "自立" | "非自立");
+        if is_predicate {
             while i + 1 < tokens.len() {
                 let next = &tokens[i + 1];
-                let is_bound_suffix = (next.pos == "動詞" && next.sub_pos == "接尾")
+                let is_bound_inflection = (next.pos == "動詞" && next.sub_pos == "接尾")
                     || (next.pos == "助動詞"
-                        && !matches!(next.lemma.as_str(), "だ" | "です" | "らしい" | "みたい"));
-                if is_bound_suffix {
+                        && !matches!(next.lemma.as_str(), "だ" | "です" | "らしい" | "みたい"))
+                    || (next.pos == "助詞"
+                        && next.sub_pos == "接続助詞"
+                        && matches!(
+                            next.surface.as_str(),
+                            "て" | "で" | "ば" | "たら" | "だら" | "たり" | "だり" | "ちゃ" | "じゃ"
+                        ));
+                if is_bound_inflection {
                     cur.surface.push_str(&next.surface);
                     cur.reading.push_str(&next.reading);
                     i += 1;
