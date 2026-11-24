@@ -966,22 +966,36 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;min-height:28px;
 }
 .ai-cal-chip{
-  display:inline-flex;align-items:center;gap:4px;padding:3px 5px;border-radius:999px;
-  font-size:12.5px;
-  background:rgba(168,85,247,.15);border:1px solid rgba(192,132,252,.36);color:var(--text);
-  transition:transform .16s var(--spring),background .16s,border-color .16s;
+  display:inline-flex;align-items:stretch;gap:0;padding:0;border-radius:999px;overflow:hidden;
+  font-size:13px;min-height:34px;
+  background:rgba(168,85,247,.14);border:1px solid rgba(192,132,252,.38);color:var(--text);
+  transition:border-color .16s,box-shadow .16s;
 }
-.ai-cal-chip:hover{border-color:rgba(192,132,252,.6)}
-.ai-cal-chip .cal-w{padding:1px 4px;border-radius:6px;cursor:default}
-.ai-cal-chip .p{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums;margin-right:2px}
+.ai-cal-chip:hover{border-color:rgba(192,132,252,.62);box-shadow:0 4px 14px rgba(168,85,247,.16)}
+.ai-cal-mid{display:inline-flex;align-items:center;gap:5px;padding:0 10px}
+.ai-cal-chip .cal-w{padding:2px 2px;border-radius:6px;cursor:default;font-weight:500}
+.ai-cal-chip .p{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
 .ai-cal-btn{
-  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
-  font-size:11.5px;line-height:1;color:var(--muted);background:transparent;
-  transition:background .15s,color .15s,transform .14s var(--spring);
+  min-width:34px;padding:0 10px;display:grid;place-items:center;cursor:pointer;
+  font-size:13px;font-weight:700;line-height:1;
+  transition:background .15s var(--smooth),color .15s var(--smooth);
 }
-.ai-cal-btn:active{transform:scale(.88)}
-.ai-cal-btn.no:hover{background:rgba(239,68,68,.22);color:#EF4444}
-.ai-cal-btn.yes:hover{background:var(--gsoft);color:var(--g2)}
+.ai-cal-btn span{display:inline-block;transition:transform .18s var(--spring)}
+.ai-cal-btn.no{
+  background:rgba(239,68,68,.18);color:#EF4444;border-right:1px solid rgba(239,68,68,.24);
+}
+.ai-cal-btn.no:hover{background:#EF4444;color:#FFFFFF}
+.ai-cal-btn.no:hover span{transform:scale(1.32)}
+.ai-cal-btn.yes{
+  background:rgba(34,197,94,.18);color:#22C55E;border-left:1px solid rgba(34,197,94,.24);
+}
+.ai-cal-btn.yes:hover{background:#22C55E;color:#FFFFFF}
+.ai-cal-btn.yes:hover span{transform:scale(1.32)}
+.ai-cal-btn:active span{transform:scale(.95)}
+:root[data-theme="washi"] .ai-cal-btn.no{background:rgba(220,38,38,.14);color:#DC2626;border-right-color:rgba(220,38,38,.2)}
+:root[data-theme="washi"] .ai-cal-btn.no:hover{background:#DC2626;color:#FFFFFF}
+:root[data-theme="washi"] .ai-cal-btn.yes{background:rgba(22,163,74,.14);color:#16A34A;border-left-color:rgba(22,163,74,.2)}
+:root[data-theme="washi"] .ai-cal-btn.yes:hover{background:#16A34A;color:#FFFFFF}
 .ai-msgs{
   flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;
 }
@@ -3556,10 +3570,12 @@ let aiCalLoaded = false;
 function renderCalChipHtml(c, extraStyle = '') {
   return `
     <span class="ai-cal-chip" data-cal-chip="${esc(c.word)}"${extraStyle ? ` style="${extraStyle}"` : ''}>
-      <button class="ai-cal-btn no" data-cal-no="${esc(c.word)}" title="Don't know">×</button>
-      <span class="tok cal-w" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">${esc(c.word)}</span>
-      <span class="p">${Math.round(c.prob * 100)}%</span>
-      <button class="ai-cal-btn yes" data-cal-yes="${esc(c.word)}" title="Mark known">✓</button>
+      <button class="ai-cal-btn no" data-cal-no="${esc(c.word)}" title="Don't know (Priority Purple)"><span>×</span></button>
+      <span class="ai-cal-mid">
+        <span class="tok cal-w" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">${esc(c.word)}</span>
+        <span class="p">${Math.round(c.prob * 100)}%</span>
+      </span>
+      <button class="ai-cal-btn yes" data-cal-yes="${esc(c.word)}" title="Mark known"><span>✓</span></button>
     </span>`;
 }
 
