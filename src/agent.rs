@@ -302,9 +302,9 @@ pub fn generate_yt_multimodal_synopsis(
         }
     });
 
-    // Use ultra-token-efficient gemini-2.5-flash-lite first, fallback to gemini-2.5-flash if needed
-    let root = gemini_generate_raw(auth, "gemini-2.5-flash-lite", &payload)
-        .or_else(|_| gemini_generate_raw(auth, "gemini-2.5-flash", &payload))?;
+    // Use modern Gemini 3.8 Flash (sharp multimodal reasoning + Flash-class cost, cached permanently!)
+    let root = gemini_generate_raw(auth, "gemini-3.8-flash", &payload)
+        .or_else(|_| gemini_generate_raw(auth, "gemini-flash-latest", &payload))?;
 
     let text = root["candidates"][0]["content"]["parts"][0]["text"]
         .as_str()

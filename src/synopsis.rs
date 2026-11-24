@@ -461,14 +461,14 @@ pub fn generate_ai_synopsis(
     let verb = to_wide("POST");
     let (path_str, hdr_str) = match auth {
         AiAuth::Bearer(tok) => (
-            "/v1beta/models/gemini-2.5-flash:generateContent".to_string(),
+            "/v1beta/models/gemini-3.8-flash:generateContent".to_string(),
             format!(
                 "Content-Type: application/json\r\nAccept: application/json\r\nAuthorization: Bearer {}\r\n",
                 tok.trim()
             ),
         ),
         AiAuth::ApiKey(key) => (
-            format!("/v1beta/models/gemini-2.5-flash:generateContent?key={}", key.trim()),
+            format!("/v1beta/models/gemini-3.8-flash:generateContent?key={}", key.trim()),
             "Content-Type: application/json\r\nAccept: application/json\r\n".to_string(),
         ),
         AiAuth::GeminiCli(_) => unreachable!(),

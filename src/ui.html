@@ -3405,12 +3405,15 @@ function updateYtTraceUI() {
   if (lineEl.textContent !== text) lineEl.textContent = text;
 
   drawer.classList.toggle('open', ytTraceStage > 0);
+  const generating = ytCurrentVideo && ytAiAutoInflight.has(ytCurrentVideo.id);
+  const epSum = synData.episode_summary || (generating ? 'Generating video context…' : ytCurrentVideo.title);
+  const chSum = synData.series_summary || (generating ? 'Generating channel context…' : '');
   if (ytTraceStage === 1) {
-    card.innerHTML = `<h4>Video</h4><p>${esc(synData.episode_summary || ytCurrentVideo.title)}</p>`;
+    card.innerHTML = `<h4>Video</h4><p>${esc(epSum)}</p>`;
   } else if (ytTraceStage === 2) {
     card.innerHTML = `
-      <h4>Video</h4><p>${esc(synData.episode_summary || ytCurrentVideo.title)}</p>
-      <div class="yt-ch-sec"><h4>${esc(synData.series_title || ytCurrentVideo.channel || 'Channel')}</h4><p>${esc(synData.series_summary || '')}</p></div>`;
+      <h4>Video</h4><p>${esc(epSum)}</p>
+      ${chSum ? `<div class="yt-ch-sec"><h4>${esc(synData.series_title || ytCurrentVideo.channel || 'Channel')}</h4><p>${esc(chSum)}</p></div>` : ''}`;
   }
 }
 
@@ -3426,10 +3429,11 @@ async function loadSynopsisForYt(videoId) {
     synBeatIdx = -1;
     updateYtTraceUI();
 
-    // Auto-employ multimodal AI (keyframes + transcript) for ImmersionTube videos when key is configured
-    // and not yet cached (permanently cached in synopses.json — ~$0.0005 once per video!)
+    // Always auto-employ multimodal Gemini 3.8 Flash (keyframes + transcript) for YT videos
+    // that haven't been AI-generated yet (cached permanently in synopses.json!).
     if (!res.ai_generated && state.config?.has_ai_auth && ytCues.length && !ytAiAutoInflight.has(videoId)) {
       ytAiAutoInflight.add(videoId);
+      updateYtTraceUI();
       api(`/api/yt/${encodeURIComponent(videoId)}/synopsis/generate`, { method: 'POST' })
         .then(gen => {
           if (ytCurrentVideo && ytCurrentVideo.id === videoId) {
@@ -3438,8 +3442,8 @@ async function loadSynopsisForYt(videoId) {
             updateYtTraceUI();
           }
         })
-        .catch(() => {})
-        .finally(() => ytAiAutoInflight.delete(videoId));
+        .catch(err => toast('AI trace: ' + err.message, true))
+        .finally(() => { ytAiAutoInflight.delete(videoId); updateYtTraceUI(); });
     }
   } catch (e) {}
 }

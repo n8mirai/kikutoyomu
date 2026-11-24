@@ -2291,12 +2291,6 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         if out.series_title.is_empty() {
             out.series_title = channel.clone();
         }
-        if out.series_summary.is_empty() {
-            out.series_summary = format!("Japanese immersion video from {}. Click ✦ AI to generate full video & channel context.", channel);
-        }
-        if out.episode_summary.is_empty() {
-            out.episode_summary = format!("{} — Click ✦ AI to generate a natural English summary & moment-by-moment scene trace.", title);
-        }
         if out.beats.is_empty() {
             if let Some(p) = youtube::find_sub_file(&yt_subs_dir, &video_id) {
                 if let Ok(cues) = subs::load_subtitles(&p) {
@@ -2448,8 +2442,8 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 "tools": agent::tool_declarations(),
                 "generationConfig": { "temperature": 0.4, "maxOutputTokens": 700 }
             });
-            let resp = match agent::gemini_generate_raw(&auth, "gemini-2.5-flash-lite", &payload)
-                .or_else(|_| agent::gemini_generate_raw(&auth, "gemini-2.5-flash", &payload))
+            let resp = match agent::gemini_generate_raw(&auth, "gemini-3.8-flash", &payload)
+                .or_else(|_| agent::gemini_generate_raw(&auth, "gemini-flash-latest", &payload))
             {
                 Ok(v) => v,
                 Err(e) => return respond_err(req, 400, &e),
