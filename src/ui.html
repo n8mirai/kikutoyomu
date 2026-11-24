@@ -81,6 +81,7 @@
   background:rgba(246,242,233,.95);box-shadow:0 14px 36px rgba(28,25,23,.14);
 }
 :root[data-theme="washi"] .sub-ts{background:rgba(239,233,220,.9)}
+:root[data-theme="washi"] #toast{background:#1C1917;color:#F6F2E9;border-color:rgba(28,25,23,.2)}
 :root[data-theme="washi"] .tok.st-learning{color:#92400E}
 :root[data-theme="washi"] .tok.active-lookup{color:#1C1917}
 
@@ -812,6 +813,25 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   position:absolute;top:9px;left:9px;width:7px;height:7px;border-radius:50%;
   background:var(--g2);box-shadow:0 0 8px rgba(46,204,64,.65);
 }
+.yt-pills{
+  display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap;
+}
+.yt-pill{
+  height:27px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:500;
+  color:var(--muted);background:var(--bg1);border:1px solid var(--line);
+  transition:color .16s,background .16s,border-color .16s;
+}
+.yt-pill:hover{color:var(--text);border-color:var(--line2)}
+.yt-pill.on{color:var(--text);background:var(--bg2);border-color:var(--line3)}
+.yt-badge{
+  position:absolute;top:8px;left:8px;padding:2px 7px;border-radius:999px;
+  font-size:10.5px;font-weight:600;letter-spacing:.03em;backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.16);
+}
+.yt-badge.t1{background:rgba(22,163,74,.84);color:#fff}
+.yt-badge.t2{background:rgba(202,138,4,.84);color:#fff}
+.yt-badge.t3{background:rgba(161,98,7,.76);color:#fff}
+.yt-card-ch{font-size:11px;color:rgba(246,241,248,.68);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Full-screen YT Waterfall Player (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) */
 #v-yt-play{
@@ -1014,11 +1034,22 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div id="drawer" hidden></div>
   </section>
 
-  <!-- APP: YT (Thumbnail grid + 1-line URL bar) -->
+  <!-- APP: YT (ImmersionTube thumbnail feed + 1-line URL bar) -->
   <section id="v-yt" class="view-pane" hidden>
     <div class="yt-bar">
       <input id="yt-url" type="text" placeholder="https://youtu.be/..." autocomplete="off">
       <button class="btn-pill" id="yt-add">+</button>
+    </div>
+    <div class="yt-pills" id="yt-pills">
+      <button class="yt-pill on" data-yt-cat="foryou">For You</button>
+      <button class="yt-pill" data-yt-cat="all">All</button>
+      <button class="yt-pill" data-yt-cat="vlog">Vlog</button>
+      <button class="yt-pill" data-yt-cat="talk">Talk</button>
+      <button class="yt-pill" data-yt-cat="jp">JP</button>
+      <button class="yt-pill" data-yt-cat="news">News</button>
+      <button class="yt-pill" data-yt-cat="saved">Saved</button>
+      <span class="sp"></span>
+      <button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>
     </div>
     <div class="yt-grid" id="yt-grid"></div>
   </section>
@@ -3104,6 +3135,10 @@ $('#t-history').onclick = () => setTab('history');
 
 /* ================= YT APP + TOP-TO-BOTTOM WATERFALL PLAYER ================= */
 let ytCurrentVideo = null;
+let ytFeedItems = [];
+let ytFeedLoaded = false;
+let ytFeedLoading = false;
+let ytCat = 'foryou';
 let ytCues = [];
 let ytCueIdx = -1;
 let ytMaxSeen = -1;
@@ -3179,15 +3214,65 @@ function mountYtPlayer(videoId) {
   });
 }
 
+async function ensureYtFeed(force = false) {
+  if (ytFeedLoading) return;
+  if (ytFeedLoaded && !force) return;
+  ytFeedLoading = true;
+  renderYtGrid();
+  try {
+    const res = await api('/api/yt/feed' + (force ? '?refresh=1' : ''));
+    ytFeedItems = res.items || [];
+    ytFeedLoaded = true;
+  } catch (e) {}
+  finally {
+    ytFeedLoading = false;
+    renderYtGrid();
+  }
+}
+
 function renderYtGrid() {
-  const vids = state.youtube || [];
-  $('#yt-grid').innerHTML = vids.map(v => `
-    <div class="yt-card" data-yt-open="${esc(v.id)}">
-      <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
-      ${v.has_subs ? `<span class="yt-sub-dot" title="JP subtitles ready"></span>` : ''}
-      <button class="yt-card-del" data-yt-del="${esc(v.id)}" title="Remove">×</button>
-      <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
-    </div>`).join('');
+  $$('[data-yt-cat]').forEach(b => b.classList.toggle('on', b.dataset.ytCat === ytCat));
+  if (ytCat === 'saved') {
+    const vids = state.youtube || [];
+    $('#yt-grid').innerHTML = vids.map(v => `
+      <div class="yt-card" data-yt-open="${esc(v.id)}">
+        <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+        ${v.has_subs ? `<span class="yt-sub-dot" title="JP subtitles ready"></span>` : ''}
+        <button class="yt-card-del" data-yt-del="${esc(v.id)}" title="Remove">×</button>
+        <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
+      </div>`).join('');
+    return;
+  }
+
+  if (!ytFeedLoaded && !ytFeedLoading) { ensureYtFeed(false); return; }
+  if (ytFeedLoading && !ytFeedItems.length) {
+    $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ImmersionTube…</div>`;
+    return;
+  }
+
+  let list = ytFeedItems.slice();
+  if (ytCat === 'all') {
+    list.sort((a, b) => (b.published || '').localeCompare(a.published || ''));
+  } else if (ytCat !== 'foryou') {
+    list = list.filter(x => x.category === ytCat);
+  }
+
+  const savedIds = new Set((state.youtube || []).map(v => v.id));
+  $('#yt-grid').innerHTML = list.slice(0, 48).map(v => {
+    const tierCls = v.tier ? v.tier.toLowerCase() : '';
+    const badge = v.tier
+      ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>`
+      : (savedIds.has(v.id) ? `<span class="yt-sub-dot"></span>` : '');
+    return `
+      <div class="yt-card" data-yt-feed="${esc(v.id)}">
+        <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+        ${badge}
+        <div class="yt-card-veil">
+          <div class="yt-card-title">${esc(v.title)}</div>
+          <div class="yt-card-ch">${esc(v.channel)}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function updateYtHeadUI() {
@@ -3330,6 +3415,11 @@ async function addYtUrl() {
 
 $('#yt-add').onclick = addYtUrl;
 $('#yt-url').addEventListener('keydown', e => { if (e.key === 'Enter') addYtUrl(); });
+$('#yt-pills').addEventListener('click', e => {
+  const b = e.target.closest('[data-yt-cat]');
+  if (b) { ytCat = b.dataset.ytCat; renderYtGrid(); }
+});
+$('#yt-feed-refresh').onclick = () => ensureYtFeed(true);
 $('#yt-grid').addEventListener('click', async e => {
   const del = e.target.closest('[data-yt-del]');
   if (del) {
@@ -3337,6 +3427,13 @@ $('#yt-grid').addEventListener('click', async e => {
     const res = await api(`/api/yt/${encodeURIComponent(del.dataset.ytDel)}`, { method: 'DELETE' });
     state.youtube = res.videos || [];
     renderYtGrid();
+    return;
+  }
+  const feedCard = e.target.closest('[data-yt-feed]');
+  if (feedCard) {
+    const vid = feedCard.dataset.ytFeed;
+    const item = ytFeedItems.find(x => x.id === vid);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
     return;
   }
   const card = e.target.closest('[data-yt-open]');

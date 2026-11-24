@@ -1,10 +1,39 @@
+use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 
+use crate::dict::LocalJmDict;
+use crate::morph::MorphAnalyzer;
 use crate::timeutil;
+use crate::vocab::VocabStore;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeedVideo {
+    pub id: String,
+    pub title: String,
+    pub channel: String,
+    pub category: String,
+    pub published: String,
+    pub known_pct: u8,
+    pub unknown_count: u16,
+    pub tier: String,
+    pub score: f64,
+}
+
+const CURATED_CHANNELS: &[(&str, &str, &str)] = &[
+    ("UC8dWfySP_cKDMFj6aFfQbFA", "YUYUの日本語Podcast", "talk"),
+    ("UCh-GhnQ7qDQmS6Bz3pGc1Mw", "あかね的日本語教室", "vlog"),
+    ("UCSbH_BPR_AoARW6RDYLlLog", "Speak Japanese Naturally", "vlog"),
+    ("UCB_Bvgg4oCHEAzxvZju4S3A", "Bite Size Japanese", "talk"),
+    ("UCaXIrZ5Ere4lC4cdPE_ujXA", "けんさんおかえり", "vlog"),
+    ("UCmpkIzF3xFzhPez7gXOyhVg", "ゆる言語学ラジオ", "talk"),
+    ("UCgMPP6RRjktV7krOfyUewqw", "はじめしゃちょー", "jp"),
+    ("UCFbp2XdRpKfk7mYt_uT8dxw", "Kevin's English Room", "jp"),
+    ("UCGCZAYq5Xxojl_tSXcVJhiQ", "ANNnewsCH", "news"),
+];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct YoutubeVideo {
@@ -216,4 +245,233 @@ pub fn fetch_video_and_subs(
         has_subs,
         added_at: timeutil::now_utc_rfc3339(),
     })
+}
+
+fn xml_unescape(s: &str) -> String {
+    s.replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .replace("&apos;", "'")
+}
+
+fn extract_tag<'a>(block: &'a str, tag: &str) -> Option<&'a str> {
+    let open = format!("<{}>", tag);
+    let close = format!("</{}>", tag);
+    let start = block.find(&open)? + open.len();
+    let end = block[start..].find(&close)? + start;
+    Some(&block[start..end])
+}
+
+#[cfg(windows)]
+fn winhttp_get_text(host_s: &str, path_s: &str) -> Result<String, String> {
+    use std::ffi::c_void;
+    use std::ptr::{null, null_mut};
+    use windows_sys::Win32::Networking::WinHttp::*;
+
+    fn to_wide(s: &str) -> Vec<u16> {
+        s.encode_utf16().chain(std::iter::once(0)).collect()
+    }
+    struct Handle(*mut c_void);
+    impl Drop for Handle {
+        fn drop(&mut self) {
+            if !self.0.is_null() {
+                unsafe { WinHttpCloseHandle(self.0); }
+            }
+        }
+    }
+
+    let agent = to_wide("kiku-jp-immersion/0.1");
+    let host = to_wide(host_s);
+    let verb = to_wide("GET");
+    let path = to_wide(path_s);
+
+    let session = Handle(unsafe {
+        WinHttpOpen(agent.as_ptr(), WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, null(), null(), 0)
+    });
+    if session.0.is_null() {
+        return Err("WinHttpOpen failed".into());
+    }
+    unsafe { WinHttpSetTimeouts(session.0, 4_000, 4_000, 5_000, 6_000); }
+
+    let connect = Handle(unsafe {
+        WinHttpConnect(session.0, host.as_ptr(), INTERNET_DEFAULT_HTTPS_PORT, 0)
+    });
+    if connect.0.is_null() {
+        return Err("WinHttpConnect failed".into());
+    }
+
+    let request = Handle(unsafe {
+        WinHttpOpenRequest(connect.0, verb.as_ptr(), path.as_ptr(), null(), null(), null(), WINHTTP_FLAG_SECURE)
+    });
+    if request.0.is_null() {
+        return Err("WinHttpOpenRequest failed".into());
+    }
+
+    if unsafe { WinHttpSendRequest(request.0, null(), 0, null_mut(), 0, 0, 0) } == 0 {
+        return Err("WinHttpSendRequest failed".into());
+    }
+    if unsafe { WinHttpReceiveResponse(request.0, null_mut()) } == 0 {
+        return Err("WinHttpReceiveResponse failed".into());
+    }
+
+    let mut resp_bytes = Vec::new();
+    loop {
+        let mut avail: u32 = 0;
+        if unsafe { WinHttpQueryDataAvailable(request.0, &mut avail) } == 0 || avail == 0 {
+            break;
+        }
+        let mut chunk = vec![0u8; avail as usize];
+        let mut read: u32 = 0;
+        if unsafe { WinHttpReadData(request.0, chunk.as_mut_ptr() as *mut c_void, avail, &mut read) } == 0
+            || read == 0
+        {
+            break;
+        }
+        chunk.truncate(read as usize);
+        resp_bytes.extend_from_slice(&chunk);
+    }
+    Ok(String::from_utf8_lossy(&resp_bytes).to_string())
+}
+
+#[cfg(not(windows))]
+fn winhttp_get_text(_host_s: &str, _path_s: &str) -> Result<String, String> {
+    Err("Windows WinHTTP required".into())
+}
+
+fn parse_atom_entries(xml: &str, fallback_ch: &str, category: &str) -> Vec<FeedVideo> {
+    let mut out = Vec::new();
+    for chunk in xml.split("<entry>").skip(1) {
+        let entry = chunk.split("</entry>").next().unwrap_or(chunk);
+        let Some(vid) = extract_tag(entry, "yt:videoId") else { continue };
+        let vid = vid.trim();
+        if !is_valid_yt_id(vid) {
+            continue;
+        }
+        let title = extract_tag(entry, "title")
+            .map(xml_unescape)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if title.is_empty() {
+            continue;
+        }
+        let channel = extract_tag(entry, "name")
+            .map(xml_unescape)
+            .filter(|s| !s.trim().is_empty())
+            .unwrap_or_else(|| fallback_ch.to_string());
+        let published = extract_tag(entry, "published")
+            .unwrap_or("")
+            .trim()
+            .to_string();
+        out.push(FeedVideo {
+            id: vid.to_string(),
+            title,
+            channel,
+            category: category.to_string(),
+            published,
+            known_pct: 0,
+            unknown_count: 0,
+            tier: String::new(),
+            score: 0.0,
+        });
+    }
+    out
+}
+
+/// Fetches fresh videos from all curated Japanese ImmersionTube channels in parallel.
+pub fn fetch_raw_immersion_feed() -> Vec<FeedVideo> {
+    let mut handles = Vec::new();
+    for &(cid, cname, cat) in CURATED_CHANNELS {
+        let cid_s = cid.to_string();
+        let cname_s = cname.to_string();
+        let cat_s = cat.to_string();
+        handles.push(std::thread::spawn(move || {
+            let path = format!("/feeds/videos.xml?channel_id={}", cid_s);
+            match winhttp_get_text("www.youtube.com", &path) {
+                Ok(xml) => parse_atom_entries(&xml, &cname_s, &cat_s),
+                Err(_) => Vec::new(),
+            }
+        }));
+    }
+    let mut all = Vec::new();
+    for h in handles {
+        if let Ok(mut list) = h.join() {
+            all.append(&mut list);
+        }
+    }
+    all
+}
+
+/// Ranks ImmersionTube videos by Krashen T+1 comprehensibility against the user's live VocabStore.
+pub fn score_immersion_feed(
+    items: &mut [FeedVideo],
+    morph: Option<&MorphAnalyzer>,
+    jmdict: Option<&LocalJmDict>,
+    vocab: &VocabStore,
+) {
+    for it in items.iter_mut() {
+        let mut total = 0usize;
+        let mut known = 0usize;
+        let mut unknown_set: HashSet<String> = HashSet::new();
+
+        if let Some(mp) = morph {
+            let toks = mp.tokenize_line(&it.title, jmdict);
+            for tk in toks {
+                if tk.ignore || !tk.content {
+                    continue;
+                }
+                if vocab.ignored.contains(&tk.lemma) {
+                    continue;
+                }
+                total += 1;
+                if vocab.known.contains(&tk.lemma) {
+                    known += 1;
+                } else {
+                    unknown_set.insert(tk.lemma);
+                }
+            }
+        }
+
+        let unk = unknown_set.len();
+        it.unknown_count = unk as u16;
+        it.known_pct = if total > 0 {
+            ((known * 100) / total) as u8
+        } else {
+            0
+        };
+        it.tier = match unk {
+            1 if total >= 2 => "T1".to_string(),
+            2 if total >= 3 => "T2".to_string(),
+            3 if total >= 4 => "T3".to_string(),
+            _ => String::new(),
+        };
+
+        // T+1 HackerTube scoring: reward 1-3 unknown content words + high comprehensibility + CI/talk clarity
+        let mut sc = 0.0f64;
+        if unk == 1 && total >= 2 {
+            sc += 55.0;
+        } else if unk == 2 && total >= 3 {
+            sc += 46.0;
+        } else if unk == 3 && total >= 4 {
+            sc += 36.0;
+        } else if total > 0 {
+            let pct = it.known_pct as f64;
+            sc += (pct * 0.35).min(30.0);
+        }
+        if known > 0 {
+            sc += (it.known_pct as f64) * 0.25;
+        }
+        if it.category == "vlog" || it.category == "talk" {
+            sc += 8.0;
+        }
+        it.score = sc;
+    }
+
+    items.sort_by(|a, b| {
+        b.score
+            .total_cmp(&a.score)
+            .then_with(|| b.published.cmp(&a.published))
+    });
 }

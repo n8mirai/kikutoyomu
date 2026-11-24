@@ -49,6 +49,8 @@ pub struct SharedState {
     pub vocab: VocabStore,
     pub synopses: SynopsisStore,
     pub youtube: YoutubeStore,
+    pub yt_feed_cache: Vec<youtube::FeedVideo>,
+    pub yt_feed_fetched_unix: u64,
     pub google_oauth: GoogleOAuthSecrets,
     pub pending_oauth: Option<PendingOAuth>,
     pub cloud_sync_secret: String,
@@ -181,6 +183,8 @@ impl SharedState {
             vocab,
             synopses,
             youtube,
+            yt_feed_cache: Vec::new(),
+            yt_feed_fetched_unix: 0,
             google_oauth,
             pending_oauth: None,
             cloud_sync_secret,
@@ -1999,6 +2003,48 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         return;
     }
 
+    // GET /api/yt/feed (Curated ImmersionTube feed ranked by T+1 comprehensibility against user's VocabStore)
+    if method == Method::Get && path_only == "/api/yt/feed" {
+        let force_refresh = query.contains("refresh=1");
+        let now = oauth::now_unix_secs();
+        let cached_opt = {
+            let st = state_arc.lock().unwrap();
+            if !force_refresh
+                && !st.yt_feed_cache.is_empty()
+                && now.saturating_sub(st.yt_feed_fetched_unix) < 600
+            {
+                Some(st.yt_feed_cache.clone())
+            } else {
+                None
+            }
+        };
+
+        let mut items = match cached_opt {
+            Some(c) => c,
+            None => {
+                let fresh = youtube::fetch_raw_immersion_feed();
+                let mut st = state_arc.lock().unwrap();
+                st.yt_feed_cache = fresh.clone();
+                st.yt_feed_fetched_unix = now;
+                fresh
+            }
+        };
+
+        // Always re-score live against the user's current VocabStore & MeCab/IPADIC!
+        let (morph_arc, jmdict_arc, vocab_snap) = {
+            let st = state_arc.lock().unwrap();
+            (Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
+        };
+        {
+            let mp_g = morph_arc.lock().unwrap();
+            let jm_g = jmdict_arc.lock().unwrap();
+            youtube::score_immersion_feed(&mut items, mp_g.as_ref(), jm_g.as_ref(), &vocab_snap);
+        }
+
+        respond_json(req, 200, &serde_json::json!({ "items": items }));
+        return;
+    }
+
     // POST /api/yt/add (extract YouTube ID, fetch title + Japanese subtitles via yt-dlp, return tokenized cues)
     if method == Method::Post && path_only == "/api/yt/add" {
         let body = match read_body_string(&mut req) {
@@ -2119,22 +2165,18 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             .map(|p| p.to_string_lossy().to_string())
             .unwrap_or_default();
         let ps_cmd = format!(
-            "$env:Path = '{};' + $env:Path; Write-Host '=== Kiku: Sign in with Google (Google AI Plus) ===' -ForegroundColor Cyan; Write-Host 'Choose Login with Google in the prompt below. Once signed in, you can close this window.' -ForegroundColor DarkGray; & '{}'",
+            "$env:Path = '{};' + $env:Path; Write-Host '=== Kiku: Sign in with Google (Google AI Plus) ===' -ForegroundColor Cyan; Write-Host 'Choose Login with Google below. Once signed in, close this window.' -ForegroundColor DarkGray; & '{}'",
             node_dir.replace('\'', "''"),
             bin.to_string_lossy().replace('\'', "''"),
         );
-        let launched = Command::new("cmd.exe")
-            .args([
-                "/C",
-                "start",
-                "Kiku — Sign in with Google",
-                "powershell.exe",
-                "-NoLogo",
-                "-NoProfile",
-                "-Command",
-                &ps_cmd,
-            ])
-            .spawn();
+        let mut cmd = Command::new("powershell.exe");
+        cmd.args(["-NoLogo", "-NoProfile", "-NoExit", "-Command", &ps_cmd]);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x0000_0010); // CREATE_NEW_CONSOLE (visible foreground terminal!)
+        }
+        let launched = cmd.spawn();
         match launched {
             Ok(_) => respond_json(req, 200, &serde_json::json!({ "launched": true })),
             Err(e) => respond_err(req, 500, &format!("Could not launch Google sign-in: {}", e)),
