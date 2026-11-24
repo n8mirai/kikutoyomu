@@ -1024,7 +1024,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   </section>
 
   <!-- APP: YT WATERFALL PLAYER (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) -->
-  <section id="v-yt-play" class="subs-off" hidden>
+  <section id="v-yt-play" hidden>
     <div class="yt-play-inner">
       <div class="sub-head">
         <button class="icon-btn" id="yt-back" title="Back (Esc)">
@@ -3108,7 +3108,7 @@ let ytCues = [];
 let ytCueIdx = -1;
 let ytMaxSeen = -1;
 let ytOffset = 0;
-let ytSubsOn = false;
+let ytSubsOn = true;
 let ytAutoScroll = true;
 let ytRevealAll = false;
 let ytUserAtTop = true;
@@ -3165,8 +3165,14 @@ function mountYtPlayer(videoId) {
       height: '100%',
       playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1, cc_load_policy: 0, iv_load_policy: 3 },
       events: {
-        onReady: () => {
+        onReady: e => {
+          try { e.target.unloadModule('captions'); e.target.unloadModule('cc'); } catch (_) {}
           if (ytPendingId && ytPendingId !== videoId && ytPlayer?.loadVideoById) ytPlayer.loadVideoById(ytPendingId);
+        },
+        onStateChange: e => {
+          if (e.data === 1) {
+            try { e.target.unloadModule('captions'); e.target.unloadModule('cc'); } catch (_) {}
+          }
         }
       }
     });
@@ -3285,7 +3291,7 @@ async function openYtVideo(video, prefetchedCues = null) {
   ytCueIdx = -1;
   ytMaxSeen = -1;
   ytOffset = 0;
-  ytSubsOn = false;
+  ytSubsOn = true;
   ytUserAtTop = true;
   setTab('yt-play');
   updateYtHeadUI();
