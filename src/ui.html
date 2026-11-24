@@ -6,7 +6,7 @@
 <title>Mingo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='mg' x1='18%25' y1='10%25' x2='84%25' y2='92%25'%3E%3Cstop offset='0%25' stop-color='%23FEF08A' stop-opacity='.96'/%3E%3Cstop offset='48%25' stop-color='%23FB923C' stop-opacity='.92'/%3E%3Cstop offset='100%25' stop-color='%23F43F5E' stop-opacity='.92'/%3E%3C/linearGradient%3E%3ClinearGradient id='hl' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' stop-opacity='.82'/%3E%3Cstop offset='100%25' stop-color='%23FFFFFF' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='lf' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236EE7B7'/%3E%3Cstop offset='100%25' stop-color='%2310B981'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M35 15c7-6 15-7 17-3-3 5-9 8-16 6z' fill='url(%23lf)'/%3E%3Cpath d='M34 15c12 1 19 12 17 26-2 13-13 19-24 17-10-2-16-10-14-21 2-12 11-23 21-22z' fill='url(%23mg)' stroke='rgba(255,255,255,0.68)' stroke-width='2'/%3E%3Cpath d='M25 22c-5 5-7 13-6 19 2-7 6-13 12-16-2-2-4-3-6-3z' fill='url(%23hl)'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -21,7 +21,9 @@
   --flame:linear-gradient(90deg,#EE4766,#F9A893 55%,#F6E08A);
   --spring:cubic-bezier(.22,1,.36,1);
   --smooth:cubic-bezier(.16,1,.3,1);
-  --font:"Inter","Segoe UI Variable Text","Noto Sans JP","Yu Gothic UI",system-ui,-apple-system,sans-serif;
+  --font-display:"Plus Jakarta Sans","Zen Kaku Gothic New","Inter",system-ui,-apple-system,sans-serif;
+  --font:"Inter","Zen Kaku Gothic New","Noto Sans JP","Segoe UI Variable Text",system-ui,-apple-system,sans-serif;
+  --font-jp:"Zen Kaku Gothic New","Noto Sans JP","Yu Gothic UI",sans-serif;
   color-scheme:dark;
   font-family:var(--font);
 }
@@ -546,10 +548,11 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .tier-tag{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--g2);opacity:.9}
 
 .sub-text{
-  font-size:var(--sub-size);font-weight:450;line-height:1.74;letter-spacing:.015em;
+  font-family:var(--font-jp);
+  font-size:var(--sub-size);font-weight:500;line-height:1.78;letter-spacing:.02em;
   color:var(--text);text-align:left;user-select:text;
 }
-.sub-row.cur .sub-text{font-weight:500}
+.sub-row.cur .sub-text{font-weight:600}
 
 /* Word tokens + status underlines */
 .tok{
@@ -664,34 +667,68 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 
 /* ================= SETTINGS POPOVER & MODALS ================= */
 #pop{
-  position:absolute;right:18px;top:42px;z-index:48;
-  width:min(340px,calc(100vw - 24px));
-  background:rgba(26,16,42,.97);backdrop-filter:blur(20px);
-  border:1px solid var(--line3);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.6);
-  padding:15px;font-size:12.5px;color:var(--muted);
+  position:absolute;right:18px;top:46px;z-index:48;
+  width:min(352px,calc(100vw - 24px));
+  background:rgba(26,16,42,.97);backdrop-filter:blur(22px);
+  border:1px solid var(--line3);border-radius:18px;box-shadow:0 20px 54px rgba(0,0,0,.44);
+  padding:16px 18px;font-size:12.5px;color:var(--muted);
   transform-origin:top right;animation:popIn .22s var(--spring) both;
 }
-#pop .field{margin-bottom:9px}
-#pop .field label{display:block;font-size:11.5px;color:var(--faint);margin-bottom:3px}
+#pop .field{margin-bottom:10px}
+#pop .field label{display:block;font-size:11.5px;font-weight:500;color:var(--faint);margin-bottom:4px}
 #pop input[type=text],#pop input[type=password],#pop input[type=number],#pop select{
-  width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--bg1);padding:6px 9px;outline:0;font-size:12.5px;
+  width:100%;height:34px;border:1px solid var(--line2);border-radius:10px;background:var(--bg1);padding:0 11px;outline:0;font-size:12.5px;
+  transition:border-color .16s,box-shadow .16s,background .16s;
 }
-#pop input:focus,#pop select:focus{border-color:var(--g)}
-#pop .row-inline{display:flex;gap:6px;align-items:center}
-#pop .chk{display:flex;align-items:center;gap:7px;margin:7px 0;color:var(--text);cursor:pointer}
+#pop input:focus,#pop select:focus,.modal input:focus,.modal select:focus{
+  border-color:var(--acc);box-shadow:0 0 0 3px var(--accsoft);
+}
+.row-inline{display:flex;gap:8px;align-items:center}
+.form-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#pop .chk{display:flex;align-items:center;gap:8px;margin:8px 0;color:var(--text);cursor:pointer;font-size:12.5px}
 #pop .chk input{width:auto;accent-color:var(--acc)}
-.btn-pill{padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:500;background:var(--acc);color:var(--onacc)}
-.btn-pill:hover{background:var(--acc2)}
-.btn-sub{padding:5px 11px;border-radius:999px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.05)}
-.btn-sub:hover{color:var(--text);background:rgba(255,255,255,.09)}
+.btn-pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:36px;padding:0 18px;border-radius:10px;
+  font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:-.01em;
+  background:var(--acc);color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.26),0 3px 10px color-mix(in srgb,var(--acc) 34%,transparent);
+  transition:transform .16s var(--spring),filter .16s,box-shadow .16s;
+}
+.btn-pill:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn-pill:active{transform:translateY(0) scale(.98)}
+.btn-sub{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:34px;padding:0 14px;border-radius:10px;
+  font-family:var(--font-display);font-size:12.5px;font-weight:500;letter-spacing:-.01em;
+  color:var(--text);background:var(--bg1);border:1px solid var(--line2);
+  transition:background .15s,border-color .15s,transform .15s var(--spring);
+}
+.btn-sub:hover{background:var(--bg2);border-color:var(--line3)}
+.btn-sub:active{transform:scale(.98)}
 
-.modal-bg{position:fixed;inset:0;z-index:65;background:rgba(10,6,16,.76);backdrop-filter:blur(8px);display:grid;place-items:center;padding:16px;animation:fadeIn .18s both}
-.modal{width:min(440px,100%);background:var(--bg2);border:1px solid var(--line3);border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.6);animation:popIn .24s var(--spring) both}
-.modal h3{margin:0 0 12px;font-size:15px;font-weight:600}
-.modal .field{margin-bottom:10px}
-.modal label{display:block;font-size:11.5px;color:var(--faint);margin-bottom:4px}
-.modal input,.modal select{width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--bg1);padding:7px 10px;outline:0;font-size:13px}
-.modal-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.modal-bg{position:fixed;inset:0;z-index:65;background:rgba(10,6,16,.66);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:grid;place-items:center;padding:20px;animation:fadeIn .18s both}
+.modal{
+  width:min(460px,100%);background:var(--bg2);border:1px solid var(--line2);border-radius:22px;
+  padding:24px 26px;box-shadow:var(--lg-rim),0 28px 68px rgba(0,0,0,.38);
+  animation:popIn .24s var(--spring) both;overflow:hidden;
+}
+:root[data-theme="washi"] .modal{background:rgba(248,244,236,.97);border-color:rgba(28,25,23,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 24px 64px rgba(28,25,23,.18)}
+.modal h3{margin:0 0 14px;font-family:var(--font-display);font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.modal .field{margin-bottom:12px}
+.modal label{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-bottom:5px}
+.modal input,.modal select{
+  width:100%;height:38px;border:1px solid var(--line2);border-radius:10px;background:var(--bg1);
+  padding:0 12px;outline:0;font-size:13px;color:var(--text);
+  transition:border-color .16s,box-shadow .16s;
+}
+.modal-x{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:var(--bg1);border:1px solid var(--line);color:var(--muted);
+  transition:background .15s,color .15s,border-color .15s;
+}
+.modal-x:hover{background:var(--bg3);border-color:var(--line2);color:var(--text)}
+.modal-acts{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
 .drop-zone{border:1.5px dashed var(--line3);border-radius:12px;padding:22px 14px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
 .drop-zone:hover,.drop-zone.over{border-color:var(--acc2);background:var(--accsoft)}
 .bulk-preview{margin-top:10px;max-height:170px;overflow:auto;border-radius:9px;background:var(--bg1);padding:4px 8px}
@@ -1365,19 +1402,23 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 /* ================= PRODUCTION MINGO: BRAND, PREF TOGGLES, LANDSCAPE YT, GEAR POPOVER, ACCOUNTS & ONBOARDING ================= */
 main{max-width:1380px!important}
 .brand-mango{
-  display:inline-flex;align-items:center;gap:7px;padding:3px 9px 3px 5px;margin-right:4px;
+  display:inline-flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;margin-right:6px;
   border-radius:999px;background:transparent;border:0;cursor:pointer;color:var(--text);
-  font-size:13.5px;font-weight:600;letter-spacing:-.015em;transition:opacity .16s;
+  font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:-.03em;transition:opacity .16s;
 }
 .brand-mango:hover{opacity:.82}
-.brand-mango svg{width:22px;height:22px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(251,146,60,.28))}
+.brand-mango svg{width:23px;height:23px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(251,146,60,.28))}
+.app-pill{font-family:var(--font-display);font-weight:600;letter-spacing:-.01em}
+.yt-card{border-radius:16px!important}
+.yt-card-title{font-family:var(--font-jp);font-size:13px!important;font-weight:500!important;line-height:1.4!important;letter-spacing:.005em}
+.yt-bar input{font-size:13.5px!important}
 .acct-pill{
-  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
-  font-size:11.5px;font-weight:600;color:#fff;cursor:pointer;
-  border:1.5px solid rgba(255,255,255,.42);
+  width:29px;height:29px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  font-family:var(--font-display);font-size:12px;font-weight:700;color:#fff;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.5);box-shadow:0 2px 8px rgba(0,0,0,.14);
   transition:transform .18s var(--spring),box-shadow .18s;
 }
-.acct-pill:hover{transform:scale(1.07);box-shadow:0 4px 12px rgba(0,0,0,.22)}
+.acct-pill:hover{transform:scale(1.07);box-shadow:0 4px 14px rgba(0,0,0,.22)}
 
 /* Global Preference Toggles (zero DOM rebuild!) */
 body.no-t1-hl .sub-row.t1 .sub-row-inner,
@@ -1492,46 +1533,73 @@ body.no-unk-ul .tok.st-unknown{box-shadow:none!important}
 }
 .seg-btn.on{background:var(--acc);color:var(--onacc);font-weight:600}
 
-/* Accounts & Onboarding Modals */
-.ob-modal{width:min(520px,calc(100vw - 28px))!important;padding:24px!important}
-.ob-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:18px}
-.ob-head h2{margin:0;font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.02em}
-.ob-head p{margin:0;font-size:13px;color:var(--muted);line-height:1.5;max-width:390px}
-.ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
-.ob-dot{width:24px;height:4px;border-radius:999px;background:var(--line2);transition:background .2s,width .2s}
-.ob-dot.on{background:var(--acc);width:36px}
-.ob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+/* Accounts & Onboarding Modals (zero overflow, crisp editorial typography) */
+.ob-modal{width:min(540px,calc(100vw - 32px))!important;padding:28px 30px 24px!important}
+.ob-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:22px}
+.ob-head h2{
+  margin:0;font-family:var(--font-display);font-size:22px;font-weight:700;
+  color:var(--text);letter-spacing:-.028em;line-height:1.2;
+}
+.ob-head p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.55;max-width:410px}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.ob-dot{width:22px;height:4px;border-radius:999px;background:var(--line2);transition:background .22s,width .24s var(--spring)}
+.ob-dot.on{background:var(--acc);width:38px}
+.ob-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:20px;width:100%}
 .ob-opt{
-  display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;text-align:left;
-  background:var(--bg1);border:1px solid var(--line2);cursor:pointer;
-  transition:border-color .16s,background .16s,transform .16s var(--spring);
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;width:100%;
+  padding:15px 16px;border-radius:14px;text-align:left;white-space:normal;
+  background:var(--bg1);border:1.5px solid var(--line2);cursor:pointer;
+  transition:border-color .16s,background .16s,transform .16s var(--spring),box-shadow .16s;
 }
 .ob-opt:hover{border-color:var(--line3);transform:translateY(-1px)}
-.ob-opt.on{background:var(--accsoft);border-color:var(--acc)}
-.ob-opt strong{font-size:13.5px;color:var(--text)}
-.ob-opt span{font-size:11.5px;color:var(--muted)}
-.ob-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+.ob-opt.on{background:var(--accsoft);border-color:var(--acc);box-shadow:0 4px 16px color-mix(in srgb,var(--acc) 14%,transparent)}
+.ob-opt strong{font-family:var(--font-display);font-size:14px;font-weight:600;letter-spacing:-.015em;color:var(--text)}
+.ob-opt span{font-size:12px;color:var(--muted);line-height:1.42}
+.ob-stepper{
+  display:inline-flex;align-items:center;gap:14px;padding:5px 8px;border-radius:14px;
+  background:var(--bg1);border:1px solid var(--line2);
+}
+.ob-step-btn{
+  width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--text);font-size:16px;font-weight:500;
+  transition:background .14s,border-color .14s,transform .14s var(--spring);
+}
+.ob-step-btn:hover{background:var(--bg3);border-color:var(--line3)}
+.ob-step-btn:active{transform:scale(.94)}
+.ob-step-val{
+  min-width:74px;text-align:center;font-family:var(--font-display);font-size:16px;font-weight:700;
+  color:var(--text);font-variant-numeric:tabular-nums;
+}
+.ob-foot{
+  display:flex;align-items:center;gap:9px;margin-top:20px;padding-top:16px;
+  border-top:1px solid var(--line);
+}
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
 .ob-chip{
-  padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;
-  background:var(--bg1);border:1px solid var(--line2);color:var(--muted);
+  padding:8px 15px;border-radius:999px;font-family:var(--font-display);font-size:12.5px;font-weight:600;
+  cursor:pointer;background:var(--bg1);border:1px solid var(--line2);color:var(--muted);
   transition:background .15s,border-color .15s,color .15s,transform .15s var(--spring);
 }
 .ob-chip:hover{color:var(--text);border-color:var(--line3)}
-.ob-chip.on{background:var(--acc);border-color:var(--acc);color:var(--onacc);transform:scale(1.03)}
-.acct-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.ob-chip.on{background:var(--acc);border-color:var(--acc);color:#fff;transform:scale(1.03)}
+.acct-list{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
 .acct-row{
-  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;cursor:pointer;
-  background:var(--bg1);border:1px solid var(--line2);transition:border-color .15s,background .15s;
+  display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;cursor:pointer;
+  background:var(--bg1);border:1.5px solid var(--line2);transition:border-color .15s,background .15s;
 }
 .acct-row:hover{border-color:var(--line3);background:var(--bg2)}
 .acct-row.active{border-color:var(--acc);background:var(--accsoft)}
 .acct-av{
-  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
-  font-size:14px;font-weight:600;color:#fff;flex-shrink:0;
+  width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--font-display);font-size:15px;font-weight:700;color:#fff;flex-shrink:0;
 }
-.acct-colors{display:flex;gap:7px;margin-top:6px}
-.acct-col{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer}
-.acct-col.on{border-color:var(--text);transform:scale(1.12)}
+.acct-colors{display:flex;align-items:center;gap:9px}
+.acct-col{
+  width:22px;height:22px;border-radius:50%;border:0;cursor:pointer;
+  transition:transform .16s var(--spring),box-shadow .16s;
+}
+.acct-col:hover{transform:scale(1.12)}
+.acct-col.on{box-shadow:0 0 0 2.5px var(--bg2),0 0 0 4.5px var(--text);transform:scale(1.06)}
 </style>
 </head>
 <body>
@@ -1934,35 +2002,39 @@ body.no-unk-ul .tok.st-unknown{box-shadow:none!important}
 <!-- Account Switcher & Account Creation Modal -->
 <div class="modal-bg" id="acct-modal" hidden>
   <div class="modal ob-modal">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="margin:0;font-size:16px">Mingo Accounts</h3>
-      <button class="icon-btn" id="acct-close" style="width:28px;height:28px">×</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="margin:0">Mingo Accounts</h3>
+      <button class="modal-x" id="acct-close" title="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="acct-list" id="acct-list"></div>
-    <div id="acct-pin-box" hidden style="margin-bottom:14px;padding:12px;border-radius:12px;background:var(--bg1);border:1px solid var(--line2)">
-      <div style="font-size:12.5px;margin-bottom:7px;color:var(--muted)" id="acct-pin-lbl">Enter PIN</div>
+    <div id="acct-pin-box" hidden style="margin-bottom:16px;padding:14px;border-radius:14px;background:var(--bg1);border:1px solid var(--line2)">
+      <div style="font-size:12.5px;font-weight:500;margin-bottom:8px;color:var(--muted)" id="acct-pin-lbl">Enter PIN</div>
       <div class="row-inline">
-        <input id="acct-pin-in" type="password" placeholder="PIN" autocomplete="off">
+        <input id="acct-pin-in" type="password" placeholder="PIN" autocomplete="off" style="flex:1">
         <button class="btn-pill" id="acct-pin-go">Sign in</button>
       </div>
     </div>
-    <div style="padding-top:12px;border-top:1px solid var(--line)">
-      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px">Create New Account</div>
-      <div class="row-inline" style="margin-bottom:8px">
+    <div style="padding-top:16px;border-top:1px solid var(--line)">
+      <div style="font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">Create New Account</div>
+      <div class="form-grid-2" style="margin-bottom:10px">
         <input id="reg-name" type="text" placeholder="Display name (e.g. Alex)" autocomplete="off">
         <input id="reg-user" type="text" placeholder="Username" autocomplete="off">
       </div>
-      <div class="row-inline" style="margin-bottom:8px">
-        <input id="reg-pin" type="password" placeholder="Optional PIN (leave blank for 1-click)" autocomplete="off">
-        <button class="btn-pill" id="reg-go">Create</button>
+      <div style="margin-bottom:14px">
+        <input id="reg-pin" type="password" placeholder="Optional PIN (leave blank for 1-click sign-in)" autocomplete="off">
       </div>
-      <div class="acct-colors" id="reg-colors">
-        <button class="acct-col on" data-col="#F59E0B" style="background:#F59E0B"></button>
-        <button class="acct-col" data-col="#F43F5E" style="background:#F43F5E"></button>
-        <button class="acct-col" data-col="#6366F1" style="background:#6366F1"></button>
-        <button class="acct-col" data-col="#10B981" style="background:#10B981"></button>
-        <button class="acct-col" data-col="#EC4899" style="background:#EC4899"></button>
-        <button class="acct-col" data-col="#0EA5E9" style="background:#0EA5E9"></button>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div class="acct-colors" id="reg-colors">
+          <button class="acct-col on" data-col="#F59E0B" style="background:#F59E0B" title="Mango"></button>
+          <button class="acct-col" data-col="#F43F5E" style="background:#F43F5E" title="Coral"></button>
+          <button class="acct-col" data-col="#6366F1" style="background:#6366F1" title="Indigo"></button>
+          <button class="acct-col" data-col="#10B981" style="background:#10B981" title="Matcha"></button>
+          <button class="acct-col" data-col="#EC4899" style="background:#EC4899" title="Sakura"></button>
+          <button class="acct-col" data-col="#0EA5E9" style="background:#0EA5E9" title="Sky"></button>
+        </div>
+        <button class="btn-pill" id="reg-go">Create Account</button>
       </div>
     </div>
   </div>
@@ -1975,7 +2047,7 @@ body.no-unk-ul .tok.st-unknown{box-shadow:none!important}
       <span class="ob-dot on"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
     </div>
     <div id="ob-body"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
+    <div class="ob-foot">
       <button class="btn-sub" id="ob-back" hidden>Back</button>
       <span class="sp"></span>
       <button class="btn-sub" id="ob-skip">Skip</button>
@@ -6152,11 +6224,16 @@ function renderOnboardingStep() {
         <button class="ob-opt${obData.tracking_mode === 'builtin' ? ' on' : ''}" data-ob-tm="builtin"><strong>Built-in Mingo</strong><span>Zero setup · streaks, daily goal & word stats</span></button>
         <button class="ob-opt${obData.tracking_mode === 'toggl' ? ' on' : ''}" data-ob-tm="toggl"><strong>Toggl Track</strong><span>Sync sessions with your Toggl workspace</span></button>
       </div>
-      <div class="field" style="max-width:220px;margin:0 auto 6px">
-        <label style="text-align:center">Daily immersion goal (minutes)</label>
-        <input id="ob-goal" type="number" min="5" max="480" value="${obData.daily_goal_minutes}" style="text-align:center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:500;color:var(--muted)">Daily immersion goal</span>
+        <div class="ob-stepper">
+          <button class="ob-step-btn" id="ob-goal-m" title="Decrease 15 min">−</button>
+          <span class="ob-step-val" id="ob-goal-val">${obData.daily_goal_minutes} min</span>
+          <button class="ob-step-btn" id="ob-goal-p" title="Increase 15 min">+</button>
+        </div>
       </div>`;
-    $('#ob-goal').oninput = e => { obData.daily_goal_minutes = Math.max(5, Number(e.target.value) || 45); };
+    $('#ob-goal-m').onclick = () => { obData.daily_goal_minutes = Math.max(15, obData.daily_goal_minutes - 15); $('#ob-goal-val').textContent = `${obData.daily_goal_minutes} min`; };
+    $('#ob-goal-p').onclick = () => { obData.daily_goal_minutes = Math.min(360, obData.daily_goal_minutes + 15); $('#ob-goal-val').textContent = `${obData.daily_goal_minutes} min`; };
   } else {
     body.innerHTML = `
       <div class="ob-head">
