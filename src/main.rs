@@ -4,6 +4,7 @@ mod dict;
 mod library;
 mod models;
 mod morph;
+mod oauth;
 mod server;
 mod subs;
 mod synopsis;

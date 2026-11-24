@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dict::LocalJmDict;
 use crate::morph::MorphAnalyzer;
+use crate::oauth::AiAuth;
 use crate::subs::SubtitleCue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -341,9 +342,10 @@ pub fn build_offline_beats(
 }
 
 /// Optional 1-click AI narrative scene-trace & synopsis generator using Gemini 2.5 Flash via pure-Rust WinHTTP.
+/// Supports BOTH Google OAuth 2.0 Bearer tokens AND plain Gemini API keys!
 #[cfg(windows)]
 pub fn generate_ai_synopsis(
-    api_key: &str,
+    auth: &AiAuth,
     series_title: &str,
     episode_title: &str,
     cues: &[SubtitleCue],
@@ -353,10 +355,6 @@ pub fn generate_ai_synopsis(
     use windows_sys::Win32::Foundation::GetLastError;
     use windows_sys::Win32::Networking::WinHttp::*;
 
-    let key = api_key.trim();
-    if key.is_empty() {
-        return Err("Add a Gemini API key in Settings first".into());
-    }
     if cues.is_empty() {
         return Err("No subtitles available for this episode".into());
     }
@@ -407,10 +405,20 @@ pub fn generate_ai_synopsis(
     let agent = to_wide("kiku-jp-immersion/0.1");
     let host = to_wide("generativelanguage.googleapis.com");
     let verb = to_wide("POST");
-    let path = to_wide(&format!(
-        "/v1beta/models/gemini-2.5-flash:generateContent?key={}",
-        key
-    ));
+    let (path_str, hdr_str) = match auth {
+        AiAuth::Bearer(tok) => (
+            "/v1beta/models/gemini-2.5-flash:generateContent".to_string(),
+            format!(
+                "Content-Type: application/json\r\nAccept: application/json\r\nAuthorization: Bearer {}\r\n",
+                tok.trim()
+            ),
+        ),
+        AiAuth::ApiKey(key) => (
+            format!("/v1beta/models/gemini-2.5-flash:generateContent?key={}", key.trim()),
+            "Content-Type: application/json\r\nAccept: application/json\r\n".to_string(),
+        ),
+    };
+    let path = to_wide(&path_str);
 
     let session = Handle(unsafe {
         WinHttpOpen(agent.as_ptr(), WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, null(), null(), 0)
@@ -442,7 +450,7 @@ pub fn generate_ai_synopsis(
         return Err(format!("WinHttpOpenRequest failed ({})", unsafe { GetLastError() }));
     }
 
-    let headers = to_wide("Content-Type: application/json\r\nAccept: application/json\r\n");
+    let headers = to_wide(&hdr_str);
     let bytes = req_body.as_bytes();
     let ok = unsafe {
         WinHttpSendRequest(
@@ -519,7 +527,7 @@ pub fn generate_ai_synopsis(
 
 #[cfg(not(windows))]
 pub fn generate_ai_synopsis(
-    _api_key: &str,
+    _auth: &AiAuth,
     _series_title: &str,
     _episode_title: &str,
     _cues: &[SubtitleCue],

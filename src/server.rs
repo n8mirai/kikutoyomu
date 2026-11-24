@@ -16,10 +16,11 @@ use crate::library::{
 };
 use crate::models::{
     ActiveSession, AnimeSeries, AnimeStat, AppConfig, CustomAnimeMeta, EpisodeProgress,
-    HistoryEntry, ImmersionStats, LocalSecrets, PersistedData, Playlist, PlaylistItem,
-    PublicConfig, UserProfile,
+    GoogleOAuthSecrets, HistoryEntry, ImmersionStats, LocalSecrets, PersistedData, Playlist,
+    PlaylistItem, PublicConfig, UserProfile,
 };
 use crate::morph::{MorphAnalyzer, MorphToken};
+use crate::oauth::{self, AiAuth, PendingOAuth};
 use crate::subs;
 use crate::synopsis::{self, EpisodeSynopsis, SynopsisStore};
 use crate::timeutil;
@@ -43,6 +44,8 @@ pub struct SharedState {
     pub jmnedict: Arc<Mutex<Option<LocalNameDict>>>,
     pub vocab: VocabStore,
     pub synopses: SynopsisStore,
+    pub google_oauth: GoogleOAuthSecrets,
+    pub pending_oauth: Option<PendingOAuth>,
 }
 
 impl SharedState {
@@ -112,6 +115,7 @@ impl SharedState {
         if !loaded_secrets.gemini_api_key.is_empty() {
             data.config.gemini_api_key = loaded_secrets.gemini_api_key;
         }
+        let google_oauth = loaded_secrets.google_oauth;
         let synopses = SynopsisStore::load(&synopsis_file);
 
         let library = scan_library(&media_root, &data.custom_anime);
@@ -163,6 +167,8 @@ impl SharedState {
             jmnedict,
             vocab,
             synopses,
+            google_oauth,
+            pending_oauth: None,
         };
         state.save();
         state
@@ -211,10 +217,11 @@ impl SharedState {
                 let _ = fs::write(&self.profile_file, &json);
             }
         }
-        // 2. Write machine-local secrets (Toggl + Gemini API keys) to gitignored `data/secrets.json`
+        // 2. Write machine-local secrets (Toggl + Gemini + Google OAuth) to gitignored `data/secrets.json`
         let sec = LocalSecrets {
             toggl_api_token: self.data.config.toggl_api_token.clone(),
             gemini_api_key: self.data.config.gemini_api_key.clone(),
+            google_oauth: self.google_oauth.clone(),
         };
         if let Ok(json) = serde_json::to_string_pretty(&sec) {
             let tmp = self.secrets_file.with_extension("json.tmp");
@@ -224,6 +231,18 @@ impl SharedState {
                 let _ = fs::write(&self.secrets_file, &json);
             }
         }
+    }
+
+    pub fn public_config(&self) -> PublicConfig {
+        let mut pc = PublicConfig::from(&self.data.config);
+        let oauth_ok = !self.google_oauth.access_token.trim().is_empty()
+            || !self.google_oauth.refresh_token.trim().is_empty();
+        pc.google_oauth_connected = oauth_ok;
+        pc.google_oauth_email = self.google_oauth.email.clone();
+        pc.google_oauth_client_id = self.google_oauth.client_id.clone();
+        pc.has_google_client_secret = !self.google_oauth.client_secret.trim().is_empty();
+        pc.has_ai_auth = oauth_ok || pc.has_gemini_key;
+        pc
     }
 
     pub fn rescan(&mut self) {
@@ -674,6 +693,36 @@ fn handle_stream(req: Request, file_path: &Path) {
     let _ = req.respond(resp);
 }
 
+/// Resolves active AI auth (prefers Google OAuth 2.0 Bearer with automatic token refresh, falls back to Gemini API key).
+fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String> {
+    let (mut oauth_sec, api_key) = {
+        let st = state_arc.lock().unwrap();
+        (st.google_oauth.clone(), st.data.config.gemini_api_key.clone())
+    };
+    if !oauth_sec.access_token.trim().is_empty() || !oauth_sec.refresh_token.trim().is_empty() {
+        let now = oauth::now_unix_secs();
+        if oauth_sec.access_token.trim().is_empty() || now >= oauth_sec.expires_at_unix.saturating_sub(60) {
+            oauth::refresh_google_token(&mut oauth_sec)?;
+            let mut st = state_arc.lock().unwrap();
+            st.google_oauth = oauth_sec.clone();
+            st.save();
+        }
+        return Ok(AiAuth::Bearer(oauth_sec.access_token));
+    }
+    if !api_key.trim().is_empty() {
+        return Ok(AiAuth::ApiKey(api_key));
+    }
+    Err("Sign in with Google OAuth (or add a Gemini API key) in Settings first".into())
+}
+
+#[derive(Deserialize)]
+struct OAuthStartReq {
+    #[serde(default)]
+    client_id: Option<String>,
+    #[serde(default)]
+    client_secret: Option<String>,
+}
+
 fn tokenize_cues(
     cues: &[subs::SubtitleCue],
     morph_arc: &Arc<Mutex<Option<MorphAnalyzer>>>,
@@ -870,7 +919,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         else {
             return respond_err(req, 400, "Unsafe synopsis path");
         };
-        let (api_key, anime_title, ep_title, sub_path, syn_file) = {
+        let (anime_title, ep_title, sub_path, syn_file) = {
             let st = state_arc.lock().unwrap();
             let anime = st.library.iter().find(|a| a.id == anime_id);
             let at = anime.map(|a| a.title.clone()).unwrap_or_else(|| anime_id.clone());
@@ -879,7 +928,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             let sp = ep
                 .and_then(|e| e.subtitle_file.as_ref())
                 .map(|sf| st.media_root.join(&anime_id).join(sf));
-            (st.data.config.gemini_api_key.clone(), at, et, sp, st.synopsis_file.clone())
+            (at, et, sp, st.synopsis_file.clone())
+        };
+        let auth = match resolve_ai_auth(&state_arc) {
+            Ok(a) => a,
+            Err(e) => return respond_err(req, 400, &e),
         };
         let Some(p) = sub_path else {
             return respond_err(req, 400, "No subtitles synced for this episode yet");
@@ -890,7 +943,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         };
         let (work_title, _) = synopsis::builtin_series_synopsis(&anime_id, &ep_title);
         let display_series = if anime_id == "example-japanese-stories" { work_title } else { anime_title };
-        match synopsis::generate_ai_synopsis(&api_key, &display_series, &ep_title, &cues) {
+        match synopsis::generate_ai_synopsis(&auth, &display_series, &ep_title, &cues) {
             Ok(gen) => {
                 let key = format!("{}/{}", anime_id, episode_id);
                 {
@@ -1283,7 +1336,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let payload = {
             let st = state_arc.lock().unwrap();
             serde_json::json!({
-                "config": PublicConfig::from(&st.data.config),
+                "config": st.public_config(),
                 "library": st.library,
                 "playlists": st.data.playlists,
                 "history": st.data.history,
@@ -1839,7 +1892,152 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 c.daily_goal_minutes = goal.clamp(5, 720);
             }
             st.save();
-            PublicConfig::from(&st.data.config)
+            st.public_config()
+        };
+        respond_json(req, 200, &serde_json::json!({ "config": pub_cfg }));
+        return;
+    }
+
+    // POST /api/oauth/google/start (RFC 8252 Desktop App PKCE flow!)
+    if method == Method::Post && path_only == "/api/oauth/google/start" {
+        let body = read_body_string(&mut req).unwrap_or_default();
+        let parsed: OAuthStartReq = serde_json::from_str(&body).unwrap_or(OAuthStartReq {
+            client_id: None,
+            client_secret: None,
+        });
+        let host_hdr = req
+            .headers()
+            .iter()
+            .find(|h| h.field.equiv("Host"))
+            .map(|h| h.value.as_str().to_string())
+            .unwrap_or_else(|| "127.0.0.1:41937".to_string());
+        let redirect_uri = format!("http://{}/api/oauth/google/callback", host_hdr);
+
+        let (client_id, auth_url) = {
+            let mut st = state_arc.lock().unwrap();
+            if let Some(cid) = parsed.client_id {
+                if !cid.trim().is_empty() {
+                    st.google_oauth.client_id = cid.trim().to_string();
+                }
+            }
+            if let Some(csec) = parsed.client_secret {
+                if !csec.trim().is_empty() {
+                    st.google_oauth.client_secret = csec.trim().to_string();
+                }
+            }
+            let cid = st.google_oauth.client_id.trim().to_string();
+            if cid.is_empty() {
+                return respond_err(req, 400, "Enter your Google Desktop OAuth Client ID first");
+            }
+            let (pending, url) = oauth::start_google_pkce(&cid, &redirect_uri);
+            st.pending_oauth = Some(pending);
+            st.save();
+            (cid, url)
+        };
+        respond_json(
+            req,
+            200,
+            &serde_json::json!({ "auth_url": auth_url, "client_id": client_id, "redirect_uri": redirect_uri }),
+        );
+        return;
+    }
+
+    // GET /api/oauth/google/callback?code=...&state=...
+    if method == Method::Get && path_only == "/api/oauth/google/callback" {
+        let mut code = String::new();
+        let mut state_param = String::new();
+        let mut err_param = String::new();
+        for kv in query.split('&') {
+            if let Some((k, v)) = kv.split_once('=') {
+                if let Ok(dec) = percent_decode_str(v).decode_utf8() {
+                    match k {
+                        "code" => code = dec.into_owned(),
+                        "state" => state_param = dec.into_owned(),
+                        "error" => err_param = dec.into_owned(),
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        let html_page = |ok: bool, title: &str, msg: &str| {
+            let accent = if ok { "#2ECC40" } else { "#EE4766" };
+            let auto_close = if ok {
+                "<script>try{if(window.opener)window.opener.postMessage('kiku-oauth-ok','*');}catch(e){} setTimeout(()=>window.close(),1400);</script>"
+            } else {
+                ""
+            };
+            format!(
+                "<!doctype html><html><head><meta charset='utf-8'><title>Kiku OAuth</title>\
+                <style>body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#120A1C;color:#F4EAF3;font-family:Inter,Segoe UI,sans-serif}}\
+                .card{{max-width:420px;padding:24px 28px;border-radius:16px;background:#180F24;border:1px solid rgba(180,157,224,.22);text-align:center}}\
+                h2{{margin:0 0 8px;font-size:17px;color:{}}}p{{margin:0;font-size:13px;color:#B6A5C7;line-height:1.5}}</style></head>\
+                <body><div class='card'><h2>{}</h2><p>{}</p></div>{}</body></html>",
+                accent, title, msg, auto_close
+            )
+        };
+
+        if !err_param.is_empty() {
+            let resp = Response::from_string(html_page(false, "Sign-in cancelled", &err_param))
+                .with_header(Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap());
+            let _ = req.respond(resp);
+            return;
+        }
+
+        let (pending_opt, mut oauth_sec) = {
+            let mut st = state_arc.lock().unwrap();
+            (st.pending_oauth.take(), st.google_oauth.clone())
+        };
+        let Some(pending) = pending_opt else {
+            let resp = Response::from_string(html_page(false, "Session expired", "Please click Sign in with Google again from Kiku."))
+                .with_header(Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap());
+            let _ = req.respond(resp);
+            return;
+        };
+        if pending.state != state_param || code.is_empty() {
+            let resp = Response::from_string(html_page(false, "Invalid OAuth state", "State mismatch — please retry sign-in from Kiku."))
+                .with_header(Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap());
+            let _ = req.respond(resp);
+            return;
+        }
+
+        match oauth::exchange_google_code(&mut oauth_sec, &code, &pending) {
+            Ok(()) => {
+                let email = oauth_sec.email.clone();
+                {
+                    let mut st = state_arc.lock().unwrap();
+                    st.google_oauth = oauth_sec;
+                    st.save();
+                }
+                let msg = if email.is_empty() {
+                    "Google OAuth connected. You can close this tab.".to_string()
+                } else {
+                    format!("Signed in as {}. You can close this tab.", email)
+                };
+                let resp = Response::from_string(html_page(true, "Connected to Kiku", &msg))
+                    .with_header(Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap());
+                let _ = req.respond(resp);
+            }
+            Err(e) => {
+                let resp = Response::from_string(html_page(false, "OAuth exchange failed", &e))
+                    .with_header(Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap());
+                let _ = req.respond(resp);
+            }
+        }
+        return;
+    }
+
+    // POST /api/oauth/google/disconnect
+    if method == Method::Post && path_only == "/api/oauth/google/disconnect" {
+        let pub_cfg = {
+            let mut st = state_arc.lock().unwrap();
+            st.google_oauth.access_token.clear();
+            st.google_oauth.refresh_token.clear();
+            st.google_oauth.expires_at_unix = 0;
+            st.google_oauth.email.clear();
+            st.pending_oauth = None;
+            st.save();
+            st.public_config()
         };
         respond_json(req, 200, &serde_json::json!({ "config": pub_cfg }));
         return;

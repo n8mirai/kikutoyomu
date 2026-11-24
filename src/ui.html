@@ -801,9 +801,27 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     </div>
     <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl (15m cycle & close)</label>
     <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
-    <div class="field" style="margin-top:8px">
-      <label>Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
-      <input id="s-gemini" type="password" placeholder="Optional — for AI scene traces" autocomplete="off">
+    <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)">
+      <div class="field" style="margin-bottom:6px">
+        <label>Google OAuth (AI) <span id="s-oauth-status" style="color:var(--g2)"></span></label>
+        <div id="s-oauth-setup">
+          <div class="row-inline" style="margin-bottom:5px">
+            <input id="s-oauth-cid" type="text" placeholder="Desktop OAuth Client ID" autocomplete="off">
+          </div>
+          <div class="row-inline">
+            <input id="s-oauth-csec" type="password" placeholder="Client Secret (optional)" autocomplete="off">
+            <button class="btn-pill" id="s-oauth-go">Sign in</button>
+          </div>
+        </div>
+        <div id="s-oauth-connected" class="row-inline" hidden>
+          <span id="s-oauth-email" style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis"></span>
+          <button class="btn-sub" id="s-oauth-disc">Disconnect</button>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Or Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
+        <input id="s-gemini" type="password" placeholder="Optional fallback key" autocomplete="off">
+      </div>
     </div>
     <div style="margin-top:10px;display:flex;gap:7px">
       <button class="btn-pill" id="s-save">Save</button>
@@ -1396,8 +1414,8 @@ function updateEphemeralSynopsis() {
 
 async function generateAiSynopsisForCurrent() {
   if (!currentTrack || synGenerating) return;
-  if (!state.config?.has_gemini_key) {
-    toast('Add a free Gemini API key in Settings first', true);
+  if (!state.config?.has_ai_auth) {
+    toast('Sign in with Google OAuth (or add a Gemini key) in Settings first', true);
     return;
   }
   synGenerating = true;
@@ -2458,6 +2476,12 @@ function syncSettingsUI() {
   const c = state.config || {};
   $('#s-tok-hint').textContent = c.has_toggl_token ? c.toggl_token_hint : '';
   $('#s-gem-hint').textContent = c.has_gemini_key ? 'saved' : '';
+  const oauthOn = !!c.google_oauth_connected;
+  $('#s-oauth-status').textContent = oauthOn ? 'connected' : '';
+  $('#s-oauth-setup').hidden = oauthOn;
+  $('#s-oauth-connected').hidden = !oauthOn;
+  $('#s-oauth-email').textContent = c.google_oauth_email || 'Google OAuth connected';
+  if (c.google_oauth_client_id && !$('#s-oauth-cid').value) $('#s-oauth-cid').value = c.google_oauth_client_id;
   $('#s-tags').value = (c.toggl_tags || []).join(', ');
   $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
   $('#s-auto').checked = c.toggl_auto_sync !== false;
@@ -3152,6 +3176,34 @@ $('#s-save').onclick = async () => {
 };
 $('#s-open-root').onclick = () => api('/api/open-media-root', { method: 'POST' });
 $('#s-rescan').onclick = async () => { state.library = (await api('/api/rescan', { method: 'POST' })).library; renderAll(); toast('Rescanned'); };
+
+// Google OAuth 2.0 (PKCE) Sign-in & Disconnect
+$('#s-oauth-go').onclick = async () => {
+  const btn = $('#s-oauth-go'); btn.disabled = true;
+  try {
+    const res = await api('/api/oauth/google/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: $('#s-oauth-cid').value.trim() || null,
+        client_secret: $('#s-oauth-csec').value.trim() || null
+      })
+    });
+    window.open(res.auth_url, '_blank');
+    toast('Finish Google sign-in in the browser tab');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; }
+};
+$('#s-oauth-disc').onclick = async () => {
+  try {
+    const res = await api('/api/oauth/google/disconnect', { method: 'POST' });
+    state.config = res.config; syncSettingsUI(); toast('Google OAuth disconnected');
+  } catch (e) { toast(e.message, true); }
+};
+window.addEventListener('message', e => {
+  if (e.data === 'kiku-oauth-ok') {
+    loadState().then(() => toast('Google OAuth connected')).catch(() => {});
+  }
+});
 
 // Keyboard (including Shift+Hover trigger & 1/2/3/4 instant word tagging!)
 document.addEventListener('keydown', e => {

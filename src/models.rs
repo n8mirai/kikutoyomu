@@ -154,6 +154,23 @@ fn default_profile_name() -> String {
     "default".to_string()
 }
 
+/// Google OAuth 2.0 credentials & tokens stored strictly in gitignored `data/secrets.json` (never committed).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct GoogleOAuthSecrets {
+    #[serde(default)]
+    pub client_id: String,
+    #[serde(default)]
+    pub client_secret: String,
+    #[serde(default)]
+    pub access_token: String,
+    #[serde(default)]
+    pub refresh_token: String,
+    #[serde(default)]
+    pub expires_at_unix: u64,
+    #[serde(default)]
+    pub email: String,
+}
+
 /// Machine-local credentials stored in gitignored `data/secrets.json` (never committed).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LocalSecrets {
@@ -161,6 +178,8 @@ pub struct LocalSecrets {
     pub toggl_api_token: String,
     #[serde(default)]
     pub gemini_api_key: String,
+    #[serde(default)]
+    pub google_oauth: GoogleOAuthSecrets,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -191,6 +210,11 @@ pub struct PublicConfig {
     pub has_toggl_token: bool,
     pub toggl_token_hint: String,
     pub has_gemini_key: bool,
+    pub google_oauth_connected: bool,
+    pub google_oauth_email: String,
+    pub google_oauth_client_id: String,
+    pub has_google_client_secret: bool,
+    pub has_ai_auth: bool,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -216,10 +240,16 @@ impl From<&AppConfig> for PublicConfig {
         } else {
             String::new()
         };
+        let has_gem = !c.gemini_api_key.trim().is_empty();
         Self {
             has_toggl_token: !c.toggl_api_token.trim().is_empty(),
             toggl_token_hint: hint,
-            has_gemini_key: !c.gemini_api_key.trim().is_empty(),
+            has_gemini_key: has_gem,
+            google_oauth_connected: false,
+            google_oauth_email: String::new(),
+            google_oauth_client_id: String::new(),
+            has_google_client_secret: false,
+            has_ai_auth: has_gem,
             toggl_workspace_id: c.toggl_workspace_id,
             toggl_workspace_name: c.toggl_workspace_name.clone(),
             toggl_project_id: c.toggl_project_id,
