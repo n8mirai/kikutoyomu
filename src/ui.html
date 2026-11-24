@@ -930,6 +930,11 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   display:flex;flex-direction:column;overflow:hidden;
   animation:fadeIn .22s var(--smooth) both;
 }
+/* Keep YouTube iframe alive & playing audio seamlessly when user browses AI / Anime / Books! */
+#v-yt-play.bg-playing{
+  display:flex!important;inset:auto;left:-9999px;top:0;width:320px;height:180px;
+  opacity:0;pointer-events:none;z-index:-1;animation:none;
+}
 .yt-play-inner{
   width:100%;max-width:1160px;height:100%;margin:0 auto;padding:0 16px 14px;
   display:flex;flex-direction:column;min-height:0;
@@ -2608,9 +2613,10 @@ function updateLiveTimers() {
   const pill = $('#live-pill');
   const isToggl = !!(state.active_session && state.active_session.toggl_live);
 
-  if (sessionActive && currentTrack) {
+  if (sessionActive && (currentTrack || ytSessionRunning)) {
     pill.hidden = false;
-    $('#live-dot').className = 'pulse' + (audio.paused ? ' paused' : (isToggl ? ' g' : ''));
+    const paused = ytSessionRunning ? !ytAdapter.isPlaying() : audio.paused;
+    $('#live-dot').className = 'pulse' + (paused ? ' paused' : (isToggl ? ' g' : ''));
     $('#live-time').textContent = clockStr;
   } else {
     pill.hidden = true;
@@ -2618,15 +2624,25 @@ function updateLiveTimers() {
 
   const ovClock = $('#active-ov-clock');
   if (ovClock) ovClock.textContent = clockStr;
-  const pct = audio.duration > 0 ? Math.min(100, (audio.currentTime / audio.duration) * 100) : 0;
+  let pct = 0;
+  if (ytCurrentVideo && (!currentTrack || audio.paused)) {
+    const dur = ytAdapter.getDuration() || ytCurrentVideo.duration_secs || 0;
+    pct = dur > 0 ? Math.min(100, (ytAdapter.getTime() / dur) * 100) : 0;
+  } else {
+    pct = audio.duration > 0 ? Math.min(100, (audio.currentTime / audio.duration) * 100) : 0;
+  }
   const ovProg = $('#active-ov-prog');
   if (ovProg) ovProg.style.width = pct + '%';
   $('#d-fill').style.width = pct + '%';
 
-  // Periodically cache progress every 4s while playing
+  // Periodically cache progress every 4s while playing (Audio OR background YT!)
   if (currentTrack && !audio.paused && Date.now() - lastProgressSaveMs >= 4000) {
     lastProgressSaveMs = Date.now();
     saveTrackProgress(false, false);
+  }
+  if (ytCurrentVideo && ytAdapter.isPlaying() && Date.now() - ytLastProgSaveMs >= 4000) {
+    ytLastProgSaveMs = Date.now();
+    saveYtProgress(false, false);
   }
 
   syncSubtitleToAudio();
@@ -2680,6 +2696,7 @@ async function stopBackendSession(silent = false) {
 
 async function playQueueIndex(idx) {
   if (idx < 0 || idx >= queue.length) return;
+  if (ytCurrentVideo && ytAdapter.isPlaying()) { saveYtProgress(false, false); ytAdapter.pause(); }
   // Save current track progress before switching
   if (currentTrack) await saveTrackProgress(false, false);
 
@@ -3046,8 +3063,31 @@ function renderHistoryView() {
 /* ================= DOCK & SETTINGS ================= */
 function renderDock() {
   const dock = $('#dock');
-  if (!currentTrack) { dock.hidden = true; return; }
+  // Persistent sound bar for background YouTube playback when browsing other tabs (AI, Anime, Books, YT grid)
+  const ytBgMode = !!ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused);
+  if (ytBgMode) {
+    dock.hidden = false;
+    dock.classList.remove('toggl');
+    const img = $('#d-thumb');
+    img.src = `https://i.ytimg.com/vi/${encodeURIComponent(ytCurrentVideo.id)}/hqdefault.jpg`;
+    img.hidden = false;
+    img.style.cursor = 'pointer';
+    $('#d-title').textContent = ytCurrentVideo.title || 'YouTube';
+    $('#d-title').style.cursor = 'pointer';
+    $('#d-play').innerHTML = ytAdapter.isPlaying() ? IC_PAUSE : IC_PLAY;
+    $('#d-prev').hidden = true;
+    $('#d-next').hidden = true;
+    $('#d-speed').hidden = true;
+    $('#d-sub-btn').classList.remove('on');
+    return;
+  }
+  if (!currentTrack || curTab === 'yt-play') { dock.hidden = true; return; }
   dock.hidden = false;
+  $('#d-prev').hidden = false;
+  $('#d-next').hidden = false;
+  $('#d-speed').hidden = false;
+  $('#d-thumb').style.cursor = '';
+  $('#d-title').style.cursor = '';
   const isToggl = !!(state.active_session && state.active_session.toggl_live);
   dock.classList.toggle('toggl', isToggl);
   const img = $('#d-thumb');
@@ -3425,15 +3465,21 @@ function renderWordMapGrid() {
 /* ================= NAV & EVENTS ================= */
 function setTab(t) {
   if (t !== 'subs' && t !== 'wordmap' && t !== 'yt-play') lastNonSubTab = t;
+  // Save YT timestamp when navigating away, but DO NOT pause — keep YT playing in background!
   if (curTab === 'yt-play' && t !== 'yt-play') {
     saveYtProgress(false, false);
-    ytAdapter.pause();
-    if (ytSessionRunning) { ytSessionRunning = false; stopBackendSession(true); }
   }
   curTab = t;
   ['anime', 'yt', 'yt-play', 'books', 'ai', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
     const v = $('#v-' + k);
-    if (v) v.hidden = k !== t;
+    if (!v) return;
+    if (k === 'yt-play') {
+      const keepBg = t !== 'yt-play' && !!ytCurrentVideo;
+      v.hidden = !keepBg && t !== 'yt-play';
+      v.classList.toggle('bg-playing', keepBg);
+    } else {
+      v.hidden = k !== t;
+    }
     const tb = $('#t-' + k);
     if (tb) tb.setAttribute('aria-selected', String(k === t || (k === 'yt' && t === 'yt-play')));
   });
@@ -3443,6 +3489,10 @@ function setTab(t) {
   renderAll();
 }
 function toggleSubsTab() {
+  if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) {
+    setTab('yt-play');
+    return;
+  }
   if (curTab === 'subs') { closeDictPop(false); setTab(lastNonSubTab); }
   else {
     userAtBottom = true;
@@ -3836,7 +3886,7 @@ function mountYtPlayer(videoId, startSecs = 0) {
         onStateChange: e => {
           if (e.data === 1) {
             try { e.target.unloadModule('captions'); e.target.unloadModule('cc'); } catch (_) {}
-            if (curTab === 'yt-play' && ytCurrentVideo && !ytSessionRunning) {
+            if (ytCurrentVideo && !ytSessionRunning) {
               ytSessionRunning = true;
               startBackendSession('yt', ytCurrentVideo.id, null);
             }
@@ -3847,6 +3897,7 @@ function mountYtPlayer(videoId, startSecs = 0) {
               stopBackendSession(true);
             }
           }
+          renderDock();
         }
       }
     });
@@ -4148,7 +4199,7 @@ $('#yt-grid').addEventListener('click', async e => {
     if (v) openYtVideo(v);
   }
 });
-$('#yt-back').onclick = () => { clearInterval(ytPollTimer); closeDictPop(false); setTab('yt'); };
+$('#yt-back').onclick = () => { closeDictPop(false); setTab('yt'); };
 $('#yt-subs-toggle').onclick = toggleYtSubs;
 $('#yt-size').oninput = e => { $('#v-yt-play').style.setProperty('--sub-size', e.target.value + 'px'); };
 $('#yt-autoscroll').onclick = () => { ytAutoScroll = !ytAutoScroll; ytUserAtTop = true; updateYtHeadUI(); if (ytAutoScroll) applyYtCueStates(true); };
@@ -4466,17 +4517,37 @@ $('#vocab-file-input').onchange = async e => {
 // Dock scrub & controls
 const scrub = $('#d-scrub');
 function seekAt(e) {
-  if (!audio.duration) return;
   const r = scrub.getBoundingClientRect();
-  audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+  const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) {
+    const dur = ytAdapter.getDuration() || ytCurrentVideo.duration_secs || 0;
+    if (dur > 0) ytAdapter.seek(frac * dur);
+    updateLiveTimers();
+    return;
+  }
+  if (!audio.duration) return;
+  audio.currentTime = frac * audio.duration;
   updateLiveTimers();
 }
 let scrubbing = false;
 scrub.addEventListener('pointerdown', e => { scrubbing = true; scrub.setPointerCapture(e.pointerId); seekAt(e); });
 scrub.addEventListener('pointermove', e => { if (scrubbing) seekAt(e); });
-scrub.addEventListener('pointerup', () => { scrubbing = false; saveTrackProgress(false, false); });
+scrub.addEventListener('pointerup', () => {
+  scrubbing = false;
+  if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) saveYtProgress(false, false);
+  else saveTrackProgress(false, false);
+});
 
-$('#d-play').onclick = togglePlayPause;
+$('#d-play').onclick = () => {
+  if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) {
+    ytAdapter.toggle();
+    setTimeout(renderDock, 120);
+    return;
+  }
+  togglePlayPause();
+};
+$('#d-thumb').onclick = () => { if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) setTab('yt-play'); };
+$('#d-title').onclick = () => { if (ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused)) setTab('yt-play'); };
 $('#d-prev').onclick = () => playQueueIndex(queueIdx - 1);
 $('#d-next').onclick = () => playQueueIndex(queueIdx + 1);
 $('#d-speed').onclick = () => { speedIdx = (speedIdx + 1) % SPEEDS.length; audio.playbackRate = SPEEDS[speedIdx]; renderDock(); };

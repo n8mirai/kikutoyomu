@@ -1111,6 +1111,22 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 .map(|sf| st.media_root.join(&anime_id).join(sf));
             (at, et, sp, st.synopsis_file.clone())
         };
+        let force = query.contains("force=1");
+        let key = format!("{}/{}", anime_id, episode_id);
+        if !force {
+            let cached = {
+                let st = state_arc.lock().unwrap();
+                st.synopses
+                    .episodes
+                    .get(&key)
+                    .filter(|e| e.ai_generated && !e.beats.is_empty())
+                    .cloned()
+            };
+            if let Some(hit) = cached {
+                respond_json(req, 200, &hit);
+                return;
+            }
+        }
         let auth = match resolve_ai_auth(&state_arc) {
             Ok(a) => a,
             Err(e) => return respond_err(req, 400, &e),
@@ -2212,6 +2228,22 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let Some(video_id) = youtube::extract_video_id(id_raw) else {
             return respond_err(req, 400, "Invalid YouTube video ID");
         };
+        let force = query.contains("force=1");
+        let key = format!("yt/{}", video_id);
+        if !force {
+            let cached = {
+                let st = state_arc.lock().unwrap();
+                st.synopses
+                    .episodes
+                    .get(&key)
+                    .filter(|e| e.ai_generated && !e.beats.is_empty())
+                    .cloned()
+            };
+            if let Some(hit) = cached {
+                respond_json(req, 200, &hit);
+                return;
+            }
+        }
         let auth = match resolve_ai_auth(&state_arc) {
             Ok(a) => a,
             Err(e) => return respond_err(req, 400, &e),
