@@ -250,6 +250,31 @@ impl LocalJmDict {
         self.words.len()
     }
 
+    /// O(1) check whether `word` is marked as a common vocabulary entry in JMdict.
+    pub fn is_common_word(&self, word: &str) -> bool {
+        if let Some(ids) = self.kanji_index.get(word) {
+            for &id in ids {
+                if let Some(w) = self.words.get(id as usize) {
+                    if w.kanji.iter().any(|(t, c, _)| t == word && *c)
+                        || w.kana.iter().any(|(_, c, _)| *c)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        if let Some(ids) = self.kana_index.get(word) {
+            for &id in ids {
+                if let Some(w) = self.words.get(id as usize) {
+                    if w.kana.iter().any(|(t, c, _)| t == word && *c) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
     pub fn has_exact_word(&self, term: &str) -> bool {
         self.kanji_index.contains_key(term) || self.kana_index.contains_key(term)
     }

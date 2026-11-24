@@ -10,8 +10,10 @@ use percent_encoding::percent_decode_str;
 use serde::{Deserialize, Serialize};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
+use crate::agent::{self, AgentAction, AgentMessage};
 use crate::cloud_sync;
 use crate::dict::{LocalJmDict, LocalNameDict};
+use crate::knowledge::{CalibrationCandidate, KnowledgeModel};
 use crate::library::{
     default_playlists, detect_anime_for_file, scan_library, slugify, sync_japanese_stories_playlist,
 };
@@ -280,7 +282,7 @@ impl SharedState {
         pc.gemini_cli_signed_in = gcli_signed_in;
         pc.cloud_sync_url = self.data.config.cloud_sync_url.clone();
         pc.has_cloud_sync_secret = !self.cloud_sync_secret.trim().is_empty();
-        pc.has_ai_auth = gcli_signed_in || oauth_ok || pc.has_gemini_key;
+        pc.has_ai_auth = pc.has_gemini_key || oauth_ok;
         pc
     }
 
@@ -737,22 +739,15 @@ fn handle_stream(req: Request, file_path: &Path) {
 }
 
 /// Resolves active AI auth:
-/// (1) Official Google `gemini` CLI (personal Google / Google AI Plus sign-in),
-/// (2) Google OAuth 2.0 Bearer with automatic token refresh,
-/// (3) Fallback Gemini API key.
+/// (1) Gemini API key (aistudio.google.com/apikey — fast, reliable, token-efficient),
+/// (2) Google OAuth 2.0 Bearer with automatic token refresh.
 fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String> {
-    let (app_root, mut oauth_sec, api_key) = {
+    let (mut oauth_sec, api_key) = {
         let st = state_arc.lock().unwrap();
-        (
-            st.app_root.clone(),
-            st.google_oauth.clone(),
-            st.data.config.gemini_api_key.clone(),
-        )
+        (st.google_oauth.clone(), st.data.config.gemini_api_key.clone())
     };
-    if let Some(bin) = cloud_sync::find_gemini_cli(&app_root) {
-        if cloud_sync::is_gemini_cli_signed_in() {
-            return Ok(AiAuth::GeminiCli(bin));
-        }
+    if !api_key.trim().is_empty() {
+        return Ok(AiAuth::ApiKey(api_key));
     }
     if !oauth_sec.access_token.trim().is_empty() || !oauth_sec.refresh_token.trim().is_empty() {
         let now = oauth::now_unix_secs();
@@ -764,10 +759,22 @@ fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String
         }
         return Ok(AiAuth::Bearer(oauth_sec.access_token));
     }
-    if !api_key.trim().is_empty() {
-        return Ok(AiAuth::ApiKey(api_key));
-    }
-    Err("Click 'Sign in with Google' in Settings first".into())
+    Err("Add a Gemini API key in Settings first".into())
+}
+
+#[derive(Deserialize)]
+struct AiAskReq {
+    message: String,
+    #[serde(default)]
+    history: Vec<AgentMessage>,
+    #[serde(default)]
+    title: Option<String>,
+    #[serde(default)]
+    channel: Option<String>,
+    #[serde(default)]
+    timestamp: Option<f64>,
+    #[serde(default)]
+    context_lines: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -823,14 +830,36 @@ fn tokenize_cues(
     cues: &[subs::SubtitleCue],
     morph_arc: &Arc<Mutex<Option<MorphAnalyzer>>>,
     jmdict_arc: &Arc<Mutex<Option<LocalJmDict>>>,
+    vocab: &VocabStore,
 ) -> Vec<serde_json::Value> {
     let guard = morph_arc.lock().unwrap();
     let dict_guard = jmdict_arc.lock().unwrap();
     let dict_ref = dict_guard.as_ref();
+    let km = KnowledgeModel::build(vocab);
     cues.iter()
         .map(|c| {
-            let tokens: Vec<MorphToken> = if let Some(ref analyzer) = *guard {
-                analyzer.tokenize_line(&c.text, dict_ref)
+            let tokens: Vec<serde_json::Value> = if let Some(ref analyzer) = *guard {
+                analyzer
+                    .tokenize_line(&c.text, dict_ref)
+                    .into_iter()
+                    .map(|tk: MorphToken| {
+                        let likely = tk.content
+                            && !tk.ignore
+                            && !vocab.known.contains(&tk.lemma)
+                            && !vocab.ignored.contains(&tk.lemma)
+                            && km.is_likely_known(&tk.lemma, dict_ref);
+                        serde_json::json!({
+                            "surface": tk.surface,
+                            "lemma": tk.lemma,
+                            "reading": tk.reading,
+                            "pos": tk.pos,
+                            "sub_pos": tk.sub_pos,
+                            "ignore": tk.ignore,
+                            "content": tk.content,
+                            "likely": likely,
+                        })
+                    })
+                    .collect()
             } else {
                 Vec::new()
             };
@@ -842,6 +871,62 @@ fn tokenize_cues(
             })
         })
         .collect()
+}
+
+fn collect_calibration_words(
+    state_arc: &Arc<Mutex<SharedState>>,
+    limit: usize,
+) -> Vec<CalibrationCandidate> {
+    let (vocab, morph_arc, jmdict_arc, yt_subs_dir, media_root, yt_ids, lib_paths) = {
+        let st = state_arc.lock().unwrap();
+        let yids: Vec<String> = st.youtube.videos.iter().take(6).map(|v| v.id.clone()).collect();
+        let lpaths: Vec<PathBuf> = st
+            .library
+            .iter()
+            .flat_map(|a| {
+                a.episodes.iter().filter_map(|e| {
+                    e.subtitle_file
+                        .as_ref()
+                        .map(|sf| st.media_root.join(&a.id).join(sf))
+                })
+            })
+            .take(6)
+            .collect();
+        (
+            st.vocab.clone(),
+            Arc::clone(&st.morph),
+            Arc::clone(&st.jmdict),
+            st.yt_subs_dir.clone(),
+            st.media_root.clone(),
+            yids,
+            lpaths,
+        )
+    };
+    let _ = media_root;
+    let mut sub_paths: Vec<PathBuf> = yt_ids
+        .iter()
+        .filter_map(|id| youtube::find_sub_file(&yt_subs_dir, id))
+        .collect();
+    sub_paths.extend(lib_paths);
+
+    let mut lemmas: Vec<String> = Vec::new();
+    let mp_g = morph_arc.lock().unwrap();
+    let jm_g = jmdict_arc.lock().unwrap();
+    if let Some(ref mp) = *mp_g {
+        for p in sub_paths.iter().take(8) {
+            if let Ok(cues) = subs::load_subtitles(p) {
+                for c in cues.iter().take(120) {
+                    for tk in mp.tokenize_line(&c.text, jm_g.as_ref()) {
+                        if tk.content && !tk.ignore {
+                            lemmas.push(tk.lemma);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let km = KnowledgeModel::build(&vocab);
+    km.suggest_calibration(&vocab, jm_g.as_ref(), &lemmas, limit.clamp(1, 20))
 }
 
 fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
@@ -976,11 +1061,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 };
                 match subs::load_subtitles(&srt_path) {
                     Ok(cues) => {
-                        let (morph_arc, jmdict_arc) = {
+                        let (morph_arc, jmdict_arc, vocab_snap) = {
                             let st = state_arc.lock().unwrap();
-                            (Arc::clone(&st.morph), Arc::clone(&st.jmdict))
+                            (Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
                         };
-                        let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc);
+                        let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc, &vocab_snap);
                         respond_json(
                             req,
                             200,
@@ -1120,7 +1205,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         else {
             return respond_err(req, 400, "Unsafe subtitle path");
         };
-        let (sub_path, morph_arc, jmdict_arc) = {
+        let (sub_path, morph_arc, jmdict_arc, vocab_snap) = {
             let st = state_arc.lock().unwrap();
             let sp = st
                 .library
@@ -1129,14 +1214,14 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 .and_then(|a| a.episodes.iter().find(|e| e.id == episode_id))
                 .and_then(|e| e.subtitle_file.as_ref())
                 .map(|sf| st.media_root.join(&anime_id).join(sf));
-            (sp, Arc::clone(&st.morph), Arc::clone(&st.jmdict))
+            (sp, Arc::clone(&st.morph), Arc::clone(&st.jmdict), st.vocab.clone())
         };
         let Some(p) = sub_path else {
             return respond_json(req, 200, &serde_json::json!({ "cues": [] }));
         };
         match subs::load_subtitles(&p) {
             Ok(cues) => {
-                let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc);
+                let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc, &vocab_snap);
                 respond_json(req, 200, &serde_json::json!({ "cues": rich_cues }));
             }
             Err(e) => respond_err(req, 500, &e),
@@ -2100,8 +2185,9 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             st.youtube.videos.clone()
         };
         let rich_cues = if let Some(sub_p) = youtube::find_sub_file(&yt_subs_dir, &video_id) {
+            let vocab_snap = { state_arc.lock().unwrap().vocab.clone() };
             match subs::load_subtitles(&sub_p) {
-                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc),
+                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc, &vocab_snap),
                 Err(_) => Vec::new(),
             }
         } else {
@@ -2152,7 +2238,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             Ok(c) => c,
             Err(e) => return respond_err(req, 500, &e),
         };
-        match synopsis::generate_ai_synopsis(&auth, &channel, &title, &cues) {
+        match agent::generate_yt_multimodal_synopsis(&auth, &video_id, &channel, &title, &cues) {
             Ok(gen) => {
                 let key = format!("yt/{}", video_id);
                 {
@@ -2249,8 +2335,9 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             youtube::find_sub_file(&yt_subs_dir, &video_id)
         });
         let rich_cues = if let Some(p) = sub_path {
+            let vocab_snap = { state_arc.lock().unwrap().vocab.clone() };
             match subs::load_subtitles(&p) {
-                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc),
+                Ok(cues) => tokenize_cues(&cues, &morph_arc, &jmdict_arc, &vocab_snap),
                 Err(_) => Vec::new(),
             }
         } else {
@@ -2274,6 +2361,185 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             st.youtube.videos.clone()
         };
         respond_json(req, 200, &serde_json::json!({ "videos": videos }));
+        return;
+    }
+
+    // GET /api/knowledge/calibrate (Probabilistic Knowledge Model — likely-known untagged words)
+    if method == Method::Get && path_only == "/api/knowledge/calibrate" {
+        let items = collect_calibration_words(&state_arc, 12);
+        respond_json(req, 200, &serde_json::json!({ "candidates": items }));
+        return;
+    }
+
+    // POST /api/ai/ask (Kiku Immersion Agent + MCP-style Tool Router!)
+    if method == Method::Post && path_only == "/api/ai/ask" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let parsed: AiAskReq = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let auth = match resolve_ai_auth(&state_arc) {
+            Ok(a) => a,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+
+        // Compact, token-efficient user immersion context snapshot
+        let sys_ctx = {
+            let st = state_arc.lock().unwrap();
+            let stats = st.compute_stats();
+            let learning: Vec<&str> = st.vocab.learning.iter().take(30).map(|s| s.as_str()).collect();
+            let recent: Vec<String> = st
+                .data
+                .history
+                .iter()
+                .take(8)
+                .map(|h| format!("{} — {} ({}m)", h.anime_title, h.episode_title, (h.duration_secs / 60).max(1)))
+                .collect();
+            let mut ctx = format!(
+                "You are Kiku, a concise, insightful Japanese immersion AI companion.\n\
+                User profile: {} known words, {} learning words (sample: {}), {}m immersed today ({}d streak).\n\
+                Recent immersion: {}.\n\
+                You have tools to update the user's vocabulary (mark_vocab) and surface likely-known calibration words (suggest_calibration_words). Keep answers crisp, natural, and directly helpful.",
+                st.vocab.known.len(),
+                st.vocab.learning.len(),
+                learning.join("、"),
+                stats.today_secs / 60,
+                stats.streak_days,
+                if recent.is_empty() { "none yet".to_string() } else { recent.join(" | ") },
+            );
+            if let Some(ref t) = parsed.title {
+                ctx.push_str(&format!("\nCurrently watching/listening: \"{}\"", t));
+                if let Some(ref ch) = parsed.channel {
+                    ctx.push_str(&format!(" ({})", ch));
+                }
+                if let Some(ts) = parsed.timestamp {
+                    ctx.push_str(&format!(" at {:02}:{:02}", (ts as u64) / 60, (ts as u64) % 60));
+                }
+            }
+            if !parsed.context_lines.is_empty() {
+                ctx.push_str("\nNearby Japanese lines:\n");
+                for l in parsed.context_lines.iter().take(12) {
+                    ctx.push_str(l);
+                    ctx.push('\n');
+                }
+            }
+            ctx
+        };
+
+        let mut contents: Vec<serde_json::Value> = Vec::new();
+        for m in parsed.history.iter().rev().take(8).rev() {
+            let role = if m.role == "model" { "model" } else { "user" };
+            contents.push(serde_json::json!({ "role": role, "parts": [{ "text": m.text }] }));
+        }
+        contents.push(serde_json::json!({ "role": "user", "parts": [{ "text": parsed.message }] }));
+
+        let mut actions: Vec<AgentAction> = Vec::new();
+        let mut calibration: Vec<CalibrationCandidate> = Vec::new();
+        let mut vocab_changed = false;
+        let mut final_reply = String::new();
+
+        for _hop in 0..3 {
+            let payload = serde_json::json!({
+                "system_instruction": { "parts": [{ "text": sys_ctx }] },
+                "contents": contents,
+                "tools": agent::tool_declarations(),
+                "generationConfig": { "temperature": 0.4, "maxOutputTokens": 700 }
+            });
+            let resp = match agent::gemini_generate_raw(&auth, "gemini-2.5-flash-lite", &payload)
+                .or_else(|_| agent::gemini_generate_raw(&auth, "gemini-2.5-flash", &payload))
+            {
+                Ok(v) => v,
+                Err(e) => return respond_err(req, 400, &e),
+            };
+
+            let parts = resp["candidates"][0]["content"]["parts"]
+                .as_array()
+                .cloned()
+                .unwrap_or_default();
+
+            let mut tool_calls: Vec<(String, serde_json::Value)> = Vec::new();
+            for p in &parts {
+                if let Some(txt) = p.get("text").and_then(|t| t.as_str()) {
+                    if !txt.trim().is_empty() {
+                        if !final_reply.is_empty() {
+                            final_reply.push('\n');
+                        }
+                        final_reply.push_str(txt.trim());
+                    }
+                }
+                if let Some(fc) = p.get("functionCall") {
+                    if let Some(name) = fc.get("name").and_then(|n| n.as_str()) {
+                        let args = fc.get("args").cloned().unwrap_or(serde_json::json!({}));
+                        tool_calls.push((name.to_string(), args));
+                    }
+                }
+            }
+
+            if tool_calls.is_empty() {
+                break;
+            }
+
+            contents.push(serde_json::json!({ "role": "model", "parts": parts }));
+            let mut fn_resp_parts: Vec<serde_json::Value> = Vec::new();
+            for (name, args) in tool_calls {
+                let result_val = match name.as_str() {
+                    "mark_vocab" => {
+                        let word = args["word"].as_str().unwrap_or("").trim().to_string();
+                        let status = args["status"].as_str().unwrap_or("known").trim().to_string();
+                        if !word.is_empty() {
+                            let mut st = state_arc.lock().unwrap();
+                            let vf = st.vocab_file.clone();
+                            st.vocab.set_status(&word, &status);
+                            st.vocab.save(&vf);
+                            st.save();
+                            vocab_changed = true;
+                            actions.push(AgentAction {
+                                tool: "mark_vocab".into(),
+                                summary: format!("Marked {} → {}", word, status),
+                            });
+                            serde_json::json!({ "ok": true, "word": word, "status": status })
+                        } else {
+                            serde_json::json!({ "ok": false, "error": "empty word" })
+                        }
+                    }
+                    "suggest_calibration_words" => {
+                        let cnt = args["count"].as_u64().unwrap_or(8) as usize;
+                        let cands = collect_calibration_words(&state_arc, cnt);
+                        calibration = cands.clone();
+                        actions.push(AgentAction {
+                            tool: "suggest_calibration_words".into(),
+                            summary: format!("Found {} likely-known words", cands.len()),
+                        });
+                        serde_json::json!({ "candidates": cands })
+                    }
+                    _ => serde_json::json!({ "error": "unknown tool" }),
+                };
+                fn_resp_parts.push(serde_json::json!({
+                    "functionResponse": { "name": name, "response": result_val }
+                }));
+            }
+            contents.push(serde_json::json!({ "role": "user", "parts": fn_resp_parts }));
+        }
+
+        let vocab_out = if vocab_changed {
+            Some(state_arc.lock().unwrap().vocab.clone())
+        } else {
+            None
+        };
+        respond_json(
+            req,
+            200,
+            &serde_json::json!({
+                "reply": final_reply,
+                "actions": actions,
+                "calibration": calibration,
+                "vocab_changed": vocab_changed,
+                "vocab": vocab_out,
+            }),
+        );
         return;
     }
 

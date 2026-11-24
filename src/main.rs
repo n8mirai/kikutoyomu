@@ -1,7 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod agent;
 mod cloud_sync;
 mod dict;
+mod knowledge;
 mod library;
 mod models;
 mod morph;

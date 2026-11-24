@@ -84,6 +84,19 @@
 :root[data-theme="washi"] #toast{background:#1C1917;color:#F6F2E9;border-color:rgba(28,25,23,.2)}
 :root[data-theme="washi"] .tok.st-learning{color:#92400E}
 :root[data-theme="washi"] .tok.active-lookup{color:#1C1917}
+/* Legendary Purple highlighting: T1-T3 target word that the Knowledge Model predicts you likely already know! */
+.sub-row.t1 .tok.st-unknown.likely,.sub-row.t2 .tok.st-unknown.likely,.sub-row.t3 .tok.st-unknown.likely,
+.idle-row.t1 .tok.st-unknown.likely,.idle-row.t2 .tok.st-unknown.likely,.idle-row.t3 .tok.st-unknown.likely{
+  background:rgba(168,85,247,.22);border:1px solid rgba(192,132,252,.52);
+  color:#E9D5FF;border-radius:6px;padding:0 4px;margin:0 1px;
+  box-shadow:0 0 12px rgba(168,85,247,.22);
+}
+:root[data-theme="washi"] .sub-row.t1 .tok.st-unknown.likely,
+:root[data-theme="washi"] .sub-row.t2 .tok.st-unknown.likely,
+:root[data-theme="washi"] .sub-row.t3 .tok.st-unknown.likely{
+  background:rgba(147,51,234,.14);border-color:rgba(147,51,234,.42);
+  color:#6B21A8;box-shadow:none;
+}
 
 .theme-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
 .swatch{
@@ -885,7 +898,98 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .yt-waterfall-feed .sub-row.submerged{display:none}
 .yt-prog-track{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.45);z-index:3}
 .yt-prog-fill{height:100%;background:var(--flame)}
-#syn-anchor.yt-mode{bottom:14px}
+#syn-anchor.yt-mode{display:none!important}
+
+/* YT Context Trace directly below video embed + persistent AI button + horizontal expanding ask bar */
+.yt-trace-wrap{
+  width:100%;max-width:780px;margin:8px auto 0;position:relative;z-index:5;
+}
+.yt-trace-bar{
+  display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 10px 4px 6px;
+  border-radius:12px;background:color-mix(in srgb,var(--bg1) 88%,transparent);
+  border:1px solid var(--line2);backdrop-filter:blur(12px);
+}
+.yt-ai-btn{
+  flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+  font-size:13px;color:var(--acc2);background:var(--accsoft);border:1px solid var(--line2);
+  transition:transform .18s var(--spring),background .18s,color .18s;
+}
+.yt-ai-btn:hover{transform:scale(1.06);background:var(--acc);color:var(--onacc)}
+.yt-ai-btn.on{background:var(--acc);color:var(--onacc)}
+.yt-ai-ask-wrap{
+  display:flex;align-items:center;gap:5px;overflow:hidden;
+  max-width:0;opacity:0;pointer-events:none;
+  transition:max-width .34s cubic-bezier(.19,1,.22,1),opacity .24s var(--smooth);
+}
+.yt-trace-bar.asking .yt-ai-ask-wrap{max-width:520px;flex:1;opacity:1;pointer-events:auto}
+.yt-trace-bar.asking .yt-trace-click{display:none}
+.yt-ai-ask-wrap input{
+  flex:1;min-width:0;height:26px;padding:0 10px;border-radius:8px;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--text);font-size:12.5px;
+}
+.yt-ai-ask-wrap input:focus{outline:none;border-color:var(--line3)}
+.yt-trace-click{
+  flex:1;min-width:0;display:flex;align-items:center;gap:7px;cursor:pointer;
+}
+.yt-trace-line{
+  flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(90deg,var(--faint) 0%,var(--muted) 32%,var(--text) 50%,var(--muted) 68%,var(--faint) 100%);
+  background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:synShine 5.2s linear infinite;
+}
+.yt-trace-drawer{
+  display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.19,1,.22,1);
+}
+.yt-trace-drawer.open{grid-template-rows:1fr}
+.yt-trace-drawer-in{overflow:hidden}
+.yt-trace-card{
+  margin-top:6px;padding:11px 14px;border-radius:12px;
+  background:var(--bg1);border:1px solid var(--line2);font-size:12.5px;line-height:1.55;color:var(--muted);
+}
+.yt-trace-card h4{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:600}
+.yt-trace-card p{margin:0;color:var(--text)}
+.yt-trace-card .yt-ch-sec{margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.yt-ai-ans{
+  margin-top:6px;padding:11px 14px;border-radius:12px;
+  background:var(--bg1);border:1px solid rgba(168,85,247,.32);
+  font-size:12.5px;line-height:1.55;color:var(--text);position:relative;
+}
+.yt-ai-ans-close{position:absolute;top:6px;right:8px;font-size:14px;color:var(--faint);cursor:pointer}
+
+/* ================= DEDICATED AI AGENT APP ================= */
+.ai-shell{max-width:740px;margin:0 auto;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:420px}
+.ai-cal-bar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;min-height:28px;
+}
+.ai-cal-chip{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  font-size:12px;cursor:pointer;
+  background:rgba(168,85,247,.16);border:1px solid rgba(192,132,252,.38);color:var(--text);
+  transition:transform .16s var(--spring),background .16s;
+}
+.ai-cal-chip:hover{transform:translateY(-1px);background:rgba(168,85,247,.28)}
+.ai-cal-chip .p{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.ai-msgs{
+  flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;
+}
+.ai-msg{
+  max-width:86%;padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;
+  white-space:pre-wrap;word-break:break-word;
+}
+.ai-msg.user{align-self:flex-end;background:var(--bg2);border:1px solid var(--line2);color:var(--text)}
+.ai-msg.model{align-self:flex-start;background:var(--bg1);border:1px solid var(--line);color:var(--text)}
+.ai-act-tag{
+  display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;
+  font-size:11px;background:var(--gsoft);color:var(--g2);
+}
+.ai-composer{
+  display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--line);
+}
+.ai-composer input{
+  flex:1;height:40px;padding:0 14px;border-radius:12px;
+  background:var(--bg1);border:1px solid var(--line2);color:var(--text);font-size:13.5px;
+}
+.ai-composer input:focus{outline:none;border-color:var(--line3)}
 @keyframes ukabuPour{
   0%{opacity:0;transform:scale(.97);filter:blur(7px)}
   60%{opacity:.95;filter:blur(.6px)}
@@ -933,6 +1037,10 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <button class="app-pill" id="t-books" aria-selected="false" title="Books">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <span>Books</span>
+    </button>
+    <button class="app-pill" id="t-ai" aria-selected="false" title="Kiku AI Agent">
+      <span style="font-size:13px;line-height:1">✦</span>
+      <span>AI</span>
     </button>
     <span class="sp"></span>
     <button id="live-pill" hidden><span class="pulse" id="live-dot"></span><span id="live-time">00:00</span></button>
@@ -1082,6 +1190,25 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
       <div class="yt-stage-wrap">
         <div class="yt-stage"><div id="yt-iframe-slot"></div></div>
       </div>
+      <div class="yt-trace-wrap" id="yt-trace-wrap">
+        <div class="yt-trace-bar" id="yt-trace-bar">
+          <button class="yt-ai-btn" id="yt-ai-btn" title="Ask Kiku AI about this video">✦</button>
+          <div class="yt-ai-ask-wrap" id="yt-ai-ask-wrap">
+            <input id="yt-ai-input" type="text" placeholder="Ask about this moment or video…" autocomplete="off">
+            <button class="sub-mini-btn on" id="yt-ai-send">↵</button>
+          </div>
+          <div class="yt-trace-click" id="yt-trace-click" title="Click to expand Video / Channel synopsis">
+            <span class="yt-trace-line" id="yt-trace-line"></span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--faint);flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="yt-trace-drawer" id="yt-trace-drawer">
+          <div class="yt-trace-drawer-in">
+            <div class="yt-trace-card" id="yt-trace-card"></div>
+          </div>
+        </div>
+        <div class="yt-ai-ans" id="yt-ai-ans" hidden></div>
+      </div>
       <div class="yt-waterfall-scroll" id="yt-scroll">
         <div class="yt-waterfall-feed" id="yt-feed"></div>
       </div>
@@ -1092,6 +1219,18 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   <section id="v-books" class="view-pane" hidden>
     <div class="book-grid" id="book-grid"></div>
     <div id="book-drawer" hidden></div>
+  </section>
+
+  <!-- APP: AI AGENT (Dedicated Immersion Agent + Knowledge Calibration) -->
+  <section id="v-ai" class="view-pane" hidden>
+    <div class="ai-shell">
+      <div class="ai-cal-bar" id="ai-cal-bar"></div>
+      <div class="ai-msgs" id="ai-msgs"></div>
+      <div class="ai-composer">
+        <input id="ai-input" type="text" placeholder="Ask Kiku about your Japanese immersion, vocab, or history…" autocomplete="off">
+        <button class="btn-pill" id="ai-send">Send</button>
+      </div>
+    </div>
   </section>
 
   <!-- TAB 2: PLAYLISTS -->
@@ -1636,9 +1775,14 @@ function updateEphemeralSynopsis() {
   const anchor = $('#syn-anchor');
   const lineEl = $('#syn-line');
   const isYt = curTab === 'yt-play' && !!ytCurrentVideo;
+  if (isYt) {
+    anchor.hidden = true;
+    updateYtTraceUI();
+    return;
+  }
   const isSub = curTab === 'subs' && !!currentTrack;
-  const show = (isSub || isYt) && !!synData;
-  anchor.classList.toggle('yt-mode', isYt);
+  const show = isSub && !!synData;
+  anchor.classList.remove('yt-mode');
   if (!show) {
     anchor.hidden = true;
     return;
@@ -1761,12 +1905,13 @@ function renderCueTokensHtml(cue, forAmbient = false) {
       }
       const autoIgn = !!tk.ignore;
       const st = getWordStatus(lemma, autoIgn);
+      const likelyCls = tk.likely ? ' likely' : '';
       if (st === 'unknown' || st === 'learning') unknownSet.add(lemma);
       if (forAmbient) {
-        return `<span class="tok st-${st}">${esc(surf)}</span>`;
+        return `<span class="tok st-${st}${likelyCls}">${esc(surf)}</span>`;
       }
       const ctx = fullText.slice(pos, pos + 14).replace(/\s+/g, '');
-      return `<span class="tok" data-word="${esc(lemma)}" data-surf="${esc(surf)}" data-pos="${esc(tk.pos || '')}" data-ctx="${esc(ctx)}" data-autoign="${autoIgn ? '1' : '0'}">${esc(surf)}</span>`;
+      return `<span class="tok${likelyCls}" data-word="${esc(lemma)}" data-surf="${esc(surf)}" data-pos="${esc(tk.pos || '')}" data-ctx="${esc(ctx)}" data-autoign="${autoIgn ? '1' : '0'}" data-likely="${tk.likely ? '1' : '0'}">${esc(surf)}</span>`;
     }).join('');
     return { html, unknownCount: unknownSet.size };
   }
@@ -3109,14 +3254,14 @@ function setTab(t) {
     if (ytSessionRunning) { ytSessionRunning = false; stopBackendSession(true); }
   }
   curTab = t;
-  ['anime', 'yt', 'yt-play', 'books', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
+  ['anime', 'yt', 'yt-play', 'books', 'ai', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
     const v = $('#v-' + k);
     if (v) v.hidden = k !== t;
     const tb = $('#t-' + k);
     if (tb) tb.setAttribute('aria-selected', String(k === t || (k === 'yt' && t === 'yt-play')));
   });
   $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
-  if (t !== 'subs' && t !== 'yt-play') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
+  if (t !== 'subs') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
   else { updateEphemeralSynopsis(); }
   renderAll();
 }
@@ -3134,6 +3279,7 @@ function renderAll() {
   renderAnimeView();
   if (curTab === 'yt') renderYtGrid();
   if (curTab === 'books') renderBooksView();
+  if (curTab === 'ai') renderAiApp();
   if (curTab === 'playlists') renderPlaylistsView();
   if (curTab === 'history') renderHistoryView();
   if (curTab === 'subs') { updateSubHeadUI(); applyCueStatesInPlace(false); }
@@ -3149,6 +3295,7 @@ async function loadState() {
 $('#t-anime').onclick = () => setTab('anime');
 $('#t-yt').onclick = () => setTab('yt');
 $('#t-books').onclick = () => setTab('books');
+$('#t-ai').onclick = () => setTab('ai');
 $('#t-playlists').onclick = () => setTab('playlists');
 $('#t-history').onclick = () => setTab('history');
 
@@ -3231,16 +3378,207 @@ async function saveYtProgress(forceCompleted = false, useBeacon = false) {
   } catch (e) {}
 }
 
+let ytTraceStage = 0; // 0 = 1-line shimmer, 1 = Video synopsis, 2 = Video + Channel
+let ytAiAutoInflight = new Set();
+
+function updateYtTraceUI() {
+  const lineEl = $('#yt-trace-line');
+  const drawer = $('#yt-trace-drawer');
+  const card = $('#yt-trace-card');
+  if (!ytCurrentVideo || !synData) {
+    if (lineEl) lineEl.textContent = ytCurrentVideo ? (ytCurrentVideo.title || '') : '';
+    if (drawer) drawer.classList.remove('open');
+    return;
+  }
+  const beats = synData.beats || [];
+  let text = '';
+  if (beats.length) {
+    const t = ytAdapter.getTime() + ytOffset;
+    let idx = 0;
+    for (let i = 0; i < beats.length; i++) {
+      if (t >= beats[i].start - 0.5) idx = i;
+      else break;
+    }
+    text = beats[idx]?.text || '';
+  }
+  if (!text) text = synData.episode_summary || ytCurrentVideo.title || '';
+  if (lineEl.textContent !== text) lineEl.textContent = text;
+
+  drawer.classList.toggle('open', ytTraceStage > 0);
+  if (ytTraceStage === 1) {
+    card.innerHTML = `<h4>Video</h4><p>${esc(synData.episode_summary || ytCurrentVideo.title)}</p>`;
+  } else if (ytTraceStage === 2) {
+    card.innerHTML = `
+      <h4>Video</h4><p>${esc(synData.episode_summary || ytCurrentVideo.title)}</p>
+      <div class="yt-ch-sec"><h4>${esc(synData.series_title || ytCurrentVideo.channel || 'Channel')}</h4><p>${esc(synData.series_summary || '')}</p></div>`;
+  }
+}
+
 async function loadSynopsisForYt(videoId) {
+  ytTraceStage = 0;
+  $('#yt-trace-bar').classList.remove('asking');
+  $('#yt-ai-btn').classList.remove('on');
+  $('#yt-ai-ans').hidden = true;
   try {
     const res = await api(`/api/yt/${encodeURIComponent(videoId)}/synopsis`);
     if (!ytCurrentVideo || ytCurrentVideo.id !== videoId) return;
     synData = res;
     synBeatIdx = -1;
-    renderSynopsisScrollContent();
-    updateEphemeralSynopsis();
+    updateYtTraceUI();
+
+    // Auto-employ multimodal AI (keyframes + transcript) for ImmersionTube videos when key is configured
+    // and not yet cached (permanently cached in synopses.json — ~$0.0005 once per video!)
+    if (!res.ai_generated && state.config?.has_ai_auth && ytCues.length && !ytAiAutoInflight.has(videoId)) {
+      ytAiAutoInflight.add(videoId);
+      api(`/api/yt/${encodeURIComponent(videoId)}/synopsis/generate`, { method: 'POST' })
+        .then(gen => {
+          if (ytCurrentVideo && ytCurrentVideo.id === videoId) {
+            synData = gen;
+            synBeatIdx = -1;
+            updateYtTraceUI();
+          }
+        })
+        .catch(() => {})
+        .finally(() => ytAiAutoInflight.delete(videoId));
+    }
   } catch (e) {}
 }
+
+async function askYtInlineAi() {
+  const inp = $('#yt-ai-input');
+  const q = inp.value.trim();
+  if (!q || !ytCurrentVideo) return;
+  const ans = $('#yt-ai-ans');
+  ans.hidden = false;
+  ans.innerHTML = `<span style="color:var(--faint)">Thinking…</span>`;
+  const curT = ytAdapter.getTime() + ytOffset;
+  const ctxLines = ytCues
+    .filter(c => Math.abs(c.start - curT) <= 35)
+    .slice(0, 12)
+    .map(c => `[${fmtClock(c.start)}] ${c.text}`);
+  try {
+    const res = await api('/api/ai/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: q,
+        title: ytCurrentVideo.title,
+        channel: ytCurrentVideo.channel,
+        timestamp: curT,
+        context_lines: ctxLines
+      })
+    });
+    if (res.vocab_changed && res.vocab) { loadVocabFromState(res.vocab); refreshVocabHighlights(); }
+    const actHtml = (res.actions || []).map(a => `<span class="ai-act-tag">${esc(a.summary)}</span>`).join('');
+    ans.innerHTML = `<span class="yt-ai-ans-close" id="yt-ai-ans-x">×</span><div>${esc(res.reply || '')}</div>${actHtml ? `<div>${actHtml}</div>` : ''}`;
+    $('#yt-ai-ans-x').onclick = () => { ans.hidden = true; };
+    inp.value = '';
+  } catch (e) {
+    ans.innerHTML = `<span class="yt-ai-ans-close" id="yt-ai-ans-x">×</span><span style="color:var(--red)">${esc(e.message)}</span>`;
+    $('#yt-ai-ans-x').onclick = () => { ans.hidden = true; };
+  }
+}
+
+$('#yt-ai-btn').onclick = () => {
+  const bar = $('#yt-trace-bar');
+  const on = bar.classList.toggle('asking');
+  $('#yt-ai-btn').classList.toggle('on', on);
+  if (on) setTimeout(() => $('#yt-ai-input').focus(), 60);
+};
+$('#yt-ai-send').onclick = askYtInlineAi;
+$('#yt-ai-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') askYtInlineAi();
+  if (e.key === 'Escape') { $('#yt-trace-bar').classList.remove('asking'); $('#yt-ai-btn').classList.remove('on'); }
+});
+$('#yt-trace-click').onclick = () => {
+  ytTraceStage = (ytTraceStage + 1) % 3;
+  updateYtTraceUI();
+};
+
+/* ================= DEDICATED AI AGENT APP ================= */
+let aiChatHistory = [];
+let aiCalCandidates = [];
+let aiCalLoaded = false;
+
+async function loadAiCalibration(force = false) {
+  if (aiCalLoaded && !force) return;
+  try {
+    const res = await api('/api/knowledge/calibrate');
+    aiCalCandidates = res.candidates || [];
+    aiCalLoaded = true;
+    renderAiCalibrationBar();
+  } catch (e) {}
+}
+
+function renderAiCalibrationBar() {
+  const bar = $('#ai-cal-bar');
+  if (!aiCalCandidates.length) { bar.innerHTML = ''; return; }
+  bar.innerHTML = aiCalCandidates.slice(0, 8).map(c => `
+    <button class="ai-cal-chip" data-cal-word="${esc(c.word)}" title="${esc(c.reading + ' — ' + c.gloss)} (Click to mark Known)">
+      <span>${esc(c.word)}</span>
+      <span class="p">${Math.round(c.prob * 100)}%</span>
+    </button>`).join('');
+}
+
+function renderAiApp() {
+  if (!aiCalLoaded) loadAiCalibration(false);
+  renderAiCalibrationBar();
+  const box = $('#ai-msgs');
+  if (!aiChatHistory.length) {
+    box.innerHTML = `<div class="ai-msg model">Ask me about your Japanese immersion, grammar, or tap any purple word above to calibrate your known vocabulary.</div>`;
+    return;
+  }
+  box.innerHTML = aiChatHistory.map(m => {
+    const acts = (m.actions || []).map(a => `<span class="ai-act-tag">${esc(a.summary)}</span>`).join('');
+    const cals = (m.calibration || []).map(c => `
+      <button class="ai-cal-chip" data-cal-word="${esc(c.word)}" title="${esc(c.reading + ' — ' + c.gloss)}" style="margin:6px 5px 0 0">
+        <span>${esc(c.word)}</span><span class="p">${Math.round(c.prob * 100)}%</span>
+      </button>`).join('');
+    return `<div class="ai-msg ${m.role}">${esc(m.text)}${acts ? `<div>${acts}</div>` : ''}${cals ? `<div>${cals}</div>` : ''}</div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendAiAppMsg() {
+  const inp = $('#ai-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  aiChatHistory.push({ role: 'user', text: txt });
+  renderAiApp();
+  const btn = $('#ai-send'); btn.disabled = true;
+  try {
+    const res = await api('/api/ai/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: txt,
+        history: aiChatHistory.slice(-10).map(m => ({ role: m.role, text: m.text }))
+      })
+    });
+    if (res.vocab_changed && res.vocab) { loadVocabFromState(res.vocab); refreshVocabHighlights(); }
+    aiChatHistory.push({
+      role: 'model',
+      text: res.reply || '',
+      actions: res.actions || [],
+      calibration: res.calibration || []
+    });
+    renderAiApp();
+  } catch (e) {
+    aiChatHistory.push({ role: 'model', text: e.message });
+    renderAiApp();
+  } finally { btn.disabled = false; }
+}
+
+$('#ai-send').onclick = sendAiAppMsg;
+$('#ai-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendAiAppMsg(); });
+$('#v-ai').addEventListener('click', async e => {
+  const chip = e.target.closest('[data-cal-word]');
+  if (!chip) return;
+  const w = chip.dataset.calWord;
+  await setWordStatus(w, 'known');
+  aiCalCandidates = aiCalCandidates.filter(c => c.word !== w);
+  chip.remove();
+  toast(`${w} → Known`);
+});
 
 function ensureYtIframeApi(onReady) {
   if (ytApiReady && window.YT && window.YT.Player) { onReady(); return; }
@@ -4091,6 +4429,7 @@ document.addEventListener('keydown', e => {
   if (e.altKey && e.key === '1') { e.preventDefault(); setTab('anime'); return; }
   if (e.altKey && e.key === '2') { e.preventDefault(); setTab('yt'); return; }
   if (e.altKey && e.key === '3') { e.preventDefault(); setTab('books'); return; }
+  if (e.altKey && e.key === '4') { e.preventDefault(); setTab('ai'); return; }
   if (e.key === 'Escape') {
     if (popOpen) { closeDictPop(true); return; }
     if (synStage > 0) { setSynopsisStage(0); return; }
