@@ -97,6 +97,9 @@
 }
 body.has-dock{--dock-h:82px}
 main{padding-bottom:calc(28px + var(--dock-h))!important}
+body.ai-mode{overflow:hidden;height:100vh}
+body.ai-mode main{height:100vh;display:flex;flex-direction:column;padding-bottom:calc(12px + var(--dock-h))!important}
+body.ai-mode #v-ai{flex:1;min-height:0;display:flex;flex-direction:column}
 :root[data-theme="washi"]{
   --lg-bg:linear-gradient(150deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,.26) 50%,rgba(255,255,255,.58) 100%);
   --lg-tint:rgba(246,242,233,.48);
@@ -1158,7 +1161,8 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .yt-ai-ans-close{position:absolute;top:6px;right:8px;font-size:14px;color:var(--faint);cursor:pointer}
 
 /* ================= DEDICATED AI AGENT APP ================= */
-.ai-shell{max-width:740px;margin:0 auto;display:flex;flex-direction:column;height:calc(100vh - 102px - var(--dock-h));min-height:360px}
+.ai-shell{max-width:740px;width:100%;margin:0 auto;flex:1;min-height:0;display:flex;flex-direction:column}
+.ai-cal-bubble{width:100%;max-width:86%}
 .ai-cal-bar{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:10px;
   margin-bottom:16px;min-height:94px;
@@ -1321,6 +1325,10 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <button class="app-pill" id="t-ai" aria-selected="false" title="Kiku AI Agent">
       <span style="font-size:13px;line-height:1">✦</span>
       <span>AI</span>
+    </button>
+    <button class="app-pill" id="t-vocab" aria-selected="false" title="Vocab Playground">
+      <span style="font-size:13px;line-height:1;font-weight:600">字</span>
+      <span>Vocab</span>
     </button>
     <span class="sp"></span>
     <button id="live-pill" hidden><span class="pulse" id="live-dot"></span><span id="live-time">00:00</span></button>
@@ -1503,14 +1511,33 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div id="book-drawer" hidden></div>
   </section>
 
-  <!-- APP: AI AGENT (Dedicated Immersion Agent + Knowledge Calibration) -->
+  <!-- APP: AI AGENT (Pure distraction-free Immersion Agent chat) -->
   <section id="v-ai" class="view-pane" hidden>
     <div class="ai-shell">
-      <div class="ai-cal-bar" id="ai-cal-bar"></div>
       <div class="ai-msgs" id="ai-msgs"></div>
       <div class="ai-composer">
         <input id="ai-input" type="text" placeholder="Ask Kiku about your Japanese immersion, vocab, or history…" autocomplete="off">
         <button class="btn-pill" id="ai-send">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- APP: VOCAB PLAYGROUND (Dedicated Calibration Queue + Priority / Learning / Known browser) -->
+  <section id="v-vocab" class="view-pane" hidden>
+    <div style="max-width:780px;margin:0 auto">
+      <div class="yt-pills" id="vp-pills" style="margin-bottom:16px">
+        <button class="yt-pill on" data-vp-tab="cal">Calibrate</button>
+        <button class="yt-pill" data-vp-tab="priority" id="vp-tab-pri">Priority</button>
+        <button class="yt-pill" data-vp-tab="learning" id="vp-tab-lrn">Learning</button>
+        <button class="yt-pill" data-vp-tab="known" id="vp-tab-kn">Known</button>
+        <span class="sp"></span>
+        <button class="icon-btn" id="vp-refresh" title="New calibration batch" style="width:28px;height:28px">↻</button>
+      </div>
+      <div id="vp-cal-pane">
+        <div class="ai-cal-bar" id="ai-cal-bar"></div>
+      </div>
+      <div id="vp-list-pane" hidden>
+        <div class="h-words-drawer" id="vp-word-list" style="padding:4px 0"></div>
       </div>
     </div>
   </section>
@@ -3657,7 +3684,8 @@ function setTab(t) {
     saveYtProgress(false, false);
   }
   curTab = t;
-  ['anime', 'yt', 'yt-play', 'books', 'ai', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
+  document.body.classList.toggle('ai-mode', t === 'ai');
+  ['anime', 'yt', 'yt-play', 'books', 'ai', 'vocab', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
     const v = $('#v-' + k);
     if (!v) return;
     if (k === 'yt-play') {
@@ -3694,6 +3722,7 @@ function renderAll() {
   if (curTab === 'yt') renderYtGrid();
   if (curTab === 'books') renderBooksView();
   if (curTab === 'ai') renderAiApp();
+  if (curTab === 'vocab') renderVocabPlayground();
   if (curTab === 'playlists') renderPlaylistsView();
   if (curTab === 'history') renderHistoryView();
   if (curTab === 'subs') { updateSubHeadUI(); applyCueStatesInPlace(false); }
@@ -3710,6 +3739,7 @@ $('#t-anime').onclick = () => setTab('anime');
 $('#t-yt').onclick = () => setTab('yt');
 $('#t-books').onclick = () => setTab('books');
 $('#t-ai').onclick = () => setTab('ai');
+$('#t-vocab').onclick = () => setTab('vocab');
 $('#t-playlists').onclick = () => setTab('playlists');
 $('#t-history').onclick = () => setTab('history');
 
@@ -4022,24 +4052,54 @@ function renderMd(raw) {
 function renderAiMessages() {
   const box = $('#ai-msgs');
   if (!aiChatHistory.length) {
-    box.innerHTML = `<div class="ai-msg model"><p>Ask me about your Japanese immersion, grammar, or calibrate your purple words above.</p></div>`;
+    box.innerHTML = `<div class="ai-msg model"><p>Ask me about your Japanese immersion, grammar, or vocabulary.</p></div>`;
     return;
   }
   box.innerHTML = aiChatHistory.map((m, idx) => {
     const isLast = idx === aiChatHistory.length - 1;
     const acts = (m.actions || []).map(a => `<span class="ai-act-tag">${esc(a.summary)}</span>`).join('');
-    const cals = (m.calibration || []).map((c, ci) => renderCalChipHtml(c, `--stagger:${ci * 55}ms`)).join('');
     const body = m.role === 'model' ? renderMd(m.text) : `<p>${esc(m.text)}</p>`;
-    return `<div class="ai-msg ${m.role}${isLast ? ' fresh' : ''}">${body}${acts ? `<div>${acts}</div>` : ''}${cals ? `<div class="ai-msg-cals">${cals}</div>` : ''}</div>`;
+    const textBubble = (m.text || acts)
+      ? `<div class="ai-msg ${m.role}${isLast ? ' fresh' : ''}">${body}${acts ? `<div>${acts}</div>` : ''}</div>`
+      : '';
+    const cals = (m.calibration || []);
+    const calBubble = cals.length
+      ? `<div class="ai-msg model ai-cal-bubble${isLast ? ' fresh' : ''}" data-cal-group="${idx}"><div class="ai-msg-cals" style="margin-top:0;padding-top:0;border-top:0">${cals.map((c, ci) => renderCalChipHtml(c, `--stagger:${ci * 55}ms`)).join('')}</div></div>`
+      : '';
+    return textBubble + calBubble;
   }).join('');
   box.scrollTop = box.scrollHeight;
 }
 
 function renderAiApp() {
-  if (!aiCalLoaded) loadAiCalibration(false);
-  else if (!$('#ai-cal-bar').children.length && aiCalCandidates.length) renderAiCalibrationBar();
   renderAiMessages();
 }
+
+let vpTab = 'cal';
+function renderVocabPlayground() {
+  $$('[data-vp-tab]').forEach(b => b.classList.toggle('on', b.dataset.vpTab === vpTab));
+  $('#vp-tab-pri').textContent = `Priority (${vocab.priority.size})`;
+  $('#vp-tab-lrn').textContent = `Learning (${vocab.learning.size})`;
+  $('#vp-tab-kn').textContent = `Known (${vocab.known.size})`;
+  $('#vp-cal-pane').hidden = vpTab !== 'cal';
+  $('#vp-list-pane').hidden = vpTab === 'cal';
+  $('#vp-refresh').hidden = vpTab !== 'cal';
+  if (vpTab === 'cal') {
+    if (!aiCalLoaded) loadAiCalibration(false);
+    else if (!$('#ai-cal-bar').children.length && aiCalCandidates.length) renderAiCalibrationBar();
+    return;
+  }
+  const set = vpTab === 'priority' ? vocab.priority : (vpTab === 'learning' ? vocab.learning : vocab.known);
+  const words = [...set];
+  $('#vp-word-list').innerHTML = words.length
+    ? words.map(w => `<span class="h-word-chip tok${vpTab === 'priority' ? ' priority' : ''}" data-word="${esc(w)}" data-surf="${esc(w)}" data-pos="" data-ctx="${esc(w)}" data-autoign="0">${esc(w)}</span>`).join('')
+    : `<div class="sub-empty-box" style="width:100%">Empty</div>`;
+}
+$('#vp-pills').addEventListener('click', e => {
+  const b = e.target.closest('[data-vp-tab]');
+  if (b) { vpTab = b.dataset.vpTab; renderVocabPlayground(); }
+});
+$('#vp-refresh').onclick = () => loadAiCalibration(true);
 
 async function sendAiAppMsg() {
   const inp = $('#ai-input');
@@ -4076,16 +4136,33 @@ async function sendAiAppMsg() {
 $('#ai-send').onclick = sendAiAppMsg;
 $('#ai-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendAiAppMsg(); });
 
-const aiViewEl = $('#v-ai');
-aiViewEl.addEventListener('pointerover', e => {
-  const tok = e.target.closest('.tok');
-  if (tok) { hoveredTokEl = tok; if (e.shiftKey || shiftHeld) openDictPop(tok); }
-});
-aiViewEl.addEventListener('pointerout', e => {
-  const tok = e.target.closest('.tok');
-  if (tok && hoveredTokEl === tok) { hoveredTokEl = null; if (popOpen) scheduleCloseDictPop(); }
-});
-aiViewEl.addEventListener('click', async e => {
+const aiBubbleResults = new Map(); // groupId -> { known: [], priority: [] }
+
+async function sendAiAutoFollowup(summaryText) {
+  const prevHistory = aiChatHistory.slice(-10).map(m => ({ role: m.role, text: m.text }));
+  aiChatHistory.push({ role: 'model', text: 'Thinking…', pending: true });
+  renderAiMessages();
+  try {
+    const res = await api('/api/ai/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: summaryText, history: prevHistory, visible_tokens: [] })
+    });
+    if (res.vocab_changed && res.vocab) { loadVocabFromState(res.vocab); refreshVocabHighlights(); }
+    aiChatHistory = aiChatHistory.filter(m => !m.pending);
+    aiChatHistory.push({
+      role: 'model',
+      text: res.reply || '',
+      actions: res.actions || [],
+      calibration: res.calibration || []
+    });
+    renderAiMessages();
+  } catch (e) {
+    aiChatHistory = aiChatHistory.filter(m => !m.pending);
+    renderAiMessages();
+  }
+}
+
+function handleCalChipClick(e) {
   const yes = e.target.closest('[data-cal-yes]');
   const no = e.target.closest('[data-cal-no]');
   if (!yes && !no) return;
@@ -4102,17 +4179,45 @@ aiViewEl.addEventListener('click', async e => {
     toast(`${w} → Priority watch`);
   }
   aiCalCandidates = aiCalCandidates.filter(c => c.word !== w);
-  // Keep chip in its fixed grid slot (visibility:hidden) so ZERO neighbors shift!
-  // Only after EVERY token in the batch is tagged do we populate the fresh batch.
+  const inBar = chip && $('#ai-cal-bar') && $('#ai-cal-bar').contains(chip);
+  const bubble = chip ? chip.closest('[data-cal-group]') : null;
+  if (bubble) {
+    const gid = bubble.dataset.calGroup;
+    if (!aiBubbleResults.has(gid)) aiBubbleResults.set(gid, { known: [], priority: [] });
+    const rec = aiBubbleResults.get(gid);
+    if (yes) rec.known.push(w);
+    else rec.priority.push(w);
+  }
   setTimeout(() => {
     if (chip) chip.classList.add('gone');
-    const remaining = $('#ai-cal-bar').querySelectorAll('[data-cal-chip]:not(.sinking)');
-    if (remaining.length === 0) {
-      if (aiCalCandidates.length > 0) renderAiCalibrationBar();
-      else loadAiCalibration(true);
+    if (inBar) {
+      const remaining = $('#ai-cal-bar').querySelectorAll('[data-cal-chip]:not(.sinking)');
+      if (remaining.length === 0) {
+        if (aiCalCandidates.length > 0) renderAiCalibrationBar();
+        else loadAiCalibration(true);
+      }
+    }
+    if (bubble) {
+      const rem = bubble.querySelectorAll('[data-cal-chip]:not(.sinking)');
+      if (rem.length === 0) {
+        const gid = bubble.dataset.calGroup;
+        const rec = aiBubbleResults.get(gid) || { known: [], priority: [] };
+        aiBubbleResults.delete(gid);
+        const msgObj = aiChatHistory[Number(gid)];
+        if (msgObj) msgObj.calibration = [];
+        const summary = `I finished sorting those words! Marked known: [${rec.known.join('、') || 'none'}]. Flagged unknown/priority purple: [${rec.priority.join('、') || 'none'}]. Give a brief, encouraging reaction or tip.`;
+        sendAiAutoFollowup(summary);
+      }
+    }
+    if (curTab === 'vocab') {
+      $('#vp-tab-pri').textContent = `Priority (${vocab.priority.size})`;
+      $('#vp-tab-lrn').textContent = `Learning (${vocab.learning.size})`;
+      $('#vp-tab-kn').textContent = `Known (${vocab.known.size})`;
     }
   }, 830);
-});
+}
+$('#v-ai').addEventListener('click', handleCalChipClick);
+$('#v-vocab').addEventListener('click', handleCalChipClick);
 
 function ensureYtIframeApi(onReady) {
   if (ytApiReady && window.YT && window.YT.Player) { onReady(); return; }
@@ -5162,6 +5267,7 @@ document.addEventListener('keydown', e => {
   if (e.altKey && e.key === '2') { e.preventDefault(); setTab('yt'); return; }
   if (e.altKey && e.key === '3') { e.preventDefault(); setTab('books'); return; }
   if (e.altKey && e.key === '4') { e.preventDefault(); setTab('ai'); return; }
+  if (e.altKey && e.key === '5') { e.preventDefault(); setTab('vocab'); return; }
   if (e.key === 'Escape') {
     if (popOpen) { closeDictPop(true); return; }
     if (synStage > 0) { setSynopsisStage(0); return; }
