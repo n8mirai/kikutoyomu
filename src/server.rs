@@ -21,6 +21,7 @@ use crate::models::{
 };
 use crate::morph::{MorphAnalyzer, MorphToken};
 use crate::subs;
+use crate::synopsis::{self, EpisodeSynopsis, SynopsisStore};
 use crate::timeutil;
 use crate::toggl;
 use crate::vocab::VocabStore;
@@ -32,6 +33,7 @@ pub struct SharedState {
     pub profile_file: PathBuf,
     pub secrets_file: PathBuf,
     pub vocab_file: PathBuf,
+    pub synopsis_file: PathBuf,
     pub media_root: PathBuf,
     pub data: PersistedData,
     pub library: Vec<AnimeSeries>,
@@ -40,6 +42,7 @@ pub struct SharedState {
     pub jmdict: Arc<Mutex<Option<LocalJmDict>>>,
     pub jmnedict: Arc<Mutex<Option<LocalNameDict>>>,
     pub vocab: VocabStore,
+    pub synopses: SynopsisStore,
 }
 
 impl SharedState {
@@ -53,6 +56,7 @@ impl SharedState {
         let secrets_file = data_dir.join("secrets.json");
         let legacy_state_file = data_dir.join("state.json");
         let vocab_file = data_dir.join("vocab.json");
+        let synopsis_file = data_dir.join("synopses.json");
         let ipadic_file = data_dir.join("ipadic.dic.zst");
         let jmdict_file = data_dir.join("jmdict-eng.json");
         let jmnedict_file = data_dir.join("jmnedict.json");
@@ -85,13 +89,12 @@ impl SharedState {
             (pd, vb)
         };
 
-        // 2. Load machine-local secrets (Toggl API token) from gitignored `data/secrets.json`
-        //    (falling back to legacy state.json if migrating for the first time!)
-        let mut token = fs::read_to_string(&secrets_file)
+        // 2. Load machine-local secrets (Toggl + optional Gemini API key) from gitignored `data/secrets.json`
+        let loaded_secrets = fs::read_to_string(&secrets_file)
             .ok()
             .and_then(|s| serde_json::from_str::<LocalSecrets>(&s).ok())
-            .map(|s| s.toggl_api_token)
             .unwrap_or_default();
+        let mut token = loaded_secrets.toggl_api_token;
         if token.is_empty() && !data.config.toggl_api_token.is_empty() {
             token = data.config.toggl_api_token.clone();
         }
@@ -106,6 +109,10 @@ impl SharedState {
             }
         }
         data.config.toggl_api_token = token;
+        if !loaded_secrets.gemini_api_key.is_empty() {
+            data.config.gemini_api_key = loaded_secrets.gemini_api_key;
+        }
+        let synopses = SynopsisStore::load(&synopsis_file);
 
         let library = scan_library(&media_root, &data.custom_anime);
         if data.playlists.is_empty() {
@@ -146,6 +153,7 @@ impl SharedState {
             profile_file,
             secrets_file,
             vocab_file,
+            synopsis_file,
             media_root,
             data,
             library,
@@ -154,6 +162,7 @@ impl SharedState {
             jmdict,
             jmnedict,
             vocab,
+            synopses,
         };
         state.save();
         state
@@ -184,6 +193,7 @@ impl SharedState {
         // 1. Write portable, secret-free user profile to `profile/profile.json`
         let mut clean_cfg = self.data.config.clone();
         clean_cfg.toggl_api_token.clear();
+        clean_cfg.gemini_api_key.clear();
         let prof = UserProfile {
             profile_name: "default".to_string(),
             vocab: self.vocab.clone(),
@@ -201,9 +211,10 @@ impl SharedState {
                 let _ = fs::write(&self.profile_file, &json);
             }
         }
-        // 2. Write machine-local secrets (Toggl API token) to gitignored `data/secrets.json`
+        // 2. Write machine-local secrets (Toggl + Gemini API keys) to gitignored `data/secrets.json`
         let sec = LocalSecrets {
             toggl_api_token: self.data.config.toggl_api_token.clone(),
+            gemini_api_key: self.data.config.gemini_api_key.clone(),
         };
         if let Ok(json) = serde_json::to_string_pretty(&sec) {
             let tmp = self.secrets_file.with_extension("json.tmp");
@@ -384,52 +395,25 @@ fn stop_active_session_internal(
         .max(1);
 
     let min_secs = cfg.toggl_min_seconds;
-    let below_threshold = duration_secs < min_secs;
-
-    let mut toggl_synced = false;
-    let mut toggl_entry_id = active.toggl_entry_id;
-    let mut toggl_error: Option<String> = None;
-
-    if !cfg.toggl_api_token.trim().is_empty() && cfg.toggl_auto_sync {
-        if let Some(wid) = active.toggl_workspace_id.or(cfg.toggl_workspace_id) {
-            if let Some(eid) = active.toggl_entry_id {
-                if below_threshold {
-                    // Discard accidental tiny tap in Toggl
-                    let _ = toggl::delete_entry(&cfg.toggl_api_token, wid, eid);
-                    toggl_entry_id = None;
-                } else {
-                    match toggl::stop_running_entry(&cfg.toggl_api_token, wid, eid) {
-                        Ok(()) => toggl_synced = true,
-                        Err(e) => toggl_error = Some(e),
-                    }
-                }
-            } else if !below_threshold {
-                // Live start hadn't succeeded (or wasn't started); create completed entry now
-                let desc =
-                    build_toggl_description(&cfg, &active.anime_title, &active.episode_title);
-                let tags = build_toggl_tags(&cfg, &active.anime_title);
-                match toggl::create_completed_entry(
-                    &cfg.toggl_api_token,
-                    wid,
-                    cfg.toggl_project_id,
-                    &desc,
-                    &tags,
-                    &active.started_at,
-                    &ended_at,
-                    duration_secs,
-                ) {
-                    Ok(eid) => {
-                        toggl_entry_id = Some(eid);
-                        toggl_synced = true;
-                    }
-                    Err(e) => toggl_error = Some(e),
-                }
-            }
-        }
+    if duration_secs < min_secs {
+        return None;
     }
 
-    if below_threshold {
-        return None;
+    // Airgapped local logging: NEVER hit Toggl API on pause/stop!
+    // Coalesce consecutive unsynced chunks for the same episode so frequent pause/resume
+    // becomes ONE clean consolidated entry synced on the 15-min cycle or on app close.
+    let mut st = state_arc.lock().unwrap();
+    if let Some(prev) = st.data.history.first_mut() {
+        if !prev.toggl_synced
+            && prev.anime_id == active.anime_id
+            && prev.episode_id == active.episode_id
+        {
+            prev.duration_secs += duration_secs;
+            prev.ended_at = ended_at;
+            let merged = prev.clone();
+            st.save();
+            return Some(merged);
+        }
     }
 
     let entry = HistoryEntry {
@@ -443,15 +427,74 @@ fn stop_active_session_internal(
         started_at: active.started_at,
         ended_at,
         duration_secs,
-        toggl_entry_id,
-        toggl_synced,
-        toggl_error,
+        toggl_entry_id: None,
+        toggl_synced: false,
+        toggl_error: None,
     };
-
-    let mut st = state_arc.lock().unwrap();
     st.data.history.insert(0, entry.clone());
     st.save();
     Some(entry)
+}
+
+/// Batch-commits all pending unsynced local history entries to Toggl (called on 15-min cycle & on app close).
+fn flush_pending_toggl(state_arc: &Arc<Mutex<SharedState>>) -> usize {
+    let (cfg, pending): (AppConfig, Vec<HistoryEntry>) = {
+        let st = state_arc.lock().unwrap();
+        let cfg = st.data.config.clone();
+        if !cfg.toggl_auto_sync || cfg.toggl_api_token.trim().is_empty() || cfg.toggl_workspace_id.is_none() {
+            return 0;
+        }
+        let items: Vec<HistoryEntry> = st
+            .data
+            .history
+            .iter()
+            .filter(|h| !h.toggl_synced && h.duration_secs >= cfg.toggl_min_seconds)
+            .cloned()
+            .collect();
+        (cfg, items)
+    };
+
+    if pending.is_empty() {
+        return 0;
+    }
+    let wid = cfg.toggl_workspace_id.unwrap();
+    let mut synced_count = 0usize;
+
+    for entry in pending {
+        let desc = build_toggl_description(&cfg, &entry.anime_title, &entry.episode_title);
+        let tags = build_toggl_tags(&cfg, &entry.anime_title);
+        match toggl::create_completed_entry(
+            &cfg.toggl_api_token,
+            wid,
+            cfg.toggl_project_id,
+            &desc,
+            &tags,
+            &entry.started_at,
+            &entry.ended_at,
+            entry.duration_secs,
+        ) {
+            Ok(eid) => {
+                let mut st = state_arc.lock().unwrap();
+                if let Some(h) = st.data.history.iter_mut().find(|h| h.id == entry.id) {
+                    h.toggl_entry_id = Some(eid);
+                    h.toggl_synced = true;
+                    h.toggl_error = None;
+                }
+                st.save();
+                synced_count += 1;
+            }
+            Err(e) => {
+                let mut st = state_arc.lock().unwrap();
+                if let Some(h) = st.data.history.iter_mut().find(|h| h.id == entry.id) {
+                    h.toggl_error = Some(e);
+                }
+                st.save();
+                // Stop batch early on rate-limit / network error so we don't burn quota
+                break;
+            }
+        }
+    }
+    synced_count
 }
 
 #[derive(Deserialize)]
@@ -494,6 +537,8 @@ struct ConfigUpdateReq {
     toggl_api_token: Option<String>,
     #[serde(default)]
     clear_toggl_token: bool,
+    #[serde(default)]
+    gemini_api_key: Option<String>,
     #[serde(default)]
     toggl_workspace_id: Option<i64>,
     #[serde(default)]
@@ -807,6 +852,112 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             }
             Err(e) => respond_err(req, 500, &format!("Could not run whisper-cli: {}", e)),
         }
+        return;
+    }
+
+    // POST /api/synopsis/{anime_id}/{episode_id}/generate (optional 1-click Gemini AI narrative beats)
+    if method == Method::Post
+        && path_only.starts_with("/api/synopsis/")
+        && path_only.ends_with("/generate")
+    {
+        let mid = path_only
+            .trim_start_matches("/api/synopsis/")
+            .trim_end_matches("/generate");
+        let Some((aid_raw, eid_raw)) = mid.split_once('/') else {
+            return respond_err(req, 400, "Invalid synopsis path");
+        };
+        let (Some(anime_id), Some(episode_id)) = (safe_segment(aid_raw), safe_segment(eid_raw))
+        else {
+            return respond_err(req, 400, "Unsafe synopsis path");
+        };
+        let (api_key, anime_title, ep_title, sub_path, syn_file) = {
+            let st = state_arc.lock().unwrap();
+            let anime = st.library.iter().find(|a| a.id == anime_id);
+            let at = anime.map(|a| a.title.clone()).unwrap_or_else(|| anime_id.clone());
+            let ep = anime.and_then(|a| a.episodes.iter().find(|e| e.id == episode_id));
+            let et = ep.map(|e| e.title.clone()).unwrap_or_else(|| episode_id.clone());
+            let sp = ep
+                .and_then(|e| e.subtitle_file.as_ref())
+                .map(|sf| st.media_root.join(&anime_id).join(sf));
+            (st.data.config.gemini_api_key.clone(), at, et, sp, st.synopsis_file.clone())
+        };
+        let Some(p) = sub_path else {
+            return respond_err(req, 400, "No subtitles synced for this episode yet");
+        };
+        let cues = match subs::load_subtitles(&p) {
+            Ok(c) => c,
+            Err(e) => return respond_err(req, 500, &e),
+        };
+        let (work_title, _) = synopsis::builtin_series_synopsis(&anime_id, &ep_title);
+        let display_series = if anime_id == "example-japanese-stories" { work_title } else { anime_title };
+        match synopsis::generate_ai_synopsis(&api_key, &display_series, &ep_title, &cues) {
+            Ok(gen) => {
+                let key = format!("{}/{}", anime_id, episode_id);
+                {
+                    let mut st = state_arc.lock().unwrap();
+                    st.synopses.episodes.insert(key, gen.clone());
+                    st.synopses.save(&syn_file);
+                }
+                respond_json(req, 200, &gen);
+            }
+            Err(e) => respond_err(req, 400, &e),
+        }
+        return;
+    }
+
+    // GET /api/synopsis/{anime_id}/{episode_id} (ephemeral scene trace + episode & series synopsis!)
+    if method == Method::Get && path_only.starts_with("/api/synopsis/") {
+        let rest = path_only.trim_start_matches("/api/synopsis/");
+        let Some((aid_raw, eid_raw)) = rest.split_once('/') else {
+            return respond_err(req, 400, "Invalid synopsis path");
+        };
+        let (Some(anime_id), Some(episode_id)) = (safe_segment(aid_raw), safe_segment(eid_raw))
+        else {
+            return respond_err(req, 400, "Unsafe synopsis path");
+        };
+        let key = format!("{}/{}", anime_id, episode_id);
+        let (cached_ep, cached_series, ep_title, sub_path, morph_arc, jmdict_arc) = {
+            let st = state_arc.lock().unwrap();
+            let anime = st.library.iter().find(|a| a.id == anime_id);
+            let ep = anime.and_then(|a| a.episodes.iter().find(|e| e.id == episode_id));
+            let et = ep.map(|e| e.title.clone()).unwrap_or_else(|| episode_id.clone());
+            let sp = ep
+                .and_then(|e| e.subtitle_file.as_ref())
+                .map(|sf| st.media_root.join(&anime_id).join(sf));
+            (
+                st.synopses.episodes.get(&key).cloned(),
+                st.synopses.series.get(&anime_id).cloned(),
+                et,
+                sp,
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+            )
+        };
+
+        let (builtin_title, builtin_series) = synopsis::builtin_series_synopsis(&anime_id, &ep_title);
+        let builtin_ep = synopsis::builtin_episode_synopsis(&anime_id, &ep_title);
+
+        let mut out: EpisodeSynopsis = cached_ep.unwrap_or_default();
+        if out.series_title.is_empty() {
+            out.series_title = builtin_title;
+        }
+        if out.series_summary.is_empty() {
+            out.series_summary = cached_series.unwrap_or(builtin_series);
+        }
+        if out.episode_summary.is_empty() {
+            out.episode_summary = builtin_ep;
+        }
+        // Zero-API offline fallback: synthesize clean ~22s scene concept traces from MeCab + JMdict!
+        if out.beats.is_empty() {
+            if let Some(p) = sub_path {
+                if let Ok(cues) = subs::load_subtitles(&p) {
+                    let mp_guard = morph_arc.lock().unwrap();
+                    let jm_guard = jmdict_arc.lock().unwrap();
+                    out.beats = synopsis::build_offline_beats(&cues, mp_guard.as_ref(), jm_guard.as_ref());
+                }
+            }
+        }
+        respond_json(req, 200, &out);
         return;
     }
 
@@ -1486,34 +1637,10 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         };
 
         let started_at = timeutil::now_utc_rfc3339();
-        let mut toggl_entry_id = None;
-        let mut toggl_live = false;
-        let mut toggl_error = None;
         let toggl_wid = cfg.toggl_workspace_id;
 
-        if cfg.toggl_auto_sync && !cfg.toggl_api_token.trim().is_empty() {
-            if let Some(wid) = toggl_wid {
-                let desc = build_toggl_description(&cfg, &anime_title, &episode_title);
-                let tags = build_toggl_tags(&cfg, &anime_title);
-                match toggl::start_running_entry(
-                    &cfg.toggl_api_token,
-                    wid,
-                    cfg.toggl_project_id,
-                    &desc,
-                    &tags,
-                    &started_at,
-                ) {
-                    Ok(eid) => {
-                        toggl_entry_id = Some(eid);
-                        toggl_live = true;
-                    }
-                    Err(e) => {
-                        toggl_error = Some(e);
-                    }
-                }
-            }
-        }
-
+        // Airgapped: NEVER call Toggl API on play/pause! Sessions accumulate locally and
+        // batch-commit on the 15-minute cycle or when closing the app.
         let session = ActiveSession {
             id: format!("ses-{}", timeutil::now_unix_millis()),
             anime_id: parsed.anime_id,
@@ -1523,10 +1650,10 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             playlist_id: parsed.playlist_id,
             playlist_name,
             started_at,
-            toggl_entry_id,
+            toggl_entry_id: None,
             toggl_workspace_id: toggl_wid,
-            toggl_live,
-            toggl_error,
+            toggl_live: false,
+            toggl_error: None,
         };
 
         let (history, stats) = {
@@ -1673,6 +1800,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                     c.toggl_api_token = tok.trim().to_string();
                 }
             }
+            if let Some(gkey) = upd.gemini_api_key {
+                if !gkey.trim().is_empty() {
+                    c.gemini_api_key = gkey.trim().to_string();
+                }
+            }
             if let Some(wid) = upd.toggl_workspace_id {
                 c.toggl_workspace_id = Some(wid);
             }
@@ -1710,6 +1842,21 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             PublicConfig::from(&st.data.config)
         };
         respond_json(req, 200, &serde_json::json!({ "config": pub_cfg }));
+        return;
+    }
+
+    // POST /api/toggl/flush (called on app close or manually to batch-commit all pending local entries)
+    if method == Method::Post && path_only == "/api/toggl/flush" {
+        let body = read_body_string(&mut req).unwrap_or_default();
+        let parsed: SessionStopReq = serde_json::from_str(&body).unwrap_or(SessionStopReq {
+            elapsed_secs: None,
+        });
+        let _ = stop_active_session_internal(&state_arc, parsed.elapsed_secs);
+        let st_bg = Arc::clone(&state_arc);
+        thread::spawn(move || {
+            let _ = flush_pending_toggl(&st_bg);
+        });
+        respond_json(req, 200, &serde_json::json!({ "flushing": true }));
         return;
     }
 
@@ -1795,6 +1942,14 @@ pub fn run_server(port: u16, state: Arc<Mutex<SharedState>>) -> Result<(u16, Ser
 }
 
 pub fn serve_loop(server: Server, state: Arc<Mutex<SharedState>>) {
+    // Airgapped Toggl periodic batch-sync thread (commits consolidated local sessions every 15 min)
+    {
+        let st_cycle = Arc::clone(&state);
+        thread::spawn(move || loop {
+            thread::sleep(std::time::Duration::from_secs(900));
+            let _ = flush_pending_toggl(&st_cycle);
+        });
+    }
     for req in server.incoming_requests() {
         let st = Arc::clone(&state);
         thread::spawn(move || {

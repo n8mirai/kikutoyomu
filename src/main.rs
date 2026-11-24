@@ -6,6 +6,7 @@ mod models;
 mod morph;
 mod server;
 mod subs;
+mod synopsis;
 mod timeutil;
 mod toggl;
 mod vocab;

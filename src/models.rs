@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 #[serde(default)]
 pub struct AppConfig {
     pub toggl_api_token: String,
+    #[serde(default)]
+    pub gemini_api_key: String,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -22,6 +24,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             toggl_api_token: String::new(),
+            gemini_api_key: String::new(),
             toggl_workspace_id: None,
             toggl_workspace_name: String::new(),
             toggl_project_id: None,
@@ -156,6 +159,8 @@ fn default_profile_name() -> String {
 pub struct LocalSecrets {
     #[serde(default)]
     pub toggl_api_token: String,
+    #[serde(default)]
+    pub gemini_api_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -185,6 +190,7 @@ pub struct TogglProject {
 pub struct PublicConfig {
     pub has_toggl_token: bool,
     pub toggl_token_hint: String,
+    pub has_gemini_key: bool,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -213,6 +219,7 @@ impl From<&AppConfig> for PublicConfig {
         Self {
             has_toggl_token: !c.toggl_api_token.trim().is_empty(),
             toggl_token_hint: hint,
+            has_gemini_key: !c.gemini_api_key.trim().is_empty(),
             toggl_workspace_id: c.toggl_workspace_id,
             toggl_workspace_name: c.toggl_workspace_name.clone(),
             toggl_project_id: c.toggl_project_id,

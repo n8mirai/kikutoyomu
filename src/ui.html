@@ -614,6 +614,58 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(-3px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes dockIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes traceIn{from{opacity:0;filter:blur(3px);transform:translateY(2px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+
+/* ================= EPHEMERAL 1-LINE SYNOPSIS TRACE (KANJI MODE, ABOVE DOCK) ================= */
+#syn-bar{
+  position:fixed;left:50%;bottom:69px;transform:translateX(-50%);z-index:34;
+  width:min(660px,calc(100vw - 32px));
+  display:flex;align-items:center;gap:7px;padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--bg1) 70%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--line);
+  color:var(--muted);font-size:12px;line-height:1.35;cursor:pointer;
+  opacity:.72;transition:opacity .22s var(--smooth),border-color .22s,background .22s;
+}
+#syn-bar:hover{opacity:1;border-color:var(--line2);background:color-mix(in srgb,var(--bg2) 82%,transparent)}
+.syn-glyph{color:var(--cool2);font-size:10px;flex:none;opacity:.85;animation:pulse 3.2s ease-in-out infinite}
+.syn-line{
+  flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.01em;font-weight:400;
+  mask-image:linear-gradient(90deg,#000 90%,transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent 100%);
+}
+.syn-line.fresh{animation:traceIn .55s var(--smooth) both}
+
+/* Expandable Episode / Series / Scene Synopsis Sheet */
+#syn-sheet{
+  position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:42;
+  width:min(660px,calc(100vw - 24px));max-height:min(350px,48vh);
+  display:flex;flex-direction:column;
+  background:color-mix(in srgb,var(--bg1) 94%,transparent);
+  backdrop-filter:blur(24px) saturate(1.25);-webkit-backdrop-filter:blur(24px) saturate(1.25);
+  border:1px solid var(--line3);border-radius:14px;
+  box-shadow:0 18px 46px rgba(0,0,0,.58);
+  animation:popIn .22s var(--spring) both;
+}
+:root[data-theme="washi"] #syn-sheet{box-shadow:0 16px 38px rgba(28,25,23,.14)}
+.syn-sheet-head{
+  display:flex;align-items:center;gap:6px;padding:9px 12px 8px;
+  border-bottom:1px solid var(--line);flex:none;
+}
+.syn-sheet-body{
+  padding:11px 14px 13px;overflow-y:auto;font-size:13px;line-height:1.6;color:var(--text);
+}
+.syn-sub-title{font-size:12px;font-weight:600;color:var(--cool2);margin-bottom:5px}
+.syn-beats{display:flex;flex-direction:column;gap:4px}
+.syn-beat{
+  display:flex;align-items:baseline;gap:9px;padding:5px 8px;border-radius:8px;
+  font-size:12.5px;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;
+}
+.syn-beat:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.syn-beat.on{background:var(--coolsoft);color:var(--text);font-weight:500}
+.syn-beat-t{font-size:11px;font-variant-numeric:tabular-nums;color:var(--faint);flex:none}
+.syn-beat.on .syn-beat-t{color:var(--cool2)}
 
 @media (max-width:560px){
   main{padding:8px 12px 28px}
@@ -670,8 +722,12 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
       <div class="field" style="flex:1"><label>Min sec</label><input id="s-min" type="number" min="1" max="600" value="5"></div>
       <div class="field" style="flex:1"><label>Daily goal (m)</label><input id="s-goal" type="number" min="5" max="720" value="60"></div>
     </div>
-    <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl</label>
+    <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl (15m cycle & close)</label>
     <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
+    <div class="field" style="margin-top:8px">
+      <label>Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
+      <input id="s-gemini" type="password" placeholder="Optional — for AI scene traces" autocomplete="off">
+    </div>
     <div style="margin-top:10px;display:flex;gap:7px">
       <button class="btn-pill" id="s-save">Save</button>
       <button class="btn-sub" id="s-open-root">Folder</button>
@@ -758,6 +814,23 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 </main>
 
 <div id="idle-veil" aria-hidden="true"><div class="idle-stage" id="idle-stage"></div></div>
+
+<!-- Ephemeral 1-line English Synopsis Trace (Kanji mode, resting above dock) -->
+<button id="syn-bar" hidden title="Click to expand Episode / Series synopsis">
+  <span class="syn-glyph">✦</span>
+  <span class="syn-line" id="syn-line"></span>
+</button>
+<div id="syn-sheet" hidden>
+  <div class="syn-sheet-head">
+    <button class="sub-mini-btn on" data-syn-tab="now">Now</button>
+    <button class="sub-mini-btn" data-syn-tab="episode">Episode</button>
+    <button class="sub-mini-btn" data-syn-tab="series">Series</button>
+    <span class="sp"></span>
+    <button class="sub-mini-btn" id="syn-gen-ai" title="Generate AI narrative scene beats with Gemini">✦ AI</button>
+    <button class="icon-btn" id="syn-close" style="width:24px;height:24px" title="Close (Esc)">×</button>
+  </div>
+  <div class="syn-sheet-body" id="syn-body"></div>
+</div>
 
 <button id="sub-jump-bottom" hidden title="Jump to live subtitle">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1099,6 +1172,13 @@ let popCloseTimer = 0;
 let pausedByDict = false;
 const dictClientCache = new Map();
 
+// Ephemeral English Synopsis state
+let synData = null;         // { episode_summary, series_summary, series_title, ai_generated, beats: [{start, text}] }
+let synBeatIdx = -1;
+let synOpen = false;
+let synTab = 'now';         // 'now' | 'episode' | 'series'
+let synGenerating = false;
+
 // Word Map & Series Frequency Statistics state
 let wmAnimeId = null;
 let wmEpisodeId = null;
@@ -1133,13 +1213,122 @@ function applySubFontSize(px) {
 async function loadSubtitlesForTrack(animeId, episodeId) {
   subCues = []; subCueIdx = -1; subMaxSeen = -1; subRenderedCount = 0; subOffset = 0;
   pingedCues = new Set(); idleRenderedIdx = -2;
+  synData = null; synBeatIdx = -1; synOpen = false;
+  $('#syn-sheet').hidden = true;
   closeDictPop(false);
   ensureSeriesFreq(animeId); // Preload series-wide Zipf frequency stats in background for 1-5★ dict hovers
+  loadSynopsisForTrack(animeId, episodeId);
   try {
     const res = await api(`/api/subtitles/${encodeURIComponent(animeId)}/${encodeURIComponent(episodeId)}`);
     subCues = res.cues || [];
   } catch (e) { subCues = []; }
   rebuildSubtitleFeed();
+  updateEphemeralSynopsis();
+}
+
+async function loadSynopsisForTrack(animeId, episodeId) {
+  try {
+    const res = await api(`/api/synopsis/${encodeURIComponent(animeId)}/${encodeURIComponent(episodeId)}`);
+    if (!currentTrack || currentTrack.anime.id !== animeId || currentTrack.ep.id !== episodeId) return;
+    synData = res;
+    synBeatIdx = -1;
+    updateEphemeralSynopsis();
+    if (synOpen) renderSynopsisSheet();
+  } catch (e) {}
+}
+
+function updateEphemeralSynopsis() {
+  const bar = $('#syn-bar');
+  const lineEl = $('#syn-line');
+  const showBar = curTab === 'subs' && !!currentTrack && !!synData && !synOpen;
+  if (!showBar) {
+    bar.hidden = true;
+    return;
+  }
+
+  let text = '';
+  let nextIdx = -1;
+  const beats = synData.beats || [];
+  if (beats.length) {
+    const t = audio.currentTime + subOffset;
+    nextIdx = 0;
+    for (let i = 0; i < beats.length; i++) {
+      if (t >= beats[i].start - 0.5) nextIdx = i;
+      else break;
+    }
+    text = beats[nextIdx]?.text || '';
+  }
+  if (!text) text = synData.episode_summary || synData.series_summary || '';
+  if (!text) { bar.hidden = true; return; }
+
+  bar.hidden = false;
+  if (nextIdx !== synBeatIdx || lineEl.textContent !== text) {
+    synBeatIdx = nextIdx;
+    lineEl.classList.remove('fresh');
+    void lineEl.offsetWidth;
+    lineEl.textContent = text;
+    lineEl.classList.add('fresh');
+    if (synOpen && synTab === 'now') renderSynopsisSheet();
+  }
+}
+
+function renderSynopsisSheet() {
+  const sheet = $('#syn-sheet');
+  if (!synOpen || curTab !== 'subs' || !currentTrack || !synData) {
+    sheet.hidden = true;
+    return;
+  }
+  sheet.hidden = false;
+  $('#syn-bar').hidden = true;
+  $$('[data-syn-tab]').forEach(b => b.classList.toggle('on', b.dataset.synTab === synTab));
+  const aiBtn = $('#syn-gen-ai');
+  aiBtn.disabled = synGenerating;
+  aiBtn.textContent = synGenerating ? 'Generating…' : (synData.ai_generated ? '✦ Refresh' : '✦ AI');
+
+  const body = $('#syn-body');
+  if (synTab === 'episode') {
+    const txt = synData.episode_summary || 'No episode synopsis yet. Add a Gemini API key in Settings and click ✦ AI to generate one from the subtitles.';
+    body.innerHTML = `<div class="syn-sub-title">${esc(currentTrack.ep.title)}</div><div>${esc(txt)}</div>`;
+  } else if (synTab === 'series') {
+    const title = synData.series_title || currentTrack.anime.title;
+    const txt = synData.series_summary || 'No series synopsis available.';
+    body.innerHTML = `<div class="syn-sub-title">${esc(title)}</div><div>${esc(txt)}</div>`;
+  } else {
+    const beats = synData.beats || [];
+    if (!beats.length) {
+      body.innerHTML = `<div style="color:var(--muted)">${esc(synData.episode_summary || 'No live scene beats yet.')}</div>`;
+    } else {
+      body.innerHTML = `<div class="syn-beats">${beats.map((b, i) => `
+        <div class="syn-beat${i === synBeatIdx ? ' on' : ''}" data-syn-seek="${b.start}">
+          <span class="syn-beat-t">${fmtClock(b.start)}</span>
+          <span>${esc(b.text)}</span>
+        </div>`).join('')}</div>`;
+      const curEl = body.querySelector('.syn-beat.on');
+      if (curEl) curEl.scrollIntoView({ block: 'nearest' });
+    }
+  }
+}
+
+async function generateAiSynopsisForCurrent() {
+  if (!currentTrack || synGenerating) return;
+  if (!state.config?.has_gemini_key) {
+    toast('Add a free Gemini API key in Settings first', true);
+    return;
+  }
+  synGenerating = true;
+  renderSynopsisSheet();
+  try {
+    const res = await api(`/api/synopsis/${encodeURIComponent(currentTrack.anime.id)}/${encodeURIComponent(currentTrack.ep.id)}/generate`, { method: 'POST' });
+    synData = res;
+    synBeatIdx = -1;
+    toast('Scene synopsis generated');
+  } catch (e) {
+    toast(e.message, true);
+  } finally {
+    synGenerating = false;
+    renderSynopsisSheet();
+    updateEphemeralSynopsis();
+  }
 }
 
 async function generateSubtitlesForCurrent() {
@@ -1517,6 +1706,7 @@ function syncSubtitleToAudio(forceScroll = false) {
   }
 
   applyCueStatesInPlace(forceScroll);
+  updateEphemeralSynopsis();
   if (cueChanged) {
     if (idleP > 0.04) renderIdleSubtitles();
     // Organic 浮かぶ T1 (i+1) chime when a newly spoken sentence has exactly 1 unknown word!
@@ -1907,7 +2097,8 @@ audio.addEventListener('ended', async () => {
 });
 window.addEventListener('beforeunload', () => {
   if (currentTrack) saveTrackProgress(false, true);
-  if (sessionActive) navigator.sendBeacon('/api/session/stop', new Blob([JSON.stringify({ elapsed_secs: currentSessionSecs() })], { type: 'application/json' }));
+  // Flush active session & batch-commit any pending local history to Toggl on app close!
+  navigator.sendBeacon('/api/toggl/flush', new Blob([JSON.stringify({ elapsed_secs: sessionActive ? currentSessionSecs() : null })], { type: 'application/json' }));
 });
 
 /* ================= RENDER: ANIME ================= */
@@ -2181,6 +2372,7 @@ function renderDock() {
 function syncSettingsUI() {
   const c = state.config || {};
   $('#s-tok-hint').textContent = c.has_toggl_token ? c.toggl_token_hint : '';
+  $('#s-gem-hint').textContent = c.has_gemini_key ? 'saved' : '';
   $('#s-tags').value = (c.toggl_tags || []).join(', ');
   $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
   $('#s-auto').checked = c.toggl_auto_sync !== false;
@@ -2539,6 +2731,8 @@ function setTab(t) {
     if (tb) tb.setAttribute('aria-selected', String(k === t));
   });
   $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
+  if (t !== 'subs') { synOpen = false; $('#syn-sheet').hidden = true; $('#syn-bar').hidden = true; }
+  else { updateEphemeralSynopsis(); }
   renderAll();
 }
 function toggleSubsTab() {
@@ -2667,6 +2861,26 @@ subScrollEl.addEventListener('scroll', () => {
   }
 }, { passive: true });
 audio.addEventListener('play', () => ensureSubCameraRunning());
+
+// Ephemeral Synopsis Bar & Expandable Sheet (Kanji Mode)
+$('#syn-bar').onclick = () => { synOpen = true; renderSynopsisSheet(); };
+$('#syn-close').onclick = () => { synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis(); };
+$('#syn-gen-ai').onclick = generateAiSynopsisForCurrent;
+$$('[data-syn-tab]').forEach(b => b.onclick = () => { synTab = b.dataset.synTab; renderSynopsisSheet(); });
+$('#syn-body').addEventListener('click', e => {
+  const beat = e.target.closest('[data-syn-seek]');
+  if (beat) {
+    audio.currentTime = Math.max(0, Number(beat.dataset.synSeek) - subOffset);
+    syncSubtitleToAudio(true);
+    updateEphemeralSynopsis();
+    if (synOpen) renderSynopsisSheet();
+  }
+});
+document.addEventListener('click', e => {
+  if (synOpen && !$('#syn-sheet').contains(e.target) && !e.target.closest('#syn-bar')) {
+    synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis();
+  }
+});
 
 // Word Map controls & Shift+Hover / Click interactions
 $('#wm-back').onclick = () => { closeDictPop(false); setTab(wmReturnTab); };
@@ -2838,6 +3052,7 @@ $('#s-save').onclick = async () => {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       toggl_api_token: $('#s-token').value.trim() || null,
+      gemini_api_key: $('#s-gemini').value.trim() || null,
       toggl_workspace_id: wid, toggl_workspace_name: wid ? ws.options[ws.selectedIndex]?.text || '' : '',
       toggl_project_id: pid, clear_toggl_project: !pid, toggl_project_name: pid ? pr.options[pr.selectedIndex]?.text || '' : '',
       toggl_tags: $('#s-tags').value.split(',').map(s => s.trim()).filter(Boolean),
@@ -2845,7 +3060,7 @@ $('#s-save').onclick = async () => {
       toggl_min_seconds: Number($('#s-min').value) || 5, daily_goal_minutes: Number($('#s-goal').value) || 60
     })
   });
-  state.config = res.config; $('#s-token').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
+  state.config = res.config; $('#s-token').value = ''; $('#s-gemini').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
 };
 $('#s-open-root').onclick = () => api('/api/open-media-root', { method: 'POST' });
 $('#s-rescan').onclick = async () => { state.library = (await api('/api/rescan', { method: 'POST' })).library; renderAll(); toast('Rescanned'); };
@@ -2863,6 +3078,7 @@ document.addEventListener('keydown', e => {
   if (e.altKey && e.key === '3') { e.preventDefault(); setTab('history'); return; }
   if (e.key === 'Escape') {
     if (popOpen) { closeDictPop(true); return; }
+    if (synOpen) { synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis(); return; }
     if (curTab === 'wordmap') { setTab(wmReturnTab); return; }
     if (curTab === 'subs') { setTab(lastNonSubTab); return; }
     $('#pop').hidden = true; $('#add-modal').hidden = true; $('#bulk-modal').hidden = true; return;
