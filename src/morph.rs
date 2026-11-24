@@ -291,18 +291,24 @@ impl MorphAnalyzer {
             });
         }
 
-        // Post-passes for natural Japanese word boundaries & canonical dictionary lemmas:
-        // 1. Merge split hiragana compound verbs (e.g. こび + つか)
-        // 2. Merge prefixes (現+説 -> 現説, 不+自然 -> 不自然), numeric JMdict compounds (万+人 -> 万人),
+        // Post-passes for natural spoken Japanese morphology & canonical dictionary lemmas:
+        // 1. Repair 1998-newspaper IPADIC mis-parses on spoken colloquial Japanese:
+        //    - i-dropped progressive + explanatory ん (待って+たん+だ -> 待って+た+ん+だ, 読んで+るん+だ -> 読んで+る+ん+だ)
+        //    - topic+final particle swallow (服+はね、 -> 服+は+ね、)
+        //    - colloquial grammar contractions (かもしんない, んすね/っす, 読まんかった, すげえ, あんま, したとこ)
+        // 2. Merge split hiragana compound verbs (こび+つか) & JMdict-validated kanji+verb compounds (紐+づける -> 紐づける)
+        // 3. Merge prefixes (現+説 -> 現説, 不+自然 -> 不自然), numeric JMdict compounds (万+人 -> 万人),
         //    and JMdict-validated compound nouns & kanji noun suffixes (看護+婦 -> 看護婦, 暴力+的 -> 暴力的)
-        // 3. Attach bound verb/adjective conjugations (上がら+せ -> 上がらせ, 離れ+た -> 離れた, 食べ+られ+なかった -> 食べられなかった)
-        // 4. Canonicalize every token's lemma against JMdict so conjugations, stems, potentials, -く forms & okurigana variants
+        // 4. Attach bound verb/adjective conjugations & contracted spoken progressives (待ってた, 書かれてた, 食べてた, 怒られなかった)
+        // 5. Canonicalize every token's lemma against JMdict so conjugations, stems, potentials, -く forms & okurigana variants
         //    always map to ONE single dictionary base form!
-        let t1 = merge_broken_hiragana_verbs(raw_tokens);
+        let t0 = repair_colloquial_japanese(raw_tokens);
+        let t1 = merge_broken_hiragana_verbs(t0);
         let t2 = merge_compound_nouns(t1, dict);
-        let mut t3 = merge_verb_adj_conjugations(t2);
+        let t3 = merge_compound_verbs(t2, dict);
+        let mut t4 = merge_verb_adj_conjugations(t3);
         if let Some(d) = dict {
-            for tok in &mut t3 {
+            for tok in &mut t4 {
                 if !tok.ignore {
                     let canon = d.canonicalize_lemma(&tok.lemma, &tok.pos);
                     if !canon.is_empty() && canon != tok.lemma {
@@ -317,7 +323,7 @@ impl MorphAnalyzer {
                 }
             }
         }
-        t3
+        t4
     }
 }
 
@@ -357,6 +363,222 @@ fn classify_token(surface: &str, lemma: &str, pos: &str, sub_pos: &str) -> (bool
 
     let content = is_content_pos && !is_wordmap_stopword(lemma) && lemma.chars().count() >= 1 && !is_single_kana(lemma);
     (false, content)
+}
+
+fn is_clause_or_copula_follow(tok: Option<&MorphToken>) -> bool {
+    let Some(t) = tok else { return true };
+    matches!(t.pos.as_str(), "助動詞" | "記号" | "接続詞")
+        || (t.pos == "助詞"
+            && matches!(
+                t.surface.as_str(),
+                "よ" | "ね" | "な" | "か" | "わ" | "ぞ" | "ぜ" | "さ" | "の" | "って" | "けど"
+                    | "けれど" | "けれども" | "けども" | "から" | "ので" | "のに" | "し" | "もん" | "じゃん"
+            ))
+        || matches!(t.surface.as_str(), "だ" | "です" | "だろ" | "だろう" | "でしょ" | "でしょう" | "な" | "じゃ")
+}
+
+/// Repairs systemic spoken-Japanese mis-parses caused by IPADIC's formal-newspaper training data
+/// (い-dropped progressives + explanatory ん, swallowed particles like はね, colloquial contractions).
+fn repair_colloquial_japanese(tokens: Vec<MorphToken>) -> Vec<MorphToken> {
+    let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len() + 4);
+    let mut i = 0;
+    while i < tokens.len() {
+        let cur = &tokens[i];
+        let prev = out.last();
+        let next = tokens.get(i + 1);
+
+        // 1. Spoken い-dropped progressive + explanatory ん after て/で-form:
+        //    待っ + て + たん + だ -> 待っ + て + た(助動詞) + ん(名詞,非自立) + だ
+        //    読ん + で + るん + だ -> 読ん + で + る(動詞,非自立) + ん(名詞,非自立) + だ
+        let after_te_de = prev.map_or(false, |p| {
+            (p.pos == "助詞" && p.sub_pos == "接続助詞" && matches!(p.surface.as_str(), "て" | "で"))
+                || (p.pos == "動詞" && (p.surface.ends_with('て') || p.surface.ends_with('で')))
+        });
+        if after_te_de
+            && cur.pos == "名詞"
+            && matches!(cur.surface.as_str(), "たん" | "るん")
+            && is_clause_or_copula_follow(next)
+        {
+            if cur.surface == "たん" {
+                out.push(MorphToken {
+                    surface: "た".into(),
+                    lemma: "た".into(),
+                    pos: "助動詞".into(),
+                    sub_pos: "*".into(),
+                    reading: "た".into(),
+                    ignore: true,
+                    content: false,
+                });
+            } else {
+                out.push(MorphToken {
+                    surface: "る".into(),
+                    lemma: "てる".into(),
+                    pos: "動詞".into(),
+                    sub_pos: "非自立".into(),
+                    reading: "る".into(),
+                    ignore: true,
+                    content: false,
+                });
+            }
+            out.push(MorphToken {
+                surface: "ん".into(),
+                lemma: "ん".into(),
+                pos: "名詞".into(),
+                sub_pos: "非自立".into(),
+                reading: "ん".into(),
+                ignore: true,
+                content: false,
+            });
+            i += 1;
+            continue;
+        }
+
+        // 2. Topic + final particle swallowed into verb はねる (e.g. 今日の服 + はね + 、 / これ + はね + 次回)
+        let after_nominal = prev.map_or(false, |p| matches!(p.pos.as_str(), "名詞" | "助詞"));
+        let next_is_verb_infl = next.map_or(false, |n| {
+            (n.pos == "助動詞" && !matches!(n.lemma.as_str(), "だ" | "です"))
+                || (n.pos == "助詞" && n.sub_pos == "接続助詞" && matches!(n.surface.as_str(), "て" | "ば" | "たら"))
+                || (n.pos == "動詞" && matches!(n.sub_pos.as_str(), "接尾" | "非自立"))
+        });
+        if after_nominal
+            && cur.surface == "はね"
+            && cur.pos == "動詞"
+            && cur.lemma == "はねる"
+            && !next_is_verb_infl
+        {
+            out.push(MorphToken {
+                surface: "は".into(),
+                lemma: "は".into(),
+                pos: "助詞".into(),
+                sub_pos: "係助詞".into(),
+                reading: "は".into(),
+                ignore: true,
+                content: false,
+            });
+            out.push(MorphToken {
+                surface: "ね".into(),
+                lemma: "ね".into(),
+                pos: "助詞".into(),
+                sub_pos: "終助詞".into(),
+                reading: "ね".into(),
+                ignore: true,
+                content: false,
+            });
+            i += 1;
+            continue;
+        }
+
+        // 3. Colloquial かもしんない (かも + しん[名詞] + ない)
+        if cur.surface == "しん"
+            && cur.pos == "名詞"
+            && prev.map_or(false, |p| p.surface == "かも")
+            && next.map_or(false, |n| n.lemma == "ない")
+        {
+            out.push(MorphToken {
+                surface: "しん".into(),
+                lemma: "しれる".into(),
+                pos: "動詞".into(),
+                sub_pos: "非自立".into(),
+                reading: "しん".into(),
+                ignore: true,
+                content: false,
+            });
+            i += 1;
+            continue;
+        }
+
+        // 4. Casual contracted copula です -> すね / すよ / すか (after ん/っ/noun/adj -> mis-parsed as 脛!)
+        if cur.pos == "名詞"
+            && matches!(cur.surface.as_str(), "すね" | "すよ" | "すか" | "すわ")
+            && prev.map_or(false, |p| matches!(p.surface.as_str(), "ん" | "っ" | "の") || p.pos == "形容詞")
+            && is_clause_or_copula_follow(next)
+        {
+            let mut tk = cur.clone();
+            tk.pos = "助動詞".into();
+            tk.lemma = "です".into();
+            tk.ignore = true;
+            tk.content = false;
+            out.push(tk);
+            i += 1;
+            continue;
+        }
+
+        // 5. Western/colloquial negative past 〜んかった (読まん + かった[動詞/かる] -> 助動詞)
+        if cur.surface == "かった"
+            && cur.pos == "動詞"
+            && cur.lemma == "かる"
+            && prev.map_or(false, |p| p.surface == "ん" || p.surface.ends_with('ん'))
+        {
+            out.push(MorphToken {
+                surface: "かった".into(),
+                lemma: "ない".into(),
+                pos: "助動詞".into(),
+                sub_pos: "*".into(),
+                reading: "かった".into(),
+                ignore: true,
+                content: false,
+            });
+            i += 1;
+            continue;
+        }
+
+        // 6. Spoken ai/oi -> ee i-adjective contractions (すげ+え -> すげえ [lemma: すごい], やべ+え -> やばい, etc.)
+        if let Some(n) = next {
+            if matches!(n.surface.as_str(), "え" | "ぇ" | "ー") {
+                let adj_canon = match cur.surface.as_str() {
+                    "すげ" => Some("すごい"),
+                    "やべ" => Some("やばい"),
+                    "うめ" if cur.pos == "動詞" => Some("うまい"),
+                    "でけ" => Some("でかい"),
+                    "つえ" => Some("つよい"),
+                    "うぜ" => Some("うざい"),
+                    _ => None,
+                };
+                if let Some(canon) = adj_canon {
+                    out.push(MorphToken {
+                        surface: format!("{}{}", cur.surface, n.surface),
+                        lemma: canon.into(),
+                        pos: "形容詞".into(),
+                        sub_pos: "自立".into(),
+                        reading: format!("{}{}", cur.reading, n.reading),
+                        ignore: false,
+                        content: true,
+                    });
+                    i += 2;
+                    continue;
+                }
+            }
+        }
+
+        // 7. Spoken contractions of basic grammar words: とこ (ところ after predicate) & あんま (あんまり, not 按摩)
+        if cur.surface == "とこ"
+            && cur.pos == "名詞"
+            && prev.map_or(false, |p| matches!(p.pos.as_str(), "動詞" | "助動詞" | "形容詞" | "連体詞"))
+        {
+            let mut tk = cur.clone();
+            tk.lemma = "ところ".into();
+            tk.sub_pos = "非自立".into();
+            tk.ignore = true;
+            tk.content = false;
+            out.push(tk);
+            i += 1;
+            continue;
+        }
+        if cur.surface == "あんま" && cur.pos == "名詞" {
+            let mut tk = cur.clone();
+            tk.lemma = "あんまり".into();
+            tk.pos = "副詞".into();
+            tk.sub_pos = "一般".into();
+            tk.content = false;
+            out.push(tk);
+            i += 1;
+            continue;
+        }
+
+        out.push(cur.clone());
+        i += 1;
+    }
+    out
 }
 
 /// Handles edge cases where colloquial/Whisper hiragana verbs get split across a 2-kana stem + verb (e.g. こび + つか(せる) -> こびつか / こびつく).
@@ -505,11 +727,55 @@ fn merge_compound_nouns(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> 
     out
 }
 
+/// Merges JMdict-validated kanji noun + verb compounds that IPADIC splits (e.g. 紐+づける -> 紐づける,
+/// 位置+づける -> 位置づける, 関連+づける -> 関連づける, 傷+つける -> 傷つける).
+fn merge_compound_verbs(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> Vec<MorphToken> {
+    let Some(d) = dict else { return tokens };
+    let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len());
+    let mut i = 0;
+    while i < tokens.len() {
+        if i + 1 < tokens.len() {
+            let a = &tokens[i];
+            let b = &tokens[i + 1];
+            if a.pos == "名詞"
+                && !matches!(a.sub_pos.as_str(), "数" | "非自立" | "代名詞" | "特殊")
+                && has_kanji_only(&a.surface)
+                && b.pos == "動詞"
+                && b.sub_pos == "自立"
+                && matches!(
+                    b.lemma.as_str(),
+                    "づける" | "づく" | "つける" | "つく" | "かける" | "だす" | "こむ" | "とる" | "きる"
+                )
+            {
+                let merged_lemma = format!("{}{}", a.surface, b.lemma);
+                if d.has_verb(&merged_lemma) {
+                    out.push(MorphToken {
+                        surface: format!("{}{}", a.surface, b.surface),
+                        lemma: merged_lemma,
+                        pos: "動詞".to_string(),
+                        sub_pos: "自立".to_string(),
+                        reading: format!("{}{}", a.reading, b.reading),
+                        ignore: false,
+                        content: true,
+                    });
+                    i += 2;
+                    continue;
+                }
+            }
+        }
+        out.push(tokens[i].clone());
+        i += 1;
+    }
+    out
+}
+
 /// General Japanese predicate conjugation merger (活用語 + 活用語尾):
 /// Attaches every bound inflectional morpheme of a verb or i-adjective (including basic verbs like
-/// なる/ある/する so なって, あったら, 思って never get sliced mid-conjugation!) into ONE cohesive
+/// なる/ある/する and spoken contracted progressives like てる/てた/てて/ちゃう/とく so 待ってた,
+/// 書かれてた, 食べてた, 怒られなかった never get sliced mid-conjugation!) into ONE cohesive
 /// surface unit while preserving the canonical dictionary base form (`lemma`):
 ///   - `動詞,接尾` (causative せる/させる, passive/potential れる/られる)
+///   - `動詞,非自立` spoken contractions (`てる`/`でる`/`ちゃう`/`じゃう`/`とく`/`どく`)
 ///   - `助動詞` (tense/negation/politeness/volitional: た/だ[lemma=た]/ない/ます/たい/ぬ/ず/う/よう/まい)
 ///   - Conjugational `助詞,接続助詞` (te-form て/で, conditionals ば/たら, たり, ちゃ/じゃ)
 /// True independent clause conjunctions (ながら, から, ので, けど, のに) stay cleanly separate.
@@ -524,6 +790,12 @@ fn merge_verb_adj_conjugations(tokens: Vec<MorphToken>) -> Vec<MorphToken> {
             while i + 1 < tokens.len() {
                 let next = &tokens[i + 1];
                 let is_bound_inflection = (next.pos == "動詞" && next.sub_pos == "接尾")
+                    || (next.pos == "動詞"
+                        && next.sub_pos == "非自立"
+                        && matches!(
+                            next.lemma.as_str(),
+                            "てる" | "でる" | "ちゃう" | "じゃう" | "とく" | "どく"
+                        ))
                     || (next.pos == "助動詞"
                         && !matches!(next.lemma.as_str(), "だ" | "です" | "らしい" | "みたい"))
                     || (next.pos == "助詞"
