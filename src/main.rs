@@ -90,9 +90,9 @@ fn launch_desktop_window(url: &str, app_root: &PathBuf) {
         if std::path::Path::new(edge).exists() {
             let launched = Command::new(edge)
                 .arg(format!("--app={}", url))
-                .arg("--window-size=980,780")
+                .arg("--window-size=1280,820")
                 .arg(format!("--user-data-dir={}", profile_dir.to_string_lossy()))
-                .arg("--class=KikuImmersionDesk")
+                .arg("--class=MingoImmersionDesk")
                 .spawn();
             if launched.is_ok() {
                 return;
@@ -145,7 +145,7 @@ fn main() {
     };
 
     let url = format!("http://127.0.0.1:{}", bound_port);
-    println!("Kiku — Japanese Immersion Audio Desk");
+    println!("Mingo — Japanese Immersion Desk");
     println!("  URL:   {}", url);
     println!("  Media: {}", app_root.join("media").display());
 

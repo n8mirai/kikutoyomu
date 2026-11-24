@@ -18,9 +18,10 @@ use crate::library::{
     default_playlists, detect_anime_for_file, scan_library, slugify, sync_japanese_stories_playlist,
 };
 use crate::models::{
-    ActiveSession, AnimeSeries, AnimeStat, AppConfig, CustomAnimeMeta, EpisodeProgress,
-    GoogleOAuthSecrets, HistoryEntry, ImmersionStats, LocalSecrets, PersistedData, Playlist,
-    PlaylistItem, PublicConfig, UserProfile, YtCustomTab,
+    AccountRecord, AccountsStore, ActiveSession, AnimeSeries, AnimeStat, AppConfig,
+    CustomAnimeMeta, EpisodeProgress, GoogleOAuthSecrets, HistoryEntry, ImmersionStats,
+    LocalSecrets, PersistedData, Playlist, PlaylistItem, PublicAccount, PublicConfig, UserPrefs,
+    UserProfile, YtCustomTab,
 };
 use crate::morph::{MorphAnalyzer, MorphToken};
 use crate::oauth::{self, AiAuth, PendingOAuth};
@@ -33,8 +34,39 @@ use crate::youtube::{self, YoutubeStore};
 
 const UI_HTML: &str = include_str!("ui.html");
 
+fn hash_pin(salt: &str, pin: &str) -> String {
+    let p = pin.trim();
+    if p.is_empty() {
+        return String::new();
+    }
+    let mut h1: u64 = 0xcbf29ce484222325;
+    let mut h2: u64 = 0x84222325cbf29ce4;
+    let input = format!("mingo-pin:{}:{}", salt, p);
+    for round in 0..2048u64 {
+        for b in input.as_bytes() {
+            h1 ^= (*b as u64).wrapping_add(round);
+            h1 = h1.wrapping_mul(0x100000001b3);
+            h2 ^= h1.rotate_left(17) ^ (*b as u64);
+            h2 = h2.wrapping_mul(0x100000001b3);
+        }
+    }
+    format!("{:016x}{:016x}", h1, h2)
+}
+
+fn profile_path_for_account(app_root: &Path, account_id: &str) -> PathBuf {
+    if account_id.is_empty() || account_id == "default" {
+        app_root.join("profile").join("profile.json")
+    } else {
+        let dir = app_root.join("profile").join("users").join(account_id);
+        let _ = fs::create_dir_all(&dir);
+        dir.join("profile.json")
+    }
+}
+
 pub struct SharedState {
     pub app_root: PathBuf,
+    pub accounts_file: PathBuf,
+    pub accounts: AccountsStore,
     pub profile_file: PathBuf,
     pub secrets_file: PathBuf,
     pub vocab_file: PathBuf,
@@ -53,6 +85,7 @@ pub struct SharedState {
     pub youtube: YoutubeStore,
     pub yt_cat_cache: HashMap<String, (Vec<youtube::FeedVideo>, u64)>,
     pub yt_query_loc_cache: HashMap<String, String>,
+    pub host_gemini_api_key: String,
     pub google_oauth: GoogleOAuthSecrets,
     pub pending_oauth: Option<PendingOAuth>,
     pub cloud_sync_secret: String,
@@ -65,7 +98,8 @@ impl SharedState {
         let _ = fs::create_dir_all(&data_dir);
         let _ = fs::create_dir_all(&profile_dir);
 
-        let profile_file = profile_dir.join("profile.json");
+        let accounts_file = profile_dir.join("accounts.json");
+        let default_profile_file = profile_dir.join("profile.json");
         let secrets_file = data_dir.join("secrets.json");
         let legacy_state_file = data_dir.join("state.json");
         let vocab_file = data_dir.join("vocab.json");
@@ -78,7 +112,32 @@ impl SharedState {
         let jmnedict_file = data_dir.join("jmnedict.json");
         let media_root = app_root.join("media");
 
-        // 1. Load portable user profile from `profile/profile.json`, or auto-migrate from legacy `data/state.json` + `data/vocab.json`
+        // 0. Load or auto-migrate multi-user AccountsStore (`profile/accounts.json`)
+        let mut accounts: AccountsStore = fs::read_to_string(&accounts_file)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default();
+        if accounts.accounts.is_empty() {
+            let has_existing_profile = default_profile_file.exists() || legacy_state_file.exists();
+            accounts.accounts.push(AccountRecord {
+                id: "default".to_string(),
+                username: "nathan".to_string(),
+                display_name: "Nathan".to_string(),
+                avatar_color: "#F59E0B".to_string(),
+                pin_hash: String::new(),
+                created_at: timeutil::now_utc_rfc3339(),
+                onboarded: has_existing_profile,
+            });
+            accounts.active_account_id = "default".to_string();
+        }
+        if accounts.active_account_id.is_empty()
+            || !accounts.accounts.iter().any(|a| a.id == accounts.active_account_id)
+        {
+            accounts.active_account_id = accounts.accounts[0].id.clone();
+        }
+        let profile_file = profile_path_for_account(app_root, &accounts.active_account_id);
+
+        // 1. Load active account's portable profile, or auto-migrate from legacy `data/state.json` + `data/vocab.json`
         let (mut data, vocab) = if profile_file.exists() {
             let prof: UserProfile = fs::read_to_string(&profile_file)
                 .ok()
@@ -92,7 +151,7 @@ impl SharedState {
                 progress: prof.progress,
             };
             (pd, prof.vocab)
-        } else {
+        } else if accounts.active_account_id == "default" {
             let pd: PersistedData = if legacy_state_file.exists() {
                 fs::read_to_string(&legacy_state_file)
                     .ok()
@@ -103,9 +162,11 @@ impl SharedState {
             };
             let vb = VocabStore::load(&vocab_file);
             (pd, vb)
+        } else {
+            (PersistedData::default(), VocabStore::default())
         };
 
-        // 2. Load machine-local secrets (Toggl + optional Gemini API key) from gitignored `data/secrets.json`
+        // 2. Load machine-local secrets (Toggl + Universal Gemini API key) from gitignored `data/secrets.json`
         let loaded_secrets = fs::read_to_string(&secrets_file)
             .ok()
             .and_then(|s| serde_json::from_str::<LocalSecrets>(&s).ok())
@@ -114,7 +175,7 @@ impl SharedState {
         if token.is_empty() && !data.config.toggl_api_token.is_empty() {
             token = data.config.toggl_api_token.clone();
         }
-        if token.is_empty() && legacy_state_file.exists() {
+        if token.is_empty() && accounts.active_account_id == "default" && legacy_state_file.exists() {
             if let Some(leg) = fs::read_to_string(&legacy_state_file)
                 .ok()
                 .and_then(|s| serde_json::from_str::<PersistedData>(&s).ok())
@@ -124,9 +185,24 @@ impl SharedState {
                 }
             }
         }
-        data.config.toggl_api_token = token;
-        if !loaded_secrets.gemini_api_key.is_empty() {
-            data.config.gemini_api_key = loaded_secrets.gemini_api_key;
+        if accounts.active_account_id == "default" {
+            data.config.toggl_api_token = token;
+            if !data.config.toggl_api_token.trim().is_empty() && data.config.tracking_mode == "builtin" && !data.config.onboarded {
+                data.config.tracking_mode = "toggl".into();
+            }
+        }
+        if let Some(acc) = accounts.accounts.iter().find(|a| a.id == accounts.active_account_id) {
+            if acc.onboarded {
+                data.config.onboarded = true;
+            }
+        }
+        let host_gemini_api_key = if !loaded_secrets.gemini_api_key.is_empty() {
+            loaded_secrets.gemini_api_key
+        } else {
+            data.config.gemini_api_key.clone()
+        };
+        if !host_gemini_api_key.is_empty() {
+            data.config.gemini_api_key = host_gemini_api_key.clone();
         }
         let google_oauth = loaded_secrets.google_oauth;
         let cloud_sync_secret = loaded_secrets.cloud_sync_secret;
@@ -169,6 +245,8 @@ impl SharedState {
 
         let state = Self {
             app_root: app_root.to_path_buf(),
+            accounts_file,
+            accounts,
             profile_file,
             secrets_file,
             vocab_file,
@@ -187,12 +265,97 @@ impl SharedState {
             youtube,
             yt_cat_cache: HashMap::new(),
             yt_query_loc_cache: HashMap::new(),
+            host_gemini_api_key,
             google_oauth,
             pending_oauth: None,
             cloud_sync_secret,
         };
+        state.save_accounts();
         state.save();
         state
+    }
+
+    pub fn save_accounts(&self) {
+        if let Ok(json) = serde_json::to_string_pretty(&self.accounts) {
+            let tmp = self.accounts_file.with_extension("json.tmp");
+            if fs::write(&tmp, &json).is_ok() {
+                let _ = fs::rename(&tmp, &self.accounts_file);
+            } else {
+                let _ = fs::write(&self.accounts_file, &json);
+            }
+        }
+    }
+
+    pub fn active_public_account(&self) -> Option<PublicAccount> {
+        self.accounts
+            .accounts
+            .iter()
+            .find(|a| a.id == self.accounts.active_account_id)
+            .map(PublicAccount::from)
+    }
+
+    pub fn public_accounts(&self) -> Vec<PublicAccount> {
+        self.accounts.accounts.iter().map(PublicAccount::from).collect()
+    }
+
+    pub fn switch_account(&mut self, account_id: &str) -> Result<(), String> {
+        let Some(acc) = self.accounts.accounts.iter().find(|a| a.id == account_id).cloned() else {
+            return Err("Account not found".into());
+        };
+        // Save outgoing account cleanly first
+        self.save();
+
+        self.accounts.active_account_id = acc.id.clone();
+        self.profile_file = profile_path_for_account(&self.app_root, &acc.id);
+
+        let (mut pd, vb) = if self.profile_file.exists() {
+            let prof: UserProfile = fs::read_to_string(&self.profile_file)
+                .ok()
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default();
+            (
+                PersistedData {
+                    config: prof.config,
+                    custom_anime: prof.custom_anime,
+                    playlists: prof.playlists,
+                    history: prof.history,
+                    progress: prof.progress,
+                },
+                prof.vocab,
+            )
+        } else {
+            (PersistedData::default(), VocabStore::default())
+        };
+
+        // Universal Gemini API key shared cleanly across host accounts (never written to profile.json!)
+        if !self.host_gemini_api_key.is_empty() {
+            pd.config.gemini_api_key = self.host_gemini_api_key.clone();
+        }
+        // Restore host Toggl token on default account only
+        if acc.id == "default" {
+            if let Ok(raw) = fs::read_to_string(&self.secrets_file) {
+                if let Ok(sec) = serde_json::from_str::<LocalSecrets>(&raw) {
+                    if !sec.toggl_api_token.is_empty() {
+                        pd.config.toggl_api_token = sec.toggl_api_token;
+                    }
+                }
+            }
+        }
+        pd.config.onboarded = pd.config.onboarded || acc.onboarded;
+
+        self.library = scan_library(&self.media_root, &pd.custom_anime);
+        if pd.playlists.is_empty() {
+            pd.playlists = default_playlists(&self.library);
+        } else {
+            sync_japanese_stories_playlist(&mut pd.playlists, &self.library);
+        }
+        self.data = pd;
+        self.vocab = vb;
+        self.active_session = None;
+        self.yt_cat_cache.clear();
+        self.save_accounts();
+        self.save();
+        Ok(())
     }
 
     pub fn find_whisper(&self) -> Option<(PathBuf, PathBuf)> {
@@ -251,10 +414,26 @@ impl SharedState {
                 let _ = fs::write(&self.profile_file, &json);
             }
         }
-        // 2. Write machine-local secrets (Toggl + Gemini + Google OAuth + Cloud Sync) to gitignored `data/secrets.json`
+        // 2. Write machine-local secrets (Universal Gemini + Host Toggl + OAuth + Cloud Sync) to gitignored `data/secrets.json`
+        let existing_sec: LocalSecrets = fs::read_to_string(&self.secrets_file)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default();
+        let toggl_tok = if self.accounts.active_account_id == "default" {
+            self.data.config.toggl_api_token.clone()
+        } else {
+            existing_sec.toggl_api_token
+        };
+        let gem_key = if !self.host_gemini_api_key.trim().is_empty() {
+            self.host_gemini_api_key.clone()
+        } else if !self.data.config.gemini_api_key.trim().is_empty() {
+            self.data.config.gemini_api_key.clone()
+        } else {
+            existing_sec.gemini_api_key
+        };
         let sec = LocalSecrets {
-            toggl_api_token: self.data.config.toggl_api_token.clone(),
-            gemini_api_key: self.data.config.gemini_api_key.clone(),
+            toggl_api_token: toggl_tok,
+            gemini_api_key: gem_key,
             google_oauth: self.google_oauth.clone(),
             cloud_sync_secret: self.cloud_sync_secret.clone(),
         };
@@ -274,6 +453,7 @@ impl SharedState {
             || !self.google_oauth.refresh_token.trim().is_empty();
         let gcli_installed = cloud_sync::find_gemini_cli(&self.app_root).is_some();
         let gcli_signed_in = gcli_installed && cloud_sync::is_gemini_cli_signed_in();
+        pc.has_gemini_key = !self.host_gemini_api_key.trim().is_empty() || !self.data.config.gemini_api_key.trim().is_empty();
         pc.google_oauth_connected = oauth_ok;
         pc.google_oauth_email = self.google_oauth.email.clone();
         pc.google_oauth_client_id = self.google_oauth.client_id.clone();
@@ -517,7 +697,7 @@ fn flush_pending_toggl(state_arc: &Arc<Mutex<SharedState>>) -> usize {
     let (cfg, pending): (AppConfig, Vec<HistoryEntry>) = {
         let st = state_arc.lock().unwrap();
         let cfg = st.data.config.clone();
-        if !cfg.toggl_auto_sync || cfg.toggl_api_token.trim().is_empty() || cfg.toggl_workspace_id.is_none() {
+        if cfg.tracking_mode != "toggl" || !cfg.toggl_auto_sync || cfg.toggl_api_token.trim().is_empty() || cfg.toggl_workspace_id.is_none() {
             return 0;
         }
         let items: Vec<HistoryEntry> = st
@@ -643,6 +823,12 @@ struct ConfigUpdateReq {
     cloud_sync_secret: Option<String>,
     #[serde(default)]
     yt_tabs: Option<Vec<YtCustomTab>>,
+    #[serde(default)]
+    tracking_mode: Option<String>,
+    #[serde(default)]
+    onboarded: Option<bool>,
+    #[serde(default)]
+    prefs: Option<UserPrefs>,
 }
 
 #[derive(Deserialize)]
@@ -760,12 +946,19 @@ fn handle_stream(req: Request, file_path: &Path) {
 /// (1) Gemini API key (aistudio.google.com/apikey — fast, reliable, token-efficient),
 /// (2) Google OAuth 2.0 Bearer with automatic token refresh.
 fn resolve_ai_auth(state_arc: &Arc<Mutex<SharedState>>) -> Result<AiAuth, String> {
-    let (mut oauth_sec, api_key) = {
+    let (mut oauth_sec, api_key, host_key) = {
         let st = state_arc.lock().unwrap();
-        (st.google_oauth.clone(), st.data.config.gemini_api_key.clone())
+        (
+            st.google_oauth.clone(),
+            st.data.config.gemini_api_key.clone(),
+            st.host_gemini_api_key.clone(),
+        )
     };
     if !api_key.trim().is_empty() {
         return Ok(AiAuth::ApiKey(api_key));
+    }
+    if !host_key.trim().is_empty() {
+        return Ok(AiAuth::ApiKey(host_key));
     }
     if !oauth_sec.access_token.trim().is_empty() || !oauth_sec.refresh_token.trim().is_empty() {
         let now = oauth::now_unix_secs();
@@ -1599,6 +1792,219 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 "vocab": st.vocab,
                 "progress": st.data.progress,
                 "youtube": st.youtube.videos,
+                "active_account": st.active_public_account(),
+                "accounts": st.public_accounts(),
+            })
+        };
+        respond_json(req, 200, &payload);
+        return;
+    }
+
+    // GET /api/accounts
+    if method == Method::Get && path_only == "/api/accounts" {
+        let payload = {
+            let st = state_arc.lock().unwrap();
+            serde_json::json!({
+                "active_account": st.active_public_account(),
+                "accounts": st.public_accounts(),
+            })
+        };
+        respond_json(req, 200, &payload);
+        return;
+    }
+
+    // POST /api/accounts/register (Create new isolated user account + launch onboarding)
+    if method == Method::Post && path_only == "/api/accounts/register" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let v: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let display_name = v["display_name"].as_str().unwrap_or("").trim().to_string();
+        let raw_user = v["username"].as_str().unwrap_or(&display_name).trim().to_lowercase();
+        let username: String = raw_user
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-')
+            .take(24)
+            .collect();
+        let pin = v["pin"].as_str().unwrap_or("").trim().to_string();
+        let avatar_color = v["avatar_color"]
+            .as_str()
+            .filter(|s| s.starts_with('#') && s.len() <= 9)
+            .unwrap_or("#F59E0B")
+            .to_string();
+
+        if display_name.is_empty() || username.len() < 2 {
+            return respond_err(req, 400, "Enter a name (at least 2 letters/numbers)");
+        }
+
+        let res = {
+            let mut st = state_arc.lock().unwrap();
+            if st.accounts.accounts.iter().any(|a| a.username == username) {
+                Err("That username already exists".to_string())
+            } else {
+                let id = format!("u-{}-{}", username, timeutil::now_unix_millis() % 100_000);
+                let pin_hash = hash_pin(&id, &pin);
+                st.accounts.accounts.push(AccountRecord {
+                    id: id.clone(),
+                    username,
+                    display_name,
+                    avatar_color,
+                    pin_hash,
+                    created_at: timeutil::now_utc_rfc3339(),
+                    onboarded: false,
+                });
+                st.switch_account(&id).map(|_| ())
+            }
+        };
+        match res {
+            Ok(()) => {
+                let st = state_arc.lock().unwrap();
+                respond_json(
+                    req,
+                    200,
+                    &serde_json::json!({
+                        "ok": true,
+                        "active_account": st.active_public_account(),
+                        "accounts": st.public_accounts(),
+                    }),
+                );
+            }
+            Err(e) => respond_err(req, 400, &e),
+        }
+        return;
+    }
+
+    // POST /api/accounts/login (Switch to existing account with optional PIN check)
+    if method == Method::Post && path_only == "/api/accounts/login" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let v: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let account_id = v["account_id"].as_str().unwrap_or("").trim().to_string();
+        let pin = v["pin"].as_str().unwrap_or("").trim().to_string();
+        let res = {
+            let mut st = state_arc.lock().unwrap();
+            let target = st
+                .accounts
+                .accounts
+                .iter()
+                .find(|a| a.id == account_id || a.username == account_id.to_lowercase())
+                .cloned();
+            match target {
+                None => Err("Account not found".to_string()),
+                Some(acc) => {
+                    if !acc.pin_hash.is_empty() && hash_pin(&acc.id, &pin) != acc.pin_hash {
+                        Err("Incorrect PIN".to_string())
+                    } else {
+                        st.switch_account(&acc.id)
+                    }
+                }
+            }
+        };
+        match res {
+            Ok(()) => {
+                let st = state_arc.lock().unwrap();
+                respond_json(
+                    req,
+                    200,
+                    &serde_json::json!({
+                        "ok": true,
+                        "active_account": st.active_public_account(),
+                        "accounts": st.public_accounts(),
+                    }),
+                );
+            }
+            Err(e) => respond_err(req, 401, &e),
+        }
+        return;
+    }
+
+    // POST /api/accounts/onboarding (Save theme, tracking mode, interests, starter vocab seed & complete onboarding)
+    if method == Method::Post && path_only == "/api/accounts/onboarding" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let v: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let level = v["level"].as_str().unwrap_or("beginner");
+        let theme = v["theme"].as_str().unwrap_or("washi").to_string();
+        let tracking_mode = if v["tracking_mode"].as_str() == Some("toggl") {
+            "toggl".to_string()
+        } else {
+            "builtin".to_string()
+        };
+        let goal = v["daily_goal_minutes"].as_u64().unwrap_or(45).clamp(5, 720) as u32;
+        let interests: Vec<String> = v["interests"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
+            .unwrap_or_default();
+
+        // Starter core vocabulary seeds by self-selected level so T+1 is useful from minute 1
+        let n5_seed: &[&str] = &[
+            "人","日","今","今日","昨日","明日","時間","年","月","水","火","木","山","川","家","学校","仕事","会社","友達","先生","学生","名前","言葉","本","映画","音楽","料理","食べる","飲む","見る","聞く","話す","書く","読む","行く","来る","帰る","買う","使う","作る","知る","分かる","思う","言う","持つ","待つ","寝る","起きる","遊ぶ","歩く","走る","大きい","小さい","新しい","古い","良い","悪い","高い","安い","多い","少ない","長い","短い","早い","遅い","近い","遠い","熱い","冷たい","面白い","楽しい","嬉しい","悲しい","難しい","優しい","好き","嫌い","元気","静か","綺麗","有名","大切","大丈夫","本当に","とても","少し","たくさん","いつも","時々","もう","まだ","すぐ","一緒に",
+        ];
+        let n4_extra: &[&str] = &[
+            "世界","社会","生活","文化","歴史","科学","自然","経験","理由","意味","問題","答え","質問","説明","意見","気持ち","心","体","頭","顔","目","耳","口","手","足","声","音","光","風","雨","雪","空","海","森","花","動物","考える","決める","始める","終わる","続ける","変える","変わる","選ぶ","調べる","探す","見つける","忘れる","覚える","信じる","頼む","手伝う","助ける","守る","勝つ","負ける","笑う","泣く","怒る","驚く","喜ぶ","心配","安心","自由","安全","危険","必要","特別","普通","簡単","複雑","正確","最近","最初","最後","突然","偶然","必ず","多分","絶対","実は","もちろん","やっぱり",
+        ];
+
+        let payload = {
+            let mut st = state_arc.lock().unwrap();
+            st.data.config.prefs.theme = theme;
+            st.data.config.tracking_mode = tracking_mode;
+            st.data.config.daily_goal_minutes = goal;
+            st.data.config.onboarded = true;
+
+            if !interests.is_empty() && st.data.config.yt_tabs.is_empty() {
+                for (idx, lbl) in interests.iter().take(6).enumerate() {
+                    st.data.config.yt_tabs.push(YtCustomTab {
+                        id: format!("ob-{}-{}", idx, timeutil::now_unix_millis() % 10000),
+                        label: lbl.clone(),
+                        query: lbl.clone(),
+                    });
+                }
+            }
+
+            if level == "n4" || level == "intermediate" || level == "advanced" {
+                for w in n5_seed {
+                    st.vocab.set_status(w, "known");
+                }
+            }
+            if level == "intermediate" || level == "advanced" {
+                for w in n4_extra {
+                    st.vocab.set_status(w, "known");
+                }
+            }
+            if let Some(arr) = v["seed_known_words"].as_array() {
+                for x in arr {
+                    if let Some(w) = x.as_str() {
+                        st.vocab.set_status(w, "known");
+                    }
+                }
+            }
+
+            let active_id = st.accounts.active_account_id.clone();
+            if let Some(acc) = st.accounts.accounts.iter_mut().find(|a| a.id == active_id) {
+                acc.onboarded = true;
+            }
+            st.yt_cat_cache.clear();
+            st.save_accounts();
+            st.save();
+            serde_json::json!({
+                "ok": true,
+                "config": st.public_config(),
+                "vocab": st.vocab,
+                "active_account": st.active_public_account(),
             })
         };
         respond_json(req, 200, &payload);
@@ -2127,19 +2533,37 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         };
         let pub_cfg = {
             let mut st = state_arc.lock().unwrap();
+            let mut new_host_gem: Option<String> = None;
+            {
+                let c = &mut st.data.config;
+                if upd.clear_toggl_token {
+                    c.toggl_api_token.clear();
+                } else if let Some(tok) = upd.toggl_api_token {
+                    if !tok.trim().is_empty() {
+                        c.toggl_api_token = tok.trim().to_string();
+                    }
+                }
+                if let Some(gkey) = upd.gemini_api_key {
+                    if !gkey.trim().is_empty() {
+                        let clean = gkey.trim().to_string();
+                        c.gemini_api_key = clean.clone();
+                        new_host_gem = Some(clean);
+                    }
+                }
+                if let Some(tm) = upd.tracking_mode {
+                    c.tracking_mode = if tm == "toggl" { "toggl".into() } else { "builtin".into() };
+                }
+                if let Some(ob) = upd.onboarded {
+                    c.onboarded = ob;
+                }
+                if let Some(prefs) = upd.prefs {
+                    c.prefs = prefs;
+                }
+            }
+            if let Some(clean) = new_host_gem {
+                st.host_gemini_api_key = clean;
+            }
             let c = &mut st.data.config;
-            if upd.clear_toggl_token {
-                c.toggl_api_token.clear();
-            } else if let Some(tok) = upd.toggl_api_token {
-                if !tok.trim().is_empty() {
-                    c.toggl_api_token = tok.trim().to_string();
-                }
-            }
-            if let Some(gkey) = upd.gemini_api_key {
-                if !gkey.trim().is_empty() {
-                    c.gemini_api_key = gkey.trim().to_string();
-                }
-            }
             if let Some(wid) = upd.toggl_workspace_id {
                 c.toggl_workspace_id = Some(wid);
             }
@@ -2825,7 +3249,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 parsed.visible_tokens.join("、")
             };
             let mut ctx = format!(
-                "You are Kiku, a concise, insightful Japanese immersion AI companion.\n\
+                "You are Mingo, a concise, insightful Japanese immersion AI companion.\n\
                 User profile: {} known words, {} learning words (sample: {}), {}m immersed today ({}d streak).\n\
                 Recent immersion: {}.\n\
                 Calibration tokens ALREADY visible at the top of the user's screen: [{}].\n\

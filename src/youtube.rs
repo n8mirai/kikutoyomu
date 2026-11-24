@@ -29,11 +29,55 @@ pub struct FeedVideo {
     #[serde(default)]
     pub duration: String,
     #[serde(default)]
+    pub duration_secs: u32,
+    #[serde(default)]
     pub views: String,
+    #[serde(default)]
+    pub view_count: u64,
     #[serde(default)]
     pub has_cc: bool,
     #[serde(default)]
     pub source: String,
+}
+
+pub fn parse_duration_secs(s: &str) -> u32 {
+    let parts: Vec<u32> = s
+        .trim()
+        .split(':')
+        .filter_map(|p| p.trim().parse::<u32>().ok())
+        .collect();
+    match parts.as_slice() {
+        [m, sec] => m * 60 + sec,
+        [h, m, sec] => h * 3600 + m * 60 + sec,
+        _ => 0,
+    }
+}
+
+pub fn parse_view_count(s: &str) -> u64 {
+    let t = s.trim().replace(',', "");
+    if t.is_empty() {
+        return 0;
+    }
+    let mult: f64 = if t.contains('億') {
+        100_000_000.0
+    } else if t.contains('万') {
+        10_000.0
+    } else if t.contains('M') || t.contains('m') {
+        1_000_000.0
+    } else if t.contains('K') || t.contains('k') {
+        1_000.0
+    } else {
+        1.0
+    };
+    let num_str: String = t
+        .chars()
+        .skip_while(|c| !c.is_ascii_digit())
+        .take_while(|c| c.is_ascii_digit() || *c == '.')
+        .collect();
+    num_str
+        .parse::<f64>()
+        .map(|v| (v * mult).round() as u64)
+        .unwrap_or(0)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -717,6 +761,8 @@ fn parse_video_renderer(vr: &serde_json::Value, category: &str, source: &str) ->
         }
     }
 
+    let duration_secs = parse_duration_secs(&duration);
+    let view_count = parse_view_count(&views);
     Some(FeedVideo {
         id: id.to_string(),
         title,
@@ -730,7 +776,9 @@ fn parse_video_renderer(vr: &serde_json::Value, category: &str, source: &str) ->
         channel_id,
         channel_pfp,
         duration,
+        duration_secs,
         views,
+        view_count,
         has_cc,
         source: source.to_string(),
     })
@@ -773,6 +821,8 @@ fn parse_compact_video_renderer(
     let views = json_text(&cvr["shortViewCountText"]);
     let published = json_text(&cvr["publishedTimeText"]);
 
+    let duration_secs = parse_duration_secs(&duration);
+    let view_count = parse_view_count(&views);
     Some(FeedVideo {
         id: id.to_string(),
         title,
@@ -786,7 +836,9 @@ fn parse_compact_video_renderer(
         channel_id,
         channel_pfp,
         duration,
+        duration_secs,
         views,
+        view_count,
         has_cc: false,
         source: source.to_string(),
     })
@@ -887,6 +939,8 @@ fn parse_lockup_view_model(
         }
     }
 
+    let duration_secs = parse_duration_secs(&duration);
+    let view_count = parse_view_count(&views);
     Some(FeedVideo {
         id: id.to_string(),
         title,
@@ -900,7 +954,9 @@ fn parse_lockup_view_model(
         channel_id,
         channel_pfp,
         duration,
+        duration_secs,
         views,
+        view_count,
         has_cc,
         source: source.to_string(),
     })
@@ -1232,6 +1288,14 @@ fn parse_atom_entries(
             .unwrap_or("")
             .trim()
             .to_string();
+        let view_count = entry
+            .find("media:statistics views=\"")
+            .and_then(|pos| {
+                let rest = &entry[pos + "media:statistics views=\"".len()..];
+                let end = rest.find('"')?;
+                rest[..end].parse::<u64>().ok()
+            })
+            .unwrap_or(0);
         out.push(FeedVideo {
             id: vid.to_string(),
             title,
@@ -1245,7 +1309,9 @@ fn parse_atom_entries(
             channel_id: channel_id.to_string(),
             channel_pfp: channel_pfp.to_string(),
             duration: String::new(),
+            duration_secs: 0,
             views: String::new(),
+            view_count,
             has_cc: false,
             source: "curated".to_string(),
         });
@@ -1561,6 +1627,15 @@ pub fn search_youtube_jp_fallback(
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
+        let duration_secs = e
+            .get("duration")
+            .and_then(|v| v.as_f64())
+            .map(|d| d.max(0.0) as u32)
+            .unwrap_or(0);
+        let view_count = e
+            .get("view_count")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
         items.push(FeedVideo {
             id: id.to_string(),
             title,
@@ -1574,7 +1649,9 @@ pub fn search_youtube_jp_fallback(
             channel_id,
             channel_pfp: String::new(),
             duration: String::new(),
+            duration_secs,
             views: String::new(),
+            view_count,
             has_cc: false,
             source: "search".to_string(),
         });

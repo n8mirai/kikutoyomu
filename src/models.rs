@@ -11,6 +11,94 @@ pub struct YtCustomTab {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
+pub struct UserPrefs {
+    pub t1_highlight: bool,
+    pub purple_guess: bool,
+    pub cue_sounds: bool,
+    pub auto_pause_lookup: bool,
+    pub auto_scroll: bool,
+    pub reveal_all_lines: bool,
+    pub dim_past_lines: bool,
+    pub show_unknown_underlines: bool,
+    pub sub_font_size: u16,
+    pub default_audio_only: bool,
+    pub theme: String,
+}
+
+impl Default for UserPrefs {
+    fn default() -> Self {
+        Self {
+            t1_highlight: true,
+            purple_guess: true,
+            cue_sounds: true,
+            auto_pause_lookup: true,
+            auto_scroll: true,
+            reveal_all_lines: false,
+            dim_past_lines: true,
+            show_unknown_underlines: true,
+            sub_font_size: 20,
+            default_audio_only: false,
+            theme: "washi".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountRecord {
+    pub id: String,
+    pub username: String,
+    pub display_name: String,
+    #[serde(default = "default_avatar_color")]
+    pub avatar_color: String,
+    #[serde(default)]
+    pub pin_hash: String,
+    #[serde(default)]
+    pub created_at: String,
+    #[serde(default)]
+    pub onboarded: bool,
+}
+
+fn default_avatar_color() -> String {
+    "#F59E0B".to_string()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicAccount {
+    pub id: String,
+    pub username: String,
+    pub display_name: String,
+    pub avatar_color: String,
+    pub has_pin: bool,
+    pub onboarded: bool,
+}
+
+impl From<&AccountRecord> for PublicAccount {
+    fn from(a: &AccountRecord) -> Self {
+        Self {
+            id: a.id.clone(),
+            username: a.username.clone(),
+            display_name: a.display_name.clone(),
+            avatar_color: a.avatar_color.clone(),
+            has_pin: !a.pin_hash.is_empty(),
+            onboarded: a.onboarded,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AccountsStore {
+    #[serde(default)]
+    pub active_account_id: String,
+    #[serde(default)]
+    pub accounts: Vec<AccountRecord>,
+}
+
+fn default_tracking_mode() -> String {
+    "builtin".to_string()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AppConfig {
     pub toggl_api_token: String,
     #[serde(default)]
@@ -19,6 +107,12 @@ pub struct AppConfig {
     pub cloud_sync_url: String,
     #[serde(default)]
     pub yt_tabs: Vec<YtCustomTab>,
+    #[serde(default = "default_tracking_mode")]
+    pub tracking_mode: String, // "builtin" | "toggl"
+    #[serde(default)]
+    pub onboarded: bool,
+    #[serde(default)]
+    pub prefs: UserPrefs,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -38,6 +132,9 @@ impl Default for AppConfig {
             gemini_api_key: String::new(),
             cloud_sync_url: String::new(),
             yt_tabs: Vec::new(),
+            tracking_mode: "builtin".into(),
+            onboarded: false,
+            prefs: UserPrefs::default(),
             toggl_workspace_id: None,
             toggl_workspace_name: String::new(),
             toggl_project_id: None,
@@ -255,6 +352,9 @@ pub struct PublicConfig {
     pub cloud_sync_url: String,
     pub has_cloud_sync_secret: bool,
     pub yt_tabs: Vec<YtCustomTab>,
+    pub tracking_mode: String,
+    pub onboarded: bool,
+    pub prefs: UserPrefs,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -295,6 +395,9 @@ impl From<&AppConfig> for PublicConfig {
             cloud_sync_url: c.cloud_sync_url.clone(),
             has_cloud_sync_secret: false,
             yt_tabs: c.yt_tabs.clone(),
+            tracking_mode: if c.tracking_mode == "toggl" { "toggl".into() } else { "builtin".into() },
+            onboarded: c.onboarded,
+            prefs: c.prefs.clone(),
             toggl_workspace_id: c.toggl_workspace_id,
             toggl_workspace_name: c.toggl_workspace_name.clone(),
             toggl_project_id: c.toggl_project_id,

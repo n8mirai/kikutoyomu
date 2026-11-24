@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kiku</title>
+<title>Mingo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231E1133'/%3E%3Cstop offset='1' stop-color='%230D0617'/%3E%3C/linearGradient%3E%3ClinearGradient id='rim' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23B49DE0'/%3E%3Cstop offset='.5' stop-color='%238C73B7'/%3E%3Cstop offset='.5' stop-color='%23EE4766'/%3E%3Cstop offset='1' stop-color='%23F9A893'/%3E%3C/linearGradient%3E%3ClinearGradient id='wave' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23B49DE0'/%3E%3Cstop offset='.5' stop-color='%23EE4766'/%3E%3Cstop offset='1' stop-color='%23F6E08A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='60' height='60' rx='16' fill='url(%23bg)' stroke='url(%23rim)' stroke-width='2.5'/%3E%3Cpath d='M16 34a16 16 0 0 1 32 0' fill='none' stroke='url(%23rim)' stroke-width='3.2' stroke-linecap='round'/%3E%3Crect x='13' y='32' width='6' height='14' rx='3' fill='%23B49DE0'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%23EE4766'/%3E%3Crect x='24' y='30' width='3.6' height='14' rx='1.8' fill='url(%23wave)'/%3E%3Crect x='30.2' y='24' width='3.6' height='24' rx='1.8' fill='url(%23wave)'/%3E%3Crect x='36.4' y='29' width='3.6' height='16' rx='1.8' fill='url(%23wave)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='mg' x1='18%25' y1='10%25' x2='84%25' y2='92%25'%3E%3Cstop offset='0%25' stop-color='%23FEF08A' stop-opacity='.96'/%3E%3Cstop offset='48%25' stop-color='%23FB923C' stop-opacity='.92'/%3E%3Cstop offset='100%25' stop-color='%23F43F5E' stop-opacity='.92'/%3E%3C/linearGradient%3E%3ClinearGradient id='hl' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' stop-opacity='.82'/%3E%3Cstop offset='100%25' stop-color='%23FFFFFF' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='lf' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236EE7B7'/%3E%3Cstop offset='100%25' stop-color='%2310B981'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M35 15c7-6 15-7 17-3-3 5-9 8-16 6z' fill='url(%23lf)'/%3E%3Cpath d='M34 15c12 1 19 12 17 26-2 13-13 19-24 17-10-2-16-10-14-21 2-12 11-23 21-22z' fill='url(%23mg)' stroke='rgba(255,255,255,0.68)' stroke-width='2'/%3E%3Cpath d='M25 22c-5 5-7 13-6 19 2-7 6-13 12-16-2-2-4-3-6-3z' fill='url(%23hl)'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#120A1C;--bg1:#180F24;--bg2:#211534;--bg3:#2B1B44;
@@ -1362,6 +1362,176 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 }
 .book-en{font-size:11.5px;color:rgba(246,241,248,.74);line-height:1.35;padding-left:6px}
 .book-ch{font-size:10.5px;color:rgba(246,241,248,.46);font-variant-numeric:tabular-nums;margin-top:2px;padding-left:6px}
+/* ================= PRODUCTION MINGO: BRAND, PREF TOGGLES, LANDSCAPE YT, GEAR POPOVER, ACCOUNTS & ONBOARDING ================= */
+main{max-width:1380px!important}
+.brand-mango{
+  display:inline-flex;align-items:center;gap:7px;padding:3px 9px 3px 5px;margin-right:4px;
+  border-radius:999px;background:transparent;border:0;cursor:pointer;color:var(--text);
+  font-size:13.5px;font-weight:600;letter-spacing:-.015em;transition:opacity .16s;
+}
+.brand-mango:hover{opacity:.82}
+.brand-mango svg{width:22px;height:22px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(251,146,60,.28))}
+.acct-pill{
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  font-size:11.5px;font-weight:600;color:#fff;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.42);
+  transition:transform .18s var(--spring),box-shadow .18s;
+}
+.acct-pill:hover{transform:scale(1.07);box-shadow:0 4px 12px rgba(0,0,0,.22)}
+
+/* Global Preference Toggles (zero DOM rebuild!) */
+body.no-t1-hl .sub-row.t1 .sub-row-inner,
+body.no-t1-hl .sub-row.t2 .sub-row-inner,
+body.no-t1-hl .sub-row.t3 .sub-row-inner,
+body.no-t1-hl .sub-row.cur.t1 .sub-row-inner,
+body.no-t1-hl .sub-row.cur.t2 .sub-row-inner,
+body.no-t1-hl .sub-row.cur.t3 .sub-row-inner{background:transparent!important;box-shadow:none!important}
+body.no-t1-hl .sub-row.t1 .tok.st-unknown,body.no-t1-hl .sub-row.t1 .tok.st-learning,
+body.no-t1-hl .sub-row.t2 .tok.st-unknown,body.no-t1-hl .sub-row.t2 .tok.st-learning,
+body.no-t1-hl .sub-row.t3 .tok.st-unknown,body.no-t1-hl .sub-row.t3 .tok.st-learning,
+body.no-t1-hl .idle-row.t1 .tok.st-unknown,body.no-t1-hl .idle-row.t2 .tok.st-unknown,body.no-t1-hl .idle-row.t3 .tok.st-unknown{
+  background:transparent!important;color:inherit!important;font-weight:inherit!important;
+  padding:1px 1.5px!important;margin:0!important;box-shadow:inset 0 -1.5px 0 rgba(238,71,102,.5)!important;
+}
+body.no-t1-hl .tier-tag{display:none!important}
+body.no-purple-hl .tok.st-likely{
+  background:transparent!important;color:inherit!important;font-weight:inherit!important;
+  padding:1px 1.5px!important;margin:0!important;box-shadow:inset 0 -1.5px 0 rgba(238,71,102,.5)!important;
+}
+body.no-dim-past .sub-row.past .sub-row-inner{opacity:.92!important}
+body.no-unk-ul .tok.st-unknown{box-shadow:none!important}
+
+/* YT Sort Dropdown Pill */
+.yt-sort-sel{
+  flex:0 0 auto;height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;
+  color:var(--muted);background:var(--bg1);border:1px solid var(--line);cursor:pointer;outline:none;
+  transition:color .16s,border-color .16s;
+}
+.yt-sort-sel:hover,.yt-sort-sel:focus{color:var(--text);border-color:var(--line3)}
+
+/* Full Landscape YouTube-Style Desktop Layout for ImmersionTube Player */
+.yt-play-inner{max-width:1440px!important}
+.yt-play-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:0}
+.yt-play-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.yt-side-rail{display:none}
+@media (min-width:1024px){
+  #v-yt-play:not(.audio-only) .yt-play-body{flex-direction:row;gap:18px;align-items:stretch}
+  #v-yt-play:not(.audio-only) .yt-side-rail{
+    display:flex;flex-direction:column;width:336px;flex:0 0 336px;min-height:0;
+    overflow-y:auto;padding:2px 4px 28px 0;gap:9px;
+  }
+  #v-yt-play:not(.audio-only) #yt-next-toggle{display:none}
+  #v-yt-play:not(.audio-only) .yt-next-drawer{display:none}
+  #v-yt-play:not(.audio-only) .yt-stage{width:min(100%,calc(52vh * 16 / 9));max-height:52vh}
+  #v-yt-play:not(.audio-only) .yt-trace-wrap{max-width:none}
+  #v-yt-play:not(.audio-only) .yt-waterfall-feed{max-width:none}
+}
+.yt-rail-hd{
+  font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--faint);padding:2px 2px 4px;
+}
+.yt-rail-card{
+  display:flex;gap:10px;align-items:flex-start;padding:6px;border-radius:12px;cursor:pointer;
+  background:var(--bg1);border:1px solid var(--line);
+  transition:background .16s,border-color .16s,transform .18s var(--spring);
+}
+.yt-rail-card:hover{background:var(--bg2);border-color:var(--line3);transform:translateX(-2px)}
+.yt-rail-thumb{
+  position:relative;width:136px;flex:0 0 136px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;
+  background:#000;
+}
+.yt-rail-thumb>img{width:100%;height:100%;object-fit:cover;display:block}
+.yt-rail-thumb .yt-badge{top:4px;left:4px;padding:1px 5px;font-size:9.5px}
+.yt-rail-thumb .yt-dur{top:auto;bottom:4px;right:4px;padding:1px 5px;font-size:9.5px}
+.yt-rail-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding-top:1px}
+.yt-rail-title{
+  font-size:12px;font-weight:500;color:var(--text);line-height:1.34;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.yt-rail-ch{
+  display:flex;align-items:center;gap:5px;font-size:11px;color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Unified Floating Subtitle Settings Gear Popover */
+#sub-gear-pop{
+  position:fixed;top:52px;right:18px;z-index:75;width:296px;max-height:calc(100vh - 80px);overflow-y:auto;
+  border-radius:16px;padding:14px 15px;border:1px solid var(--lg-border);
+  background-image:var(--lg-bg);background-color:var(--lg-tint);
+  box-shadow:var(--lg-rim),var(--lg-shadow);backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
+  animation:popIn .2s var(--spring) both;
+}
+:root[data-theme="washi"] #sub-gear-pop{background:rgba(246,242,233,.96)}
+.sg-sec{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin:10px 0 6px}
+.sg-sec:first-child{margin-top:0}
+.sg-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;font-size:12.5px;color:var(--text)}
+.sg-off-grp{display:inline-flex;align-items:center;gap:5px}
+.sw{
+  position:relative;width:34px;height:20px;border-radius:999px;background:var(--bg3);
+  border:1px solid var(--line2);cursor:pointer;transition:background .18s,border-color .18s;flex-shrink:0;
+}
+.sw::after{
+  content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+  background:var(--muted);transition:transform .2s var(--spring),background .18s;
+}
+.sw.on{background:var(--acc);border-color:var(--acc)}
+.sw.on::after{transform:translateX(14px);background:#fff}
+
+/* Production Settings Tabs & Segmented Controls */
+#pop{width:332px!important;max-height:min(620px,calc(100vh - 76px));overflow-y:auto}
+.set-tabs{display:flex;gap:4px;margin-bottom:12px;padding:3px;border-radius:10px;background:var(--bg1);border:1px solid var(--line)}
+.set-tab{
+  flex:1;height:26px;border-radius:7px;font-size:11.5px;font-weight:500;color:var(--muted);
+  background:transparent;border:0;cursor:pointer;transition:background .15s,color .15s;
+}
+.set-tab.on{background:var(--bg2);color:var(--text);box-shadow:var(--lg-rim)}
+.seg-row{display:flex;gap:4px;padding:3px;border-radius:10px;background:var(--bg1);border:1px solid var(--line);margin-bottom:10px}
+.seg-btn{
+  flex:1;height:28px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);
+  background:transparent;border:0;cursor:pointer;transition:background .15s,color .15s;
+}
+.seg-btn.on{background:var(--acc);color:var(--onacc);font-weight:600}
+
+/* Accounts & Onboarding Modals */
+.ob-modal{width:min(520px,calc(100vw - 28px))!important;padding:24px!important}
+.ob-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;margin-bottom:18px}
+.ob-head h2{margin:0;font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.ob-head p{margin:0;font-size:13px;color:var(--muted);line-height:1.5;max-width:390px}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.ob-dot{width:24px;height:4px;border-radius:999px;background:var(--line2);transition:background .2s,width .2s}
+.ob-dot.on{background:var(--acc);width:36px}
+.ob-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.ob-opt{
+  display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;text-align:left;
+  background:var(--bg1);border:1px solid var(--line2);cursor:pointer;
+  transition:border-color .16s,background .16s,transform .16s var(--spring);
+}
+.ob-opt:hover{border-color:var(--line3);transform:translateY(-1px)}
+.ob-opt.on{background:var(--accsoft);border-color:var(--acc)}
+.ob-opt strong{font-size:13.5px;color:var(--text)}
+.ob-opt span{font-size:11.5px;color:var(--muted)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:18px}
+.ob-chip{
+  padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;
+  background:var(--bg1);border:1px solid var(--line2);color:var(--muted);
+  transition:background .15s,border-color .15s,color .15s,transform .15s var(--spring);
+}
+.ob-chip:hover{color:var(--text);border-color:var(--line3)}
+.ob-chip.on{background:var(--acc);border-color:var(--acc);color:var(--onacc);transform:scale(1.03)}
+.acct-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.acct-row{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;cursor:pointer;
+  background:var(--bg1);border:1px solid var(--line2);transition:border-color .15s,background .15s;
+}
+.acct-row:hover{border-color:var(--line3);background:var(--bg2)}
+.acct-row.active{border-color:var(--acc);background:var(--accsoft)}
+.acct-av{
+  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  font-size:14px;font-weight:600;color:#fff;flex-shrink:0;
+}
+.acct-colors{display:flex;gap:7px;margin-top:6px}
+.acct-col{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.acct-col.on{border-color:var(--text);transform:scale(1.12)}
 </style>
 </head>
 <body>
@@ -1380,25 +1550,48 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 
 <main>
   <nav>
-    <button class="app-pill" id="t-anime" aria-selected="true" title="Anime">
+    <button class="brand-mango" id="brand-home" title="Mingo">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="m-mg" x1="18%" y1="10%" x2="84%" y2="92%">
+            <stop offset="0%" stop-color="#FEF08A" stop-opacity=".96"/>
+            <stop offset="48%" stop-color="#FB923C" stop-opacity=".92"/>
+            <stop offset="100%" stop-color="#F43F5E" stop-opacity=".92"/>
+          </linearGradient>
+          <linearGradient id="m-hl" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".86"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="m-lf" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6EE7B7"/>
+            <stop offset="100%" stop-color="#10B981"/>
+          </linearGradient>
+        </defs>
+        <path d="M35 15c7-6 15-7 17-3-3 5-9 8-16 6z" fill="url(#m-lf)"/>
+        <path d="M34 15c12 1 19 12 17 26-2 13-13 19-24 17-10-2-16-10-14-21 2-12 11-23 21-22z" fill="url(#m-mg)" stroke="rgba(255,255,255,0.72)" stroke-width="2.2"/>
+        <path d="M25 22c-5 5-7 13-6 19 2-7 6-13 12-16-2-2-4-3-6-3z" fill="url(#m-hl)"/>
+      </svg>
+      <span>Mingo</span>
+    </button>
+    <button class="app-pill" id="t-anime" aria-selected="true" title="Anime (Alt+1)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg>
       <span>Anime</span>
     </button>
-    <button class="app-pill" id="t-yt" aria-selected="false" title="YouTube">
+    <button class="app-pill" id="t-yt" aria-selected="false" title="YouTube (Alt+2)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none"/></svg>
       <span>YT</span>
     </button>
-    <button class="app-pill" id="t-books" aria-selected="false" title="Books">
+    <button class="app-pill" id="t-books" aria-selected="false" title="Books (Alt+3)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <span>Books</span>
     </button>
-    <button class="app-pill" id="t-ai" aria-selected="false" title="Kiku AI Agent">
-      <span style="font-size:13px;line-height:1">✦</span>
-      <span>AI</span>
-    </button>
-    <button class="app-pill" id="t-vocab" aria-selected="false" title="Vocab Playground">
+    <button class="app-pill" id="t-vocab" aria-selected="false" title="Vocab Playground (Alt+4)">
       <span style="font-size:13px;line-height:1;font-weight:600">字</span>
       <span>Vocab</span>
+    </button>
+    <button class="app-pill" id="t-ai" aria-selected="false" title="Mingo AI (Alt+5)">
+      <span style="font-size:13px;line-height:1">✦</span>
+      <span>AI</span>
     </button>
     <span class="sp"></span>
     <button id="live-pill" hidden><span class="pulse" id="live-dot"></span><span id="live-time">00:00</span></button>
@@ -1416,86 +1609,115 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span class="dot-badge" id="vdot"></span>
     </button>
+    <button class="acct-pill" id="b-acct" title="Switch or create account" style="background:#F59E0B">N</button>
   </nav>
 
-  <!-- Settings Popover -->
+  <!-- Production Tabbed Settings Popover -->
   <div id="pop" hidden>
-    <div class="theme-row" id="theme-row" title="Theme">
-      <button class="swatch" data-theme="split-flame" title="Split Flame" style="background:linear-gradient(135deg,#B49DE0 50%,#EE4766 50%)"></button>
-      <button class="swatch" data-theme="sumi" title="Midnight Ink" style="background:linear-gradient(135deg,#111118 50%,#60A5FA 50%)"></button>
-      <button class="swatch" data-theme="matcha" title="Kyoto Matcha" style="background:linear-gradient(135deg,#121E19 50%,#4ADE80 50%)"></button>
-      <button class="swatch" data-theme="sakura" title="Sakura Dusk" style="background:linear-gradient(135deg,#211420 50%,#F472B6 50%)"></button>
-      <button class="swatch" data-theme="noir" title="Prague Noir" style="background:linear-gradient(135deg,#171B22 50%,#D4A373 50%)"></button>
-      <button class="swatch" data-theme="washi" title="Washi Paper" style="background:linear-gradient(135deg,#F6F2E9 50%,#D93848 50%)"></button>
+    <div class="set-tabs" id="set-tabs">
+      <button class="set-tab on" data-set-tab="immersion">Immersion</button>
+      <button class="set-tab" data-set-tab="tracking">Tracking</button>
+      <button class="set-tab" data-set-tab="general">General</button>
+      <button class="set-tab" data-set-tab="account">Account</button>
     </div>
-    <div class="field">
-      <label>Toggl API Token <span id="s-tok-hint" style="color:var(--cool2)"></span></label>
-      <div class="row-inline">
-        <input id="s-token" type="password" placeholder="API Token" autocomplete="off">
-        <button class="btn-pill" id="s-connect">Connect</button>
+
+    <!-- Tab 1: Immersion & Customization Toggles -->
+    <div data-set-pane="immersion">
+      <div class="sg-sec">Theme</div>
+      <div class="theme-row" id="theme-row" title="Theme" style="margin-bottom:10px">
+        <button class="swatch" data-theme="washi" title="Washi Paper" style="background:linear-gradient(135deg,#F6F2E9 50%,#D93848 50%)"></button>
+        <button class="swatch" data-theme="sumi" title="Midnight Ink" style="background:linear-gradient(135deg,#111118 50%,#60A5FA 50%)"></button>
+        <button class="swatch" data-theme="split-flame" title="Split Flame" style="background:linear-gradient(135deg,#B49DE0 50%,#EE4766 50%)"></button>
+        <button class="swatch" data-theme="matcha" title="Kyoto Matcha" style="background:linear-gradient(135deg,#121E19 50%,#4ADE80 50%)"></button>
+        <button class="swatch" data-theme="sakura" title="Sakura Dusk" style="background:linear-gradient(135deg,#211420 50%,#F472B6 50%)"></button>
+        <button class="swatch" data-theme="noir" title="Prague Noir" style="background:linear-gradient(135deg,#171B22 50%,#D4A373 50%)"></button>
       </div>
-      <div id="s-toggl-status" style="font-size:11.5px;margin-top:4px"></div>
-    </div>
-    <div class="field"><label>Workspace</label><select id="s-ws"><option value="">—</option></select></div>
-    <div class="field"><label>Project</label><select id="s-proj"><option value="">None</option></select></div>
-    <div class="field"><label>Tags</label><input id="s-tags" type="text" placeholder="japanese, immersion"></div>
-    <div class="row-inline">
-      <div class="field" style="flex:1"><label>Min sec</label><input id="s-min" type="number" min="1" max="600" value="5"></div>
-      <div class="field" style="flex:1"><label>Daily goal (m)</label><input id="s-goal" type="number" min="5" max="720" value="60"></div>
-    </div>
-    <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl (15m cycle & close)</label>
-    <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
-    <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)">
-      <div class="field" style="margin-bottom:8px">
-        <label>Gemini API Key <span id="s-gem-hint" style="color:var(--g2)"></span></label>
-        <input id="s-gemini" type="password" placeholder="aistudio.google.com/apikey" autocomplete="off">
+      <div class="sg-sec">Subtitles & Highlights</div>
+      <div class="sg-row"><span>T+1 Highlighting</span><button class="sw" data-pref="t1_highlight"></button></div>
+      <div class="sg-row"><span>Purple Guess Highlighting</span><button class="sw" data-pref="purple_guess"></button></div>
+      <div class="sg-row"><span>Cue Sounds (T1 & Priority)</span><button class="sw" data-pref="cue_sounds"></button></div>
+      <div class="sg-row"><span>Auto-pause on lookup</span><button class="sw" data-pref="auto_pause_lookup"></button></div>
+      <div class="sg-row"><span>Auto-scroll waterfall</span><button class="sw" data-pref="auto_scroll"></button></div>
+      <div class="sg-row"><span>Show all lines</span><button class="sw" data-pref="reveal_all_lines"></button></div>
+      <div class="sg-row"><span>Dim past lines</span><button class="sw" data-pref="dim_past_lines"></button></div>
+      <div class="sg-row"><span>Unknown word underlines</span><button class="sw" data-pref="show_unknown_underlines"></button></div>
+      <div class="sg-row"><span>Default audio-only Listen</span><button class="sw" data-pref="default_audio_only"></button></div>
+      <div class="sg-row" style="margin-top:4px">
+        <span>Font size <b id="s-font-val" style="color:var(--muted);font-weight:500">20px</b></span>
+        <input type="range" class="size-slider" id="s-font-size" min="15" max="34" step="1" value="20" style="width:116px">
       </div>
-      <details style="margin-bottom:8px">
-        <summary style="font-size:11px;color:var(--faint);cursor:pointer;user-select:none">Google OAuth / CLI</summary>
-        <div style="margin-top:7px">
-          <div class="field" style="margin-bottom:6px">
-            <label>Google OAuth <span id="s-oauth-status" style="color:var(--g2)"></span></label>
-            <div id="s-oauth-setup">
-              <div class="row-inline" style="margin-bottom:5px">
-                <input id="s-oauth-cid" type="text" placeholder="Desktop OAuth Client ID" autocomplete="off">
-              </div>
-              <div class="row-inline">
-                <input id="s-oauth-csec" type="password" placeholder="Client Secret (optional)" autocomplete="off">
-                <button class="btn-pill" id="s-oauth-go">Sign in</button>
-              </div>
-            </div>
-            <div id="s-oauth-connected" class="row-inline" hidden>
-              <span id="s-oauth-email" style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis"></span>
-              <button class="btn-sub" id="s-oauth-disc">Disconnect</button>
-            </div>
+    </div>
+
+    <!-- Tab 2: Time Tracking (Built-in OR Toggl Track) -->
+    <div data-set-pane="tracking" hidden>
+      <div class="sg-sec">Tracking Engine</div>
+      <div class="seg-row" id="s-track-seg">
+        <button class="seg-btn on" data-track-mode="builtin">Built-in</button>
+        <button class="seg-btn" data-track-mode="toggl">Toggl Track</button>
+      </div>
+      <div class="row-inline" style="margin-bottom:10px">
+        <div class="field" style="flex:1;margin-bottom:0"><label>Daily goal (min)</label><input id="s-goal" type="number" min="5" max="720" value="60"></div>
+        <div class="field" style="flex:1;margin-bottom:0"><label>Min session (s)</label><input id="s-min" type="number" min="1" max="600" value="5"></div>
+      </div>
+      <div id="s-builtin-note" style="padding:10px 12px;border-radius:10px;background:var(--bg1);border:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">
+        Built-in Mingo tracking logs every watch & listen session locally with daily streaks, goal progress, and per-session word stats.
+      </div>
+      <div id="s-toggl-fields" hidden>
+        <div class="field">
+          <label>Toggl API Token <span id="s-tok-hint" style="color:var(--cool2)"></span></label>
+          <div class="row-inline">
+            <input id="s-token" type="password" placeholder="API Token" autocomplete="off">
+            <button class="btn-pill" id="s-connect">Connect</button>
           </div>
-          <div class="field" style="margin-bottom:0">
-            <label>Gemini CLI <span id="s-gcli-status" style="color:var(--faint)"></span></label>
-            <button class="btn-sub" id="s-gcli-login" style="width:100%">Launch CLI Sign-in</button>
-          </div>
+          <div id="s-toggl-status" style="font-size:11.5px;margin-top:4px"></div>
         </div>
-      </details>
-      <div class="field" style="margin-bottom:0;padding-top:8px;border-top:1px solid var(--line)">
+        <div class="field"><label>Workspace</label><select id="s-ws"><option value="">—</option></select></div>
+        <div class="field"><label>Project</label><select id="s-proj"><option value="">None</option></select></div>
+        <div class="field"><label>Tags</label><input id="s-tags" type="text" placeholder="japanese, immersion"></div>
+        <label class="chk"><input id="s-auto" type="checkbox"> Auto-log to Toggl (15m cycle & close)</label>
+        <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
+      </div>
+    </div>
+
+    <!-- Tab 3: General (Universal AI, Cloud Sync, Media, Vocab) -->
+    <div data-set-pane="general" hidden>
+      <div class="field" style="margin-bottom:9px">
+        <label>Gemini AI <span id="s-gem-hint" style="color:var(--g2)"></span></label>
+        <input id="s-gemini" type="password" placeholder="Universal host key active (override optional)" autocomplete="off">
+      </div>
+      <div class="field" style="margin-bottom:10px;padding-top:8px;border-top:1px solid var(--line)">
         <label>Cloud Profile Sync <span id="s-cloud-status" style="color:var(--cool2)"></span></label>
         <div class="row-inline" style="margin-bottom:5px">
-          <input id="s-cloud-url" type="text" placeholder="https://kiku-sync.your.workers.dev" autocomplete="off">
+          <input id="s-cloud-url" type="text" placeholder="https://mingo-sync.your.workers.dev" autocomplete="off">
         </div>
         <div class="row-inline">
           <input id="s-cloud-sec" type="password" placeholder="Sync Secret" autocomplete="off">
           <button class="btn-sub" id="s-cloud-sync">Sync</button>
         </div>
       </div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <button class="btn-sub" id="s-open-root" style="flex:1">Media Folder</button>
+        <button class="btn-sub" id="s-rescan" style="flex:1">Rescan</button>
+      </div>
+      <div style="padding-top:10px;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px">
+        <span id="s-vocab-cnt" style="font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums">0 known</span>
+        <span class="sp"></span>
+        <button class="btn-sub" id="s-vocab-imp">Import</button>
+        <button class="btn-sub" id="s-vocab-exp">Export</button>
+      </div>
     </div>
-    <div style="margin-top:10px;display:flex;gap:7px">
-      <button class="btn-pill" id="s-save">Save</button>
-      <button class="btn-sub" id="s-open-root">Folder</button>
-      <button class="btn-sub" id="s-rescan">Rescan</button>
+
+    <!-- Tab 4: Account & Onboarding -->
+    <div data-set-pane="account" hidden>
+      <div id="s-acct-card" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--bg1);border:1px solid var(--line);margin-bottom:10px"></div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <button class="btn-pill" id="s-switch-acct" style="width:100%">Switch / Create Account</button>
+        <button class="btn-sub" id="s-rerun-ob" style="width:100%">Run Onboarding Setup</button>
+      </div>
     </div>
-    <div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px">
-      <span id="s-vocab-cnt" style="font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums">0 known</span>
-      <span class="sp"></span>
-      <button class="btn-sub" id="s-vocab-imp">Import</button>
-      <button class="btn-sub" id="s-vocab-exp">Export</button>
+
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:7px">
+      <button class="btn-pill" id="s-save" style="flex:1">Save Settings</button>
     </div>
   </div>
 
@@ -1528,7 +1750,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div class="yt-sentinel" id="yt-sentinel"></div>
   </section>
 
-  <!-- APP: YT WATERFALL PLAYER (Pinned 16:9 video at top + top-to-bottom 浮かぶ subtitles) -->
+  <!-- APP: YT WATERFALL PLAYER (Landscape 2-column YouTube layout + collapsed gear settings) -->
   <section id="v-yt-play" hidden>
     <div class="yt-play-inner">
       <div class="sub-head">
@@ -1538,47 +1760,48 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
         <span class="sub-head-title" id="yt-play-title"></span>
         <span class="sp"></span>
         <div class="sub-head-tools">
-          <input type="range" class="size-slider yt-sub-only" id="yt-size" min="15" max="32" step="1" value="20" title="Font size">
-          <button class="sub-mini-btn yt-sub-only on" id="yt-autoscroll" title="Auto-follow waterfall">Auto</button>
-          <button class="sub-mini-btn yt-sub-only" id="yt-reveal" title="Show all lines">All</button>
-          <button class="sub-mini-btn yt-sub-only" id="yt-off-m" title="Earlier 0.5s">−0.5s</button>
-          <button class="sub-mini-btn yt-sub-only" id="yt-off-p" title="Later 0.5s">+0.5s</button>
-          <span class="yt-sub-only" id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
-          <button class="sub-mini-btn yt-sub-only on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
           <button class="sub-mini-btn" id="yt-next-toggle" title="Up Next related Japanese videos">Next</button>
           <button class="sub-mini-btn" id="yt-mode-toggle" title="Switch Watch / Audio-Only Listen mode">Watch</button>
           <button class="sub-mini-btn" id="yt-subs-toggle" title="Toggle Japanese subtitles (S)">字</button>
+          <button class="icon-btn" id="yt-sub-gear" title="Subtitle & immersion settings" style="width:28px;height:28px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
       </div>
-      <div class="yt-stage-wrap">
-        <div class="yt-stage"><div id="yt-iframe-slot"></div></div>
-      </div>
-      <div class="yt-trace-wrap" id="yt-trace-wrap">
-        <div class="yt-trace-bar" id="yt-trace-bar">
-          <button class="yt-ai-btn" id="yt-ai-btn" title="Ask Kiku AI about this video">✦</button>
-          <div class="yt-ai-ask-wrap" id="yt-ai-ask-wrap">
-            <input id="yt-ai-input" type="text" placeholder="Ask about this moment or video…" autocomplete="off">
-            <button class="sub-mini-btn on" id="yt-ai-send">↵</button>
+      <div class="yt-play-body">
+        <div class="yt-play-main">
+          <div class="yt-stage-wrap">
+            <div class="yt-stage"><div id="yt-iframe-slot"></div></div>
           </div>
-          <div class="yt-trace-click" id="yt-trace-click" title="Click to expand Video synopsis">
-            <div class="yt-trace-marquee" id="yt-trace-marquee"><span class="yt-trace-line" id="yt-trace-line"></span></div>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--faint);flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+          <div class="yt-trace-wrap" id="yt-trace-wrap">
+            <div class="yt-trace-bar" id="yt-trace-bar">
+              <button class="yt-ai-btn" id="yt-ai-btn" title="Ask Mingo AI about this video">✦</button>
+              <div class="yt-ai-ask-wrap" id="yt-ai-ask-wrap">
+                <input id="yt-ai-input" type="text" placeholder="Ask Mingo about this moment or video…" autocomplete="off">
+                <button class="sub-mini-btn on" id="yt-ai-send">↵</button>
+              </div>
+              <div class="yt-trace-click" id="yt-trace-click" title="Click to expand Video synopsis">
+                <div class="yt-trace-marquee" id="yt-trace-marquee"><span class="yt-trace-line" id="yt-trace-line"></span></div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--faint);flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+            <div class="yt-trace-drawer" id="yt-trace-drawer">
+              <div class="yt-trace-drawer-in">
+                <div class="yt-trace-card" id="yt-trace-card"></div>
+              </div>
+            </div>
+            <div class="yt-ai-ans" id="yt-ai-ans" hidden></div>
+          </div>
+          <div class="yt-next-drawer" id="yt-next-drawer">
+            <div class="yt-next-drawer-in">
+              <div class="yt-next-strip" id="yt-next-strip"></div>
+            </div>
+          </div>
+          <div class="yt-waterfall-scroll" id="yt-scroll">
+            <div class="yt-waterfall-feed" id="yt-feed"></div>
           </div>
         </div>
-        <div class="yt-trace-drawer" id="yt-trace-drawer">
-          <div class="yt-trace-drawer-in">
-            <div class="yt-trace-card" id="yt-trace-card"></div>
-          </div>
-        </div>
-        <div class="yt-ai-ans" id="yt-ai-ans" hidden></div>
-      </div>
-      <div class="yt-next-drawer" id="yt-next-drawer">
-        <div class="yt-next-drawer-in">
-          <div class="yt-next-strip" id="yt-next-strip"></div>
-        </div>
-      </div>
-      <div class="yt-waterfall-scroll" id="yt-scroll">
-        <div class="yt-waterfall-feed" id="yt-feed"></div>
+        <aside class="yt-side-rail" id="yt-side-rail"></aside>
       </div>
     </div>
   </section>
@@ -1594,7 +1817,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div class="ai-shell">
       <div class="ai-msgs" id="ai-msgs"></div>
       <div class="ai-composer">
-        <input id="ai-input" type="text" placeholder="Ask Kiku about your Japanese immersion, vocab, or history…" autocomplete="off">
+        <input id="ai-input" type="text" placeholder="Ask Mingo about your Japanese immersion, vocab, or history…" autocomplete="off">
         <button class="btn-pill" id="ai-send">Send</button>
       </div>
     </div>
@@ -1647,14 +1870,10 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
         <span class="sub-head-title" id="sub-head-title"></span>
         <span class="sp"></span>
         <div class="sub-head-tools">
-          <input type="range" class="size-slider" id="sub-size" min="15" max="34" step="1" value="21" title="Font size">
           <button class="sub-mini-btn" id="sub-wordmap" title="Most common words in this media">Map</button>
-          <button class="sub-mini-btn on" id="sub-autoscroll" title="Continuous auto-scroll (pauses while you interact)">Auto</button>
-          <button class="sub-mini-btn" id="sub-reveal" title="Show all lines">All</button>
-          <button class="sub-mini-btn" id="sub-off-m" title="Earlier 0.5s">−0.5s</button>
-          <button class="sub-mini-btn" id="sub-off-p" title="Later 0.5s">+0.5s</button>
-          <span id="sub-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
-          <button class="sub-mini-btn on" id="sub-autopause" title="Pause on Shift+hover lookup">Pause</button>
+          <button class="icon-btn" id="sub-gear" title="Subtitle & immersion settings" style="width:28px;height:28px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
       </div>
       <div class="sub-scroll" id="sub-scroll">
@@ -1685,6 +1904,85 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     </div>
   </section>
 </main>
+
+<!-- Unified Floating Subtitle Settings Gear Popover (both YT & Anime) -->
+<div id="sub-gear-pop" hidden>
+  <div class="sg-sec">Typography & Timing</div>
+  <div class="sg-row">
+    <span>Font size <b id="sg-size-val" style="color:var(--muted);font-weight:500">20px</b></span>
+    <input type="range" class="size-slider" id="sg-size" min="15" max="34" step="1" value="20" style="width:116px">
+  </div>
+  <div class="sg-row">
+    <span>Subtitle sync</span>
+    <span class="sg-off-grp">
+      <button class="sub-mini-btn" id="sg-off-m">−0.5s</button>
+      <span id="sg-off-val" style="font-size:11.5px;min-width:34px;text-align:center;color:var(--muted);font-variant-numeric:tabular-nums">0.0s</span>
+      <button class="sub-mini-btn" id="sg-off-p">+0.5s</button>
+    </span>
+  </div>
+  <div class="sg-sec">Reading & Immersion</div>
+  <div class="sg-row"><span>Auto-scroll</span><button class="sw" data-pref="auto_scroll"></button></div>
+  <div class="sg-row"><span>Show all lines</span><button class="sw" data-pref="reveal_all_lines"></button></div>
+  <div class="sg-row"><span>Auto-pause on lookup</span><button class="sw" data-pref="auto_pause_lookup"></button></div>
+  <div class="sg-row"><span>T+1 Highlighting</span><button class="sw" data-pref="t1_highlight"></button></div>
+  <div class="sg-row"><span>Purple Guess Highlighting</span><button class="sw" data-pref="purple_guess"></button></div>
+  <div class="sg-row"><span>Cue Sounds</span><button class="sw" data-pref="cue_sounds"></button></div>
+  <div class="sg-row"><span>Dim past lines</span><button class="sw" data-pref="dim_past_lines"></button></div>
+  <div class="sg-row"><span>Unknown underlines</span><button class="sw" data-pref="show_unknown_underlines"></button></div>
+</div>
+
+<!-- Account Switcher & Account Creation Modal -->
+<div class="modal-bg" id="acct-modal" hidden>
+  <div class="modal ob-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0;font-size:16px">Mingo Accounts</h3>
+      <button class="icon-btn" id="acct-close" style="width:28px;height:28px">×</button>
+    </div>
+    <div class="acct-list" id="acct-list"></div>
+    <div id="acct-pin-box" hidden style="margin-bottom:14px;padding:12px;border-radius:12px;background:var(--bg1);border:1px solid var(--line2)">
+      <div style="font-size:12.5px;margin-bottom:7px;color:var(--muted)" id="acct-pin-lbl">Enter PIN</div>
+      <div class="row-inline">
+        <input id="acct-pin-in" type="password" placeholder="PIN" autocomplete="off">
+        <button class="btn-pill" id="acct-pin-go">Sign in</button>
+      </div>
+    </div>
+    <div style="padding-top:12px;border-top:1px solid var(--line)">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px">Create New Account</div>
+      <div class="row-inline" style="margin-bottom:8px">
+        <input id="reg-name" type="text" placeholder="Display name (e.g. Alex)" autocomplete="off">
+        <input id="reg-user" type="text" placeholder="Username" autocomplete="off">
+      </div>
+      <div class="row-inline" style="margin-bottom:8px">
+        <input id="reg-pin" type="password" placeholder="Optional PIN (leave blank for 1-click)" autocomplete="off">
+        <button class="btn-pill" id="reg-go">Create</button>
+      </div>
+      <div class="acct-colors" id="reg-colors">
+        <button class="acct-col on" data-col="#F59E0B" style="background:#F59E0B"></button>
+        <button class="acct-col" data-col="#F43F5E" style="background:#F43F5E"></button>
+        <button class="acct-col" data-col="#6366F1" style="background:#6366F1"></button>
+        <button class="acct-col" data-col="#10B981" style="background:#10B981"></button>
+        <button class="acct-col" data-col="#EC4899" style="background:#EC4899"></button>
+        <button class="acct-col" data-col="#0EA5E9" style="background:#0EA5E9"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4-Step Liquid Glass Onboarding Wizard -->
+<div class="modal-bg" id="onboard-modal" hidden>
+  <div class="modal ob-modal">
+    <div class="ob-dots" id="ob-dots">
+      <span class="ob-dot on"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+    </div>
+    <div id="ob-body"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px">
+      <button class="btn-sub" id="ob-back" hidden>Back</button>
+      <span class="sp"></span>
+      <button class="btn-sub" id="ob-skip">Skip</button>
+      <button class="btn-pill" id="ob-next">Continue</button>
+    </div>
+  </div>
+</div>
 
 <div id="idle-veil" aria-hidden="true"><div class="idle-stage" id="idle-stage"></div></div>
 
@@ -1999,9 +2297,66 @@ async function setWordStatus(word, status) {
   } catch (e) { toast(e.message, true); }
 }
 
+let userPrefs = {
+  t1_highlight: true,
+  purple_guess: true,
+  cue_sounds: true,
+  auto_pause_lookup: true,
+  auto_scroll: true,
+  reveal_all_lines: false,
+  dim_past_lines: true,
+  show_unknown_underlines: true,
+  sub_font_size: 20,
+  default_audio_only: false,
+  theme: 'washi'
+};
+let ytSortMode = 'smart'; // 'smart' | 'comp' | 'views' | 'short' | 'long' | 'newest'
+
+function applyUserPrefs(rebuildFeeds = false) {
+  document.body.classList.toggle('no-t1-hl', !userPrefs.t1_highlight);
+  document.body.classList.toggle('no-purple-hl', !userPrefs.purple_guess);
+  document.body.classList.toggle('no-dim-past', !userPrefs.dim_past_lines);
+  document.body.classList.toggle('no-unk-ul', !userPrefs.show_unknown_underlines);
+  subAutoPause = !!userPrefs.auto_pause_lookup;
+  subAutoScroll = !!userPrefs.auto_scroll;
+  ytAutoScroll = !!userPrefs.auto_scroll;
+  const prevRev = subRevealAll;
+  subRevealAll = !!userPrefs.reveal_all_lines;
+  ytRevealAll = !!userPrefs.reveal_all_lines;
+  const sz = Math.max(15, Math.min(34, Number(userPrefs.sub_font_size) || 20));
+  document.documentElement.style.setProperty('--sub-size', sz + 'px');
+  if ($('#v-yt-play')) $('#v-yt-play').style.setProperty('--sub-size', sz + 'px');
+  if ($('#sg-size')) $('#sg-size').value = String(sz);
+  if ($('#sg-size-val')) $('#sg-size-val').textContent = sz + 'px';
+  if ($('#s-font-size')) $('#s-font-size').value = String(sz);
+  if ($('#s-font-val')) $('#s-font-val').textContent = sz + 'px';
+  $$('.sw[data-pref]').forEach(b => {
+    b.classList.toggle('on', !!userPrefs[b.dataset.pref]);
+  });
+  if (rebuildFeeds && prevRev !== subRevealAll) {
+    if (curTab === 'subs' && subCues.length) { rebuildSubtitleFeed(); syncSubtitleToAudio(false); }
+    if (curTab === 'yt-play' && ytCues.length) { rebuildYtFeed(); syncYtSubtitles(true); }
+  }
+}
+
+let prefSaveTimer = 0;
+function persistUserPrefs() {
+  clearTimeout(prefSaveTimer);
+  prefSaveTimer = setTimeout(async () => {
+    try {
+      const res = await api('/api/config', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefs: userPrefs })
+      });
+      if (res.config) state.config = res.config;
+    } catch (e) {}
+  }, 180);
+}
+
 /* ================= Organic 浮かぶ (Surfacing Water-Droplet) Chime for T1 (i+1) ================= */
 let audioCtx = null;
 function playT1Ping() {
+  if (!userPrefs.cue_sounds) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2045,6 +2400,7 @@ function playT1Ping() {
 
 // Legendary Purple Priority Chime: delicate crystalline two-note shimmer when a flagged high-confidence word appears in the wild!
 function playPriorityChime() {
+  if (!userPrefs.cue_sounds) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2133,11 +2489,15 @@ function coverUrl(a) { return a && a.has_cover ? `/cover/${encodeURIComponent(a.
 function currentSessionSecs() { return (!sessionActive || !sessionStartedMs) ? 0 : Math.max(0, Math.floor((Date.now() - sessionStartedMs) / 1000)); }
 
 function applySubFontSize(px) {
-  const v = Math.max(15, Math.min(34, Number(px) || 21));
+  const v = Math.max(15, Math.min(34, Number(px) || 20));
   $('#v-subs').style.setProperty('--sub-size', v + 'px');
   $('#idle-veil').style.setProperty('--sub-size', v + 'px');
-  $('#sub-size').value = String(v);
-  try { localStorage.setItem('kiku.subSize', String(v)); } catch (e) {}
+  if ($('#v-yt-play')) $('#v-yt-play').style.setProperty('--sub-size', v + 'px');
+  if ($('#sg-size')) $('#sg-size').value = String(v);
+  if ($('#sg-size-val')) $('#sg-size-val').textContent = v + 'px';
+  if ($('#s-font-size')) $('#s-font-size').value = String(v);
+  if ($('#s-font-val')) $('#s-font-val').textContent = v + 'px';
+  try { localStorage.setItem('mingo.subSize', String(v)); } catch (e) {}
 }
 
 async function loadSubtitlesForTrack(animeId, episodeId) {
@@ -2383,9 +2743,9 @@ function createSubRowEl(cue, idx, submerged) {
 function updateSubHeadUI() {
   $('#d-sub-btn').classList.toggle('on', curTab === 'subs');
   $('#sub-head-title').textContent = currentTrack ? currentTrack.ep.title : '';
-  $('#sub-off-val').textContent = subOffset ? `${subOffset > 0 ? '+' : ''}${subOffset.toFixed(1)}s` : '';
-  $('#sub-reveal').classList.toggle('on', subRevealAll);
-  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
+  if (curTab === 'subs' && $('#sg-off-val')) {
+    $('#sg-off-val').textContent = `${subOffset > 0 ? '+' : ''}${subOffset.toFixed(1)}s`;
+  }
 }
 
 // Called ONLY when track changes, Reveal All toggles, or generating state changes — NEVER on tick or hover!
@@ -3392,27 +3752,45 @@ function renderDock() {
 
 function syncSettingsUI() {
   const c = state.config || {};
-  $('#s-tok-hint').textContent = c.has_toggl_token ? c.toggl_token_hint : '';
-  $('#s-gem-hint').textContent = c.has_gemini_key ? 'saved' : '';
-  const gcliOk = !!c.gemini_cli_signed_in;
-  const gcliInst = !!c.gemini_cli_installed;
-  $('#s-gcli-status').textContent = gcliOk ? 'connected' : (gcliInst ? 'ready' : 'run setup.ps1');
-  $('#s-gcli-login').textContent = gcliOk ? 'Google connected (Re-sign in)' : 'Sign in with Google';
-  const oauthOn = !!c.google_oauth_connected;
-  $('#s-oauth-status').textContent = oauthOn ? 'connected' : '';
-  $('#s-oauth-setup').hidden = oauthOn;
-  $('#s-oauth-connected').hidden = !oauthOn;
-  $('#s-oauth-email').textContent = c.google_oauth_email || 'Google OAuth connected';
-  if (c.google_oauth_client_id && !$('#s-oauth-cid').value) $('#s-oauth-cid').value = c.google_oauth_client_id;
-  if (c.cloud_sync_url && !$('#s-cloud-url').value) $('#s-cloud-url').value = c.cloud_sync_url;
-  $('#s-cloud-status').textContent = c.cloud_sync_url ? (c.has_cloud_sync_secret ? 'configured' : 'no secret') : '';
-  $('#s-tags').value = (c.toggl_tags || []).join(', ');
-  $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
-  $('#s-auto').checked = c.toggl_auto_sync !== false;
-  $('#s-min').value = c.toggl_min_seconds ?? 5;
-  $('#s-goal').value = c.daily_goal_minutes ?? 60;
-  if (!togglWorkspaces.length && c.toggl_workspace_id) $('#s-ws').innerHTML = `<option value="${c.toggl_workspace_id}">${esc(c.toggl_workspace_name || ('Workspace ' + c.toggl_workspace_id))}</option>`;
-  if (!togglProjects.length && c.toggl_project_id) $('#s-proj').innerHTML = `<option value="">None</option><option value="${c.toggl_project_id}" selected>${esc(c.toggl_project_name || ('Project ' + c.toggl_project_id))}</option>`;
+  const tmode = c.tracking_mode === 'toggl' ? 'toggl' : 'builtin';
+  $$('#s-track-seg .seg-btn').forEach(b => b.classList.toggle('on', b.dataset.trackMode === tmode));
+  if ($('#s-builtin-note')) $('#s-builtin-note').hidden = tmode === 'toggl';
+  if ($('#s-toggl-fields')) $('#s-toggl-fields').hidden = tmode !== 'toggl';
+
+  const hasToggl = !!c.has_toggl_token;
+  if ($('#vdot')) $('#vdot').classList.toggle('ok', tmode === 'builtin' || hasToggl);
+  if ($('#s-tok-hint')) $('#s-tok-hint').textContent = hasToggl ? c.toggl_token_hint : '';
+  if ($('#s-gem-hint')) $('#s-gem-hint').textContent = c.has_gemini_key ? 'active (universal)' : 'add key';
+  if (c.cloud_sync_url && $('#s-cloud-url') && !$('#s-cloud-url').value) $('#s-cloud-url').value = c.cloud_sync_url;
+  if ($('#s-cloud-status')) $('#s-cloud-status').textContent = c.cloud_sync_url ? (c.has_cloud_sync_secret ? 'configured' : 'no secret') : '';
+  if ($('#s-tags')) $('#s-tags').value = (c.toggl_tags || []).join(', ');
+  if ($('#s-tag-anime')) $('#s-tag-anime').checked = c.toggl_tag_anime !== false;
+  if ($('#s-auto')) $('#s-auto').checked = c.toggl_auto_sync !== false;
+  if ($('#s-min')) $('#s-min').value = c.toggl_min_seconds ?? 5;
+  if ($('#s-goal')) $('#s-goal').value = c.daily_goal_minutes ?? 60;
+  if (!togglWorkspaces.length && c.toggl_workspace_id && $('#s-ws')) $('#s-ws').innerHTML = `<option value="${c.toggl_workspace_id}">${esc(c.toggl_workspace_name || ('Workspace ' + c.toggl_workspace_id))}</option>`;
+  if (!togglProjects.length && c.toggl_project_id && $('#s-proj')) $('#s-proj').innerHTML = `<option value="">None</option><option value="${c.toggl_project_id}" selected>${esc(c.toggl_project_name || ('Project ' + c.toggl_project_id))}</option>`;
+
+  const acc = state.active_account;
+  if (acc) {
+    const init = (acc.display_name || acc.username || 'M').trim()[0].toUpperCase();
+    const pill = $('#b-acct');
+    if (pill) {
+      pill.textContent = init;
+      pill.style.background = acc.avatar_color || '#F59E0B';
+      pill.title = `${acc.display_name} (@${acc.username}) · Switch account`;
+    }
+    const card = $('#s-acct-card');
+    if (card) {
+      card.innerHTML = `
+        <span class="acct-av" style="background:${esc(acc.avatar_color || '#F59E0B')}">${esc(init)}</span>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:13.5px;font-weight:600;color:var(--text)">${esc(acc.display_name)}</div>
+          <div style="font-size:11.5px;color:var(--faint)">@${esc(acc.username)} · ${vocab.known.size} known words</div>
+        </div>`;
+    }
+  }
+  applyUserPrefs(false);
 }
 
 function populateWsProj(workspaces, projects, wid, pid) {
@@ -3809,8 +4187,16 @@ function renderAll() {
 async function loadState() {
   state = await api('/api/state');
   loadVocabFromState(state.vocab);
+  if (state.config?.prefs) {
+    userPrefs = { ...userPrefs, ...state.config.prefs };
+    if (userPrefs.theme) applyTheme(userPrefs.theme);
+  }
+  applyUserPrefs(false);
   syncSettingsUI();
   renderAll();
+  if (state.config && state.config.onboarded === false) {
+    openOnboardingWizard();
+  }
 }
 
 $('#t-anime').onclick = () => setTab('anime');
@@ -4518,6 +4904,25 @@ const YT_BUILTIN_TABS = [
   { id: 'saved', label: 'Saved' }
 ];
 
+function sortYtItems(items) {
+  const arr = (items || []).slice();
+  if (ytSortMode === 'comp') {
+    arr.sort((a, b) => (b.known_pct || 0) - (a.known_pct || 0) || (b.score || 0) - (a.score || 0));
+  } else if (ytSortMode === 'views') {
+    arr.sort((a, b) => (b.view_count || 0) - (a.view_count || 0) || (b.score || 0) - (a.score || 0));
+  } else if (ytSortMode === 'short') {
+    arr.sort((a, b) => {
+      const da = a.duration_secs || 999999, db = b.duration_secs || 999999;
+      return da - db || (b.score || 0) - (a.score || 0);
+    });
+  } else if (ytSortMode === 'long') {
+    arr.sort((a, b) => (b.duration_secs || 0) - (a.duration_secs || 0) || (b.score || 0) - (a.score || 0));
+  } else if (ytSortMode === 'newest') {
+    arr.sort((a, b) => (b.published || '').localeCompare(a.published || ''));
+  }
+  return arr;
+}
+
 function renderYtPills() {
   const custom = state.config?.yt_tabs || [];
   const customHtml = custom.map(t => `
@@ -4528,7 +4933,17 @@ function renderYtPills() {
   const builtHtml = YT_BUILTIN_TABS.map(t =>
     `<button class="yt-pill${!ytChannelView && ytSearchResults === null && ytCat === t.id ? ' on' : ''}" data-yt-cat="${t.id}">${t.label}</button>`
   ).join('');
-  $('#yt-pills').innerHTML = builtHtml + customHtml + `<span class="sp"></span><button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>`;
+  const sortHtml = `
+    <select class="yt-sort-sel" id="yt-sort" title="Sort videos">
+      <option value="smart"${ytSortMode === 'smart' ? ' selected' : ''}>Recommended</option>
+      <option value="comp"${ytSortMode === 'comp' ? ' selected' : ''}>Comprehension</option>
+      <option value="views"${ytSortMode === 'views' ? ' selected' : ''}>Most Viewed</option>
+      <option value="short"${ytSortMode === 'short' ? ' selected' : ''}>Shortest</option>
+      <option value="long"${ytSortMode === 'long' ? ' selected' : ''}>Longest</option>
+      <option value="newest"${ytSortMode === 'newest' ? ' selected' : ''}>Newest</option>
+    </select>`;
+  $('#yt-pills').innerHTML = builtHtml + customHtml + `<span class="sp"></span>` + sortHtml + `<button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>`;
+  $('#yt-sort').onchange = e => { ytSortMode = e.target.value; renderYtGrid(); };
   $('#yt-feed-refresh').onclick = () => {
     if (ytChannelView) {
       openYtChannel(ytChannelView.id, ytChannelView.name, ytChannelView.pfp);
@@ -4637,8 +5052,9 @@ function renderYtGrid() {
     if (ytChannelView.loading && !ytChannelView.items.length) {
       $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ${esc(ytChannelView.name)}…</div>`;
     } else {
-      $('#yt-grid').innerHTML = ytChannelView.items.length
-        ? ytChannelView.items.map(v => ytCardHtml(v, 'data-yt-ch-item', savedIds)).join('')
+      const sorted = sortYtItems(ytChannelView.items);
+      $('#yt-grid').innerHTML = sorted.length
+        ? sorted.map(v => ytCardHtml(v, 'data-yt-ch-item', savedIds)).join('')
         : `<div class="sub-empty-box" style="grid-column:1/-1">No videos found</div>`;
     }
     renderYtSentinel();
@@ -4651,8 +5067,9 @@ function renderYtGrid() {
     $('#yt-search-shell').classList.add('has-drop');
     $('#yt-search-trace').hidden = false;
     $('#yt-save-drop-lbl').textContent = 'Save tab?';
-    $('#yt-grid').innerHTML = ytSearchResults.length
-      ? ytSearchResults.map(v => ytCardHtml(v, 'data-yt-search-item', savedIds)).join('')
+    const sorted = sortYtItems(ytSearchResults);
+    $('#yt-grid').innerHTML = sorted.length
+      ? sorted.map(v => ytCardHtml(v, 'data-yt-search-item', savedIds)).join('')
       : `<div class="sub-empty-box" style="grid-column:1/-1">No results found</div>`;
     renderYtSentinel();
     return;
@@ -4678,7 +5095,7 @@ function renderYtGrid() {
     const tid = ytCat.slice(7);
     if (!ytCustomTabCache.has(tid)) { loadYtCustomTab(tid); return; }
     const meta = ytCustomTabCache.get(tid);
-    const list = meta?.items || [];
+    const list = sortYtItems(meta?.items || []);
     if (meta?.loading && !list.length) {
       $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading…</div>`;
     } else {
@@ -4696,29 +5113,54 @@ function renderYtGrid() {
     return;
   }
 
-  $('#yt-grid').innerHTML = slot.items.map(v => ytCardHtml(v, 'data-yt-feed', savedIds)).join('');
+  $('#yt-grid').innerHTML = sortYtItems(slot.items).map(v => ytCardHtml(v, 'data-yt-feed', savedIds)).join('');
   renderYtSentinel();
 }
 
 function renderYtNextStrip() {
   const drawer = $('#yt-next-drawer');
   const strip = $('#yt-next-strip');
+  const rail = $('#yt-side-rail');
   const btn = $('#yt-next-toggle');
   if (btn) btn.classList.toggle('on', ytNextOpen);
-  if (!drawer || !strip) return;
-  drawer.classList.toggle('open', ytNextOpen && ytRelatedItems.length > 0);
-  if (!ytRelatedItems.length) { strip.innerHTML = ''; return; }
-  strip.innerHTML = ytRelatedItems.slice(0, 20).map(v => {
-    const tierCls = v.tier ? v.tier.toLowerCase() : '';
-    const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}</span>` : '';
-    const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
-    return `
-      <div class="yt-next-card" data-yt-rel="${esc(v.id)}" title="${esc(v.title)}">
-        <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg" alt="" loading="lazy">
-        ${badge}${dur}
-        <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
-      </div>`;
-  }).join('');
+  if (drawer) drawer.classList.toggle('open', ytNextOpen && ytRelatedItems.length > 0);
+  if (!ytRelatedItems.length) {
+    if (strip) strip.innerHTML = '';
+    if (rail) rail.innerHTML = `<div class="yt-rail-hd">Recommended</div><div style="font-size:12px;color:var(--faint);padding:8px 2px">Finding Japanese recommendations…</div>`;
+    return;
+  }
+  if (strip) {
+    strip.innerHTML = ytRelatedItems.slice(0, 20).map(v => {
+      const tierCls = v.tier ? v.tier.toLowerCase() : '';
+      const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}</span>` : '';
+      const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
+      return `
+        <div class="yt-next-card" data-yt-rel="${esc(v.id)}" title="${esc(v.title)}">
+          <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg" alt="" loading="lazy">
+          ${badge}${dur}
+          <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
+        </div>`;
+    }).join('');
+  }
+  if (rail) {
+    rail.innerHTML = `<div class="yt-rail-hd">Recommended</div>` + ytRelatedItems.slice(0, 24).map(v => {
+      const tierCls = v.tier ? v.tier.toLowerCase() : '';
+      const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>` : '';
+      const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
+      const pfp = v.channel_pfp ? `<img class="yt-card-pfp" src="${esc(v.channel_pfp)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+      return `
+        <div class="yt-rail-card" data-yt-rel="${esc(v.id)}" title="${esc(v.title)}">
+          <div class="yt-rail-thumb">
+            <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/mqdefault.jpg" alt="" loading="lazy">
+            ${badge}${dur}
+          </div>
+          <div class="yt-rail-meta">
+            <div class="yt-rail-title">${esc(v.title)}</div>
+            <div class="yt-rail-ch">${pfp}<span>${esc(v.channel || '')}</span></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
 }
 
 async function loadRelatedForYt(videoId) {
@@ -4746,10 +5188,9 @@ function updateYtHeadUI() {
     modeBtn.classList.toggle('on', ytAudioOnly);
   }
   $('#yt-play-title').textContent = ytCurrentVideo ? ytCurrentVideo.title : '';
-  $('#yt-off-val').textContent = ytOffset ? `${ytOffset > 0 ? '+' : ''}${ytOffset.toFixed(1)}s` : '';
-  $('#yt-reveal').classList.toggle('on', ytRevealAll);
-  $('#yt-autoscroll').classList.toggle('on', ytAutoScroll);
-  $('#yt-autopause').classList.toggle('on', subAutoPause);
+  if (curTab === 'yt-play' && $('#sg-off-val')) {
+    $('#sg-off-val').textContent = `${ytOffset > 0 ? '+' : ''}${ytOffset.toFixed(1)}s`;
+  }
 }
 function toggleYtSubs() {
   ytSubsOn = !ytSubsOn;
@@ -4879,6 +5320,7 @@ async function openYtVideo(video, prefetchedCues = null) {
   ytMaxSeen = -1;
   ytOffset = 0;
   ytSubsOn = true;
+  ytAudioOnly = !!userPrefs.default_audio_only;
   ytUserAtTop = true;
   ytLastProgSaveMs = Date.now();
   synData = null; synBeatIdx = -1; setSynopsisStage(0);
@@ -5065,7 +5507,7 @@ $('#yt-grid').addEventListener('click', async e => {
   }
 });
 $('#yt-next-toggle').onclick = () => { ytNextOpen = !ytNextOpen; renderYtNextStrip(); };
-$('#yt-next-strip').addEventListener('click', e => {
+function handleRelatedCardClick(e) {
   const card = e.target.closest('[data-yt-rel]');
   if (!card) return;
   const item = ytRelatedItems.find(x => x.id === card.dataset.ytRel);
@@ -5073,22 +5515,65 @@ $('#yt-next-strip').addEventListener('click', e => {
     ytNextOpen = false;
     openYtVideo({ id: item.id, title: item.title, channel: item.channel, channel_id: item.channel_id, channel_pfp: item.channel_pfp, has_subs: false });
   }
-});
+}
+$('#yt-next-strip').addEventListener('click', handleRelatedCardClick);
+$('#yt-side-rail').addEventListener('click', handleRelatedCardClick);
 if ('IntersectionObserver' in window) {
   const ytIo = new IntersectionObserver(entries => {
     if (curTab === 'yt' && entries.some(en => en.isIntersecting)) loadMoreYt();
   }, { rootMargin: '260px 0px' });
   ytIo.observe($('#yt-sentinel'));
 }
-$('#yt-back').onclick = () => { closeDictPop(false); setTab('yt'); };
+$('#yt-back').onclick = () => { closeDictPop(false); $('#sub-gear-pop').hidden = true; setTab('yt'); };
 $('#yt-mode-toggle').onclick = () => { ytAudioOnly = !ytAudioOnly; if (ytAudioOnly) ytSubsOn = true; updateYtHeadUI(); };
 $('#yt-subs-toggle').onclick = toggleYtSubs;
-$('#yt-size').oninput = e => { $('#v-yt-play').style.setProperty('--sub-size', e.target.value + 'px'); };
-$('#yt-autoscroll').onclick = () => { ytAutoScroll = !ytAutoScroll; ytUserAtTop = true; updateYtHeadUI(); if (ytAutoScroll) applyYtCueStates(true); };
-$('#yt-reveal').onclick = () => { ytRevealAll = !ytRevealAll; rebuildYtFeed(); syncYtSubtitles(true); };
-$('#yt-off-m').onclick = () => { ytOffset = Math.round((ytOffset - 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); };
-$('#yt-off-p').onclick = () => { ytOffset = Math.round((ytOffset + 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); };
-$('#yt-autopause').onclick = () => { subAutoPause = !subAutoPause; updateYtHeadUI(); updateSubHeadUI(); };
+
+// Unified Subtitle Settings Gear Popover (both YT & Anime)
+function toggleSubGearPop(anchorEl) {
+  const pop = $('#sub-gear-pop');
+  pop.hidden = !pop.hidden;
+  if (!pop.hidden) {
+    applyUserPrefs(false);
+    const off = curTab === 'yt-play' ? ytOffset : subOffset;
+    $('#sg-off-val').textContent = `${off > 0 ? '+' : ''}${off.toFixed(1)}s`;
+  }
+}
+$('#yt-sub-gear').onclick = e => { e.stopPropagation(); toggleSubGearPop(e.currentTarget); };
+$('#sub-gear').onclick = e => { e.stopPropagation(); toggleSubGearPop(e.currentTarget); };
+document.addEventListener('click', e => {
+  const gp = $('#sub-gear-pop');
+  if (gp && !gp.hidden && !gp.contains(e.target) && !e.target.closest('#yt-sub-gear,#sub-gear')) gp.hidden = true;
+});
+$('#sg-size').oninput = e => {
+  userPrefs.sub_font_size = Number(e.target.value) || 20;
+  applyUserPrefs(false);
+  persistUserPrefs();
+};
+$('#s-font-size').oninput = e => {
+  userPrefs.sub_font_size = Number(e.target.value) || 20;
+  applyUserPrefs(false);
+  persistUserPrefs();
+};
+$('#sg-off-m').onclick = () => {
+  if (curTab === 'yt-play') { ytOffset = Math.round((ytOffset - 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); }
+  else { subOffset = Math.round((subOffset - 0.5) * 10) / 10; updateSubHeadUI(); syncSubtitleToAudio(true); }
+};
+$('#sg-off-p').onclick = () => {
+  if (curTab === 'yt-play') { ytOffset = Math.round((ytOffset + 0.5) * 10) / 10; updateYtHeadUI(); syncYtSubtitles(true); }
+  else { subOffset = Math.round((subOffset + 0.5) * 10) / 10; updateSubHeadUI(); syncSubtitleToAudio(true); }
+};
+document.addEventListener('click', e => {
+  const sw = e.target.closest('.sw[data-pref]');
+  if (!sw) return;
+  const k = sw.dataset.pref;
+  userPrefs[k] = !userPrefs[k];
+  applyUserPrefs(k === 'reveal_all_lines');
+  if (k === 'auto_scroll' && userPrefs.auto_scroll) {
+    if (curTab === 'subs') scrollSubsToBottom(true);
+    if (curTab === 'yt-play') { ytUserAtTop = true; applyYtCueStates(true); }
+  }
+  persistUserPrefs();
+});
 $('#yt-scroll').addEventListener('scroll', () => {
   const top = $('#yt-scroll').scrollTop;
   if (top > 100) ytUserAtTop = false;
@@ -5219,26 +5704,8 @@ $('#pl-new-name').addEventListener('keydown', e => { if (e.key === 'Enter') doCr
 
 // Subtitles, Smart Auto-Scroll, Shift+Hover Popout Dictionary & Instant Word Tagging
 $('#d-sub-btn').onclick = toggleSubsTab;
-$('#sub-back').onclick = () => { closeDictPop(false); setTab(lastNonSubTab); };
-$('#sub-size').oninput = e => applySubFontSize(e.target.value);
+$('#sub-back').onclick = () => { closeDictPop(false); $('#sub-gear-pop').hidden = true; setTab(lastNonSubTab); };
 $('#sub-wordmap').onclick = () => { if (currentTrack) openWordMap(currentTrack.anime.id, currentTrack.ep.id); };
-$('#sub-reveal').onclick = () => { subRevealAll = !subRevealAll; rebuildSubtitleFeed(); syncSubtitleToAudio(false); };
-$('#sub-autoscroll').onclick = () => {
-  subAutoScroll = !subAutoScroll;
-  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
-  try { localStorage.setItem('kiku.autoScroll', subAutoScroll ? '1' : '0'); } catch (e) {}
-  if (subAutoScroll) {
-    // Immediately engage harness & snap smoothly to current subtitle!
-    scrollSubsToBottom(true);
-  } else if (subCamRaf) {
-    cancelAnimationFrame(subCamRaf);
-    subCamRaf = 0;
-    subCamLastMs = 0;
-  }
-};
-$('#sub-autopause').onclick = () => { subAutoPause = !subAutoPause; $('#sub-autopause').classList.toggle('on', subAutoPause); };
-$('#sub-off-m').onclick = () => { subOffset -= 0.5; updateSubHeadUI(); syncSubtitleToAudio(true); };
-$('#sub-off-p').onclick = () => { subOffset += 0.5; updateSubHeadUI(); syncSubtitleToAudio(true); };
 $('#sub-jump-bottom').onclick = () => scrollSubsToBottom(true);
 
 // Harness scroll model:
@@ -5468,10 +5935,28 @@ $('#am-ok').onclick = async () => {
   $('#am-title').value = ''; $('#am-jp').value = ''; $('#add-modal').hidden = true; renderAnimeView();
 };
 
-// Settings popover
+// Production Settings Popover (4 Tabs + Built-in vs Toggl Tracking + Accounts + Onboarding)
+$('#brand-home').onclick = () => setTab('yt');
 $('#b-set').onclick = () => { const p = $('#pop'); p.hidden = !p.hidden; if (!p.hidden) syncSettingsUI(); };
 document.addEventListener('click', e => {
   const p = $('#pop'); if (!p.hidden && !p.contains(e.target) && !e.target.closest('#b-set')) p.hidden = true;
+});
+$('#set-tabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-set-tab]');
+  if (!b) return;
+  const t = b.dataset.setTab;
+  $$('#set-tabs .set-tab').forEach(x => x.classList.toggle('on', x === b));
+  $$('#pop [data-set-pane]').forEach(x => { x.hidden = x.dataset.setPane !== t; });
+});
+let selectedTrackMode = 'builtin';
+$('#s-track-seg').addEventListener('click', e => {
+  const b = e.target.closest('[data-track-mode]');
+  if (!b) return;
+  selectedTrackMode = b.dataset.trackMode;
+  state.config.tracking_mode = selectedTrackMode;
+  $$('#s-track-seg .seg-btn').forEach(x => x.classList.toggle('on', x === b));
+  $('#s-builtin-note').hidden = selectedTrackMode === 'toggl';
+  $('#s-toggl-fields').hidden = selectedTrackMode !== 'toggl';
 });
 $('#s-connect').onclick = async () => {
   const btn = $('#s-connect'); btn.disabled = true;
@@ -5492,9 +5977,12 @@ $('#s-ws').onchange = async () => {
 };
 $('#s-save').onclick = async () => {
   const ws = $('#s-ws'), pr = $('#s-proj'), wid = ws.value ? Number(ws.value) : null, pid = pr.value ? Number(pr.value) : null;
+  const activeTm = ($('#s-track-seg .seg-btn.on')?.dataset.trackMode) || 'builtin';
   const res = await api('/api/config', {
     method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      tracking_mode: activeTm,
+      prefs: userPrefs,
       toggl_api_token: $('#s-token').value.trim() || null,
       gemini_api_key: $('#s-gemini').value.trim() || null,
       cloud_sync_url: $('#s-cloud-url').value.trim(),
@@ -5506,32 +5994,211 @@ $('#s-save').onclick = async () => {
       toggl_min_seconds: Number($('#s-min').value) || 5, daily_goal_minutes: Number($('#s-goal').value) || 60
     })
   });
-  state.config = res.config; $('#s-token').value = ''; $('#s-gemini').value = ''; $('#s-cloud-sec').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Saved');
+  state.config = res.config; $('#s-token').value = ''; $('#s-gemini').value = ''; $('#s-cloud-sec').value = ''; syncSettingsUI(); updateGoalBar(); $('#pop').hidden = true; toast('Settings saved');
 };
 $('#s-open-root').onclick = () => api('/api/open-media-root', { method: 'POST' });
 $('#s-rescan').onclick = async () => { state.library = (await api('/api/rescan', { method: 'POST' })).library; renderAll(); toast('Rescanned'); };
+$('#s-switch-acct').onclick = () => { $('#pop').hidden = true; openAccountsModal(); };
+$('#s-rerun-ob').onclick = () => { $('#pop').hidden = true; openOnboardingWizard(); };
 
-// 1-click Sign in with Google via bundled @google/gemini-cli (uses personal Google / Google AI Plus quota)
-$('#s-gcli-login').onclick = async () => {
-  const btn = $('#s-gcli-login'); btn.disabled = true;
+// Account Switcher & Account Creation Modal
+let pendingLoginAcctId = null;
+let regAvatarColor = '#F59E0B';
+function openAccountsModal() {
+  pendingLoginAcctId = null;
+  $('#acct-pin-box').hidden = true;
+  $('#acct-pin-in').value = '';
+  const list = state.accounts || [];
+  const curId = state.active_account?.id || '';
+  $('#acct-list').innerHTML = list.map(a => {
+    const init = (a.display_name || a.username || 'M').trim()[0].toUpperCase();
+    return `
+      <div class="acct-row${a.id === curId ? ' active' : ''}" data-pick-acct="${esc(a.id)}">
+        <span class="acct-av" style="background:${esc(a.avatar_color || '#F59E0B')}">${esc(init)}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:600;color:var(--text)">${esc(a.display_name)}</div>
+          <div style="font-size:11.5px;color:var(--faint)">@${esc(a.username)}${a.has_pin ? ' · PIN protected' : ''}</div>
+        </div>
+        ${a.id === curId ? `<span style="font-size:11px;color:var(--acc2);font-weight:600">Active</span>` : `<span style="font-size:11.5px;color:var(--muted)">Switch →</span>`}
+      </div>`;
+  }).join('');
+  $('#acct-modal').hidden = false;
+}
+$('#b-acct').onclick = openAccountsModal;
+$('#acct-close').onclick = () => { $('#acct-modal').hidden = true; };
+$('#acct-modal').addEventListener('click', e => { if (e.target === $('#acct-modal')) $('#acct-modal').hidden = true; });
+$('#reg-colors').addEventListener('click', e => {
+  const c = e.target.closest('[data-col]');
+  if (!c) return;
+  regAvatarColor = c.dataset.col;
+  $$('#reg-colors .acct-col').forEach(x => x.classList.toggle('on', x === c));
+});
+$('#reg-name').addEventListener('input', e => {
+  if (!$('#reg-user').dataset.edited) {
+    $('#reg-user').value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 20);
+  }
+});
+$('#reg-user').addEventListener('input', () => { $('#reg-user').dataset.edited = '1'; });
+async function finishAccountSwitch(msg) {
+  $('#acct-modal').hidden = true;
+  ytCatFeeds.clear();
+  ytCustomTabCache.clear();
+  ytSearchResults = null;
+  ytChannelView = null;
+  aiCalLoaded = false;
+  aiMessages = [];
+  await loadState();
+  renderAiMessages();
+  toast(msg);
+}
+$('#acct-list').addEventListener('click', async e => {
+  const row = e.target.closest('[data-pick-acct]');
+  if (!row) return;
+  const id = row.dataset.pickAcct;
+  if (id === state.active_account?.id) { $('#acct-modal').hidden = true; return; }
+  const acc = (state.accounts || []).find(a => a.id === id);
+  if (acc?.has_pin) {
+    pendingLoginAcctId = id;
+    $('#acct-pin-lbl').textContent = `Enter PIN for ${acc.display_name}`;
+    $('#acct-pin-box').hidden = false;
+    $('#acct-pin-in').value = '';
+    $('#acct-pin-in').focus();
+    return;
+  }
   try {
-    await api('/api/ai/gemini-cli/login', { method: 'POST' });
-    toast('Choose "Login with Google" in the sign-in window');
-    const poll = setInterval(async () => {
-      try {
-        const st = await api('/api/state');
-        if (st.config?.gemini_cli_signed_in) {
-          clearInterval(poll);
-          state.config = st.config;
-          syncSettingsUI();
-          toast('Google AI connected');
-        }
-      } catch (e) {}
-    }, 3000);
-    setTimeout(() => clearInterval(poll), 180000);
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
+    await api('/api/accounts/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ account_id: id }) });
+    await finishAccountSwitch(`Switched to ${acc?.display_name || 'account'}`);
+  } catch (err) { toast(err.message, true); }
+});
+$('#acct-pin-go').onclick = async () => {
+  if (!pendingLoginAcctId) return;
+  try {
+    await api('/api/accounts/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ account_id: pendingLoginAcctId, pin: $('#acct-pin-in').value }) });
+    await finishAccountSwitch('Signed in');
+  } catch (err) { toast(err.message, true); }
 };
+$('#reg-go').onclick = async () => {
+  const display_name = $('#reg-name').value.trim();
+  const username = $('#reg-user').value.trim() || display_name.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const pin = $('#reg-pin').value.trim();
+  if (!display_name) { toast('Enter a display name', true); return; }
+  try {
+    await api('/api/accounts/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name, username, pin, avatar_color: regAvatarColor })
+    });
+    $('#reg-name').value = ''; $('#reg-user').value = ''; $('#reg-user').dataset.edited = ''; $('#reg-pin').value = '';
+    await finishAccountSwitch(`Welcome to Mingo, ${display_name}!`);
+  } catch (err) { toast(err.message, true); }
+};
+
+// 4-Step Liquid Glass Onboarding Wizard
+const OB_INTERESTS = ['Gaming', 'Vlogs', 'Podcasts', 'Tech', 'Cooking', 'Horror Games', 'Anime', 'Travel', 'Science', 'News', 'Comedy', 'Music'];
+let obStep = 0;
+let obData = { theme: 'washi', level: 'beginner', tracking_mode: 'builtin', daily_goal_minutes: 45, interests: ['Vlogs', 'Podcasts', 'Gaming'] };
+function openOnboardingWizard() {
+  obStep = 0;
+  obData = {
+    theme: userPrefs.theme || 'washi',
+    level: 'beginner',
+    tracking_mode: state.config?.tracking_mode || 'builtin',
+    daily_goal_minutes: state.config?.daily_goal_minutes || 45,
+    interests: ['Vlogs', 'Podcasts', 'Gaming']
+  };
+  renderOnboardingStep();
+  $('#onboard-modal').hidden = false;
+}
+function renderOnboardingStep() {
+  $$('#ob-dots .ob-dot').forEach((d, idx) => d.classList.toggle('on', idx === obStep));
+  $('#ob-back').hidden = obStep === 0;
+  $('#ob-next').textContent = obStep === 3 ? 'Start Immersing' : 'Continue';
+  const body = $('#ob-body');
+  const name = state.active_account?.display_name || 'there';
+  if (obStep === 0) {
+    body.innerHTML = `
+      <div class="ob-head">
+        <svg width="46" height="46" viewBox="0 0 64 64" style="filter:drop-shadow(0 6px 18px rgba(251,146,60,.34))">
+          <defs><linearGradient id="ob-mg" x1="18%" y1="10%" x2="84%" y2="92%"><stop offset="0%" stop-color="#FEF08A"/><stop offset="48%" stop-color="#FB923C"/><stop offset="100%" stop-color="#F43F5E"/></linearGradient><linearGradient id="ob-lf" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6EE7B7"/><stop offset="100%" stop-color="#10B981"/></linearGradient></defs>
+          <path d="M35 15c7-6 15-7 17-3-3 5-9 8-16 6z" fill="url(#ob-lf)"/>
+          <path d="M34 15c12 1 19 12 17 26-2 13-13 19-24 17-10-2-16-10-14-21 2-12 11-23 21-22z" fill="url(#ob-mg)" stroke="rgba(255,255,255,0.75)" stroke-width="2.2"/>
+          <path d="M25 22c-5 5-7 13-6 19 2-7 6-13 12-16-2-2-4-3-6-3z" fill="rgba(255,255,255,.55)"/>
+        </svg>
+        <h2>Welcome to Mingo, ${esc(name)}</h2>
+        <p>Your personal Japanese immersion desk. Pick your visual look to get started.</p>
+      </div>
+      <div class="ob-grid">
+        ${[['washi','Washi Paper','Warm tactile light'],['sumi','Midnight Ink','Crisp dark slate'],['split-flame','Split Flame','Violet & coral glow'],['matcha','Kyoto Matcha','Deep forest calm']].map(([id,lbl,sub]) =>
+          `<button class="ob-opt${obData.theme === id ? ' on' : ''}" data-ob-theme="${id}"><strong>${lbl}</strong><span>${sub}</span></button>`
+        ).join('')}
+      </div>`;
+  } else if (obStep === 1) {
+    body.innerHTML = `
+      <div class="ob-head">
+        <h2>Your Japanese Level</h2>
+        <p>Mingo calibrates T+1 sentence highlighting and video recommendations around what you already know.</p>
+      </div>
+      <div class="ob-grid">
+        ${[['starter','Just Starting','Fresh slate · build from zero'],['n4','Beginner (N5–N4)','Seed ~95 everyday core words'],['intermediate','Intermediate (N3–N2)','Seed ~200 core & daily words'],['advanced','Advanced (N1+)','Seed core + focus on native nuance']].map(([id,lbl,sub]) =>
+          `<button class="ob-opt${obData.level === id ? ' on' : ''}" data-ob-lvl="${id}"><strong>${lbl}</strong><span>${sub}</span></button>`
+        ).join('')}
+      </div>`;
+  } else if (obStep === 2) {
+    body.innerHTML = `
+      <div class="ob-head">
+        <h2>Time Tracking</h2>
+        <p>Track immersion streaks and watch stats natively inside Mingo, or sync with Toggl Track.</p>
+      </div>
+      <div class="ob-grid">
+        <button class="ob-opt${obData.tracking_mode === 'builtin' ? ' on' : ''}" data-ob-tm="builtin"><strong>Built-in Mingo</strong><span>Zero setup · streaks, daily goal & word stats</span></button>
+        <button class="ob-opt${obData.tracking_mode === 'toggl' ? ' on' : ''}" data-ob-tm="toggl"><strong>Toggl Track</strong><span>Sync sessions with your Toggl workspace</span></button>
+      </div>
+      <div class="field" style="max-width:220px;margin:0 auto 6px">
+        <label style="text-align:center">Daily immersion goal (minutes)</label>
+        <input id="ob-goal" type="number" min="5" max="480" value="${obData.daily_goal_minutes}" style="text-align:center">
+      </div>`;
+    $('#ob-goal').oninput = e => { obData.daily_goal_minutes = Math.max(5, Number(e.target.value) || 45); };
+  } else {
+    body.innerHTML = `
+      <div class="ob-head">
+        <h2>What do you enjoy watching?</h2>
+        <p>Pick a few topics — Mingo will build your Japanese ImmersionTube tabs around them.</p>
+      </div>
+      <div class="ob-chips">
+        ${OB_INTERESTS.map(t => `<button class="ob-chip${obData.interests.includes(t) ? ' on' : ''}" data-ob-int="${esc(t)}">${esc(t)}</button>`).join('')}
+      </div>`;
+  }
+}
+$('#ob-body').addEventListener('click', e => {
+  const th = e.target.closest('[data-ob-theme]');
+  if (th) { obData.theme = th.dataset.obTheme; userPrefs.theme = obData.theme; applyTheme(obData.theme); renderOnboardingStep(); return; }
+  const lv = e.target.closest('[data-ob-lvl]');
+  if (lv) { obData.level = lv.dataset.obLvl; renderOnboardingStep(); return; }
+  const tm = e.target.closest('[data-ob-tm]');
+  if (tm) { obData.tracking_mode = tm.dataset.obTm; renderOnboardingStep(); return; }
+  const ic = e.target.closest('[data-ob-int]');
+  if (ic) {
+    const val = ic.dataset.obInt;
+    if (obData.interests.includes(val)) obData.interests = obData.interests.filter(x => x !== val);
+    else obData.interests.push(val);
+    renderOnboardingStep();
+  }
+});
+$('#ob-back').onclick = () => { if (obStep > 0) { obStep--; renderOnboardingStep(); } };
+async function completeOnboarding() {
+  try {
+    await api('/api/accounts/onboarding', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(obData)
+    });
+    $('#onboard-modal').hidden = true;
+    ytCatFeeds.clear();
+    await loadState();
+    setTab('yt');
+    toast('Mingo is ready!');
+  } catch (e) { toast(e.message, true); }
+}
+$('#ob-skip').onclick = completeOnboarding;
+$('#ob-next').onclick = () => { if (obStep < 3) { obStep++; renderOnboardingStep(); } else completeOnboarding(); };
 
 // Cloud Profile Sync (Cloudflare Worker + R2 union-merge for known words, history, progress & playlists)
 $('#s-cloud-sync').onclick = async () => {
@@ -5559,32 +6226,13 @@ $('#s-cloud-sync').onclick = async () => {
   finally { btn.disabled = false; btn.textContent = 'Sync'; }
 };
 
-// Google OAuth 2.0 (PKCE) Sign-in & Disconnect
-$('#s-oauth-go').onclick = async () => {
-  const btn = $('#s-oauth-go'); btn.disabled = true;
-  try {
-    const res = await api('/api/oauth/google/start', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: $('#s-oauth-cid').value.trim() || null,
-        client_secret: $('#s-oauth-csec').value.trim() || null
-      })
-    });
-    window.open(res.auth_url, '_blank');
-    toast('Finish Google sign-in in the browser tab');
-  } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; }
-};
-$('#s-oauth-disc').onclick = async () => {
-  try {
-    const res = await api('/api/oauth/google/disconnect', { method: 'POST' });
-    state.config = res.config; syncSettingsUI(); toast('Google OAuth disconnected');
-  } catch (e) { toast(e.message, true); }
-};
-window.addEventListener('message', e => {
-  if (e.data === 'kiku-oauth-ok') {
-    loadState().then(() => toast('Google OAuth connected')).catch(() => {});
-  }
+// Theme swatch click persistence per account
+$('#theme-row').addEventListener('click', e => {
+  const sw = e.target.closest('[data-theme]');
+  if (!sw) return;
+  userPrefs.theme = sw.dataset.theme;
+  applyTheme(userPrefs.theme);
+  persistUserPrefs();
 });
 
 // Keyboard (including Shift+Hover trigger & 1/2/3/4 instant word tagging!)
@@ -5620,9 +6268,12 @@ document.addEventListener('keydown', e => {
   if (e.altKey && e.key === '1') { e.preventDefault(); setTab('anime'); return; }
   if (e.altKey && e.key === '2') { e.preventDefault(); setTab('yt'); return; }
   if (e.altKey && e.key === '3') { e.preventDefault(); setTab('books'); return; }
-  if (e.altKey && e.key === '4') { e.preventDefault(); setTab('ai'); return; }
-  if (e.altKey && e.key === '5') { e.preventDefault(); setTab('vocab'); return; }
+  if (e.altKey && e.key === '4') { e.preventDefault(); setTab('vocab'); return; }
+  if (e.altKey && e.key === '5') { e.preventDefault(); setTab('ai'); return; }
   if (e.key === 'Escape') {
+    if (!$('#sub-gear-pop').hidden) { $('#sub-gear-pop').hidden = true; return; }
+    if (!$('#acct-modal').hidden) { $('#acct-modal').hidden = true; return; }
+    if (!$('#onboard-modal').hidden) { $('#onboard-modal').hidden = true; return; }
     if (popOpen) { closeDictPop(true); return; }
     if (synStage > 0) { setSynopsisStage(0); return; }
     if (curTab === 'yt-play') { clearInterval(ytPollTimer); setTab('yt'); return; }
@@ -5789,14 +6440,9 @@ setInterval(() => {
   }
 }, 250);
 
-// Restore saved theme, subtitle font size & auto-scroll preference
-try { applyTheme(localStorage.getItem('kiku.theme') || 'split-flame'); } catch (e) { applyTheme('split-flame'); }
-try { const savedSz = localStorage.getItem('kiku.subSize'); if (savedSz) applySubFontSize(savedSz); } catch (e) {}
-try {
-  const savedAuto = localStorage.getItem('kiku.autoScroll');
-  if (savedAuto !== null) subAutoScroll = savedAuto !== '0';
-  $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
-} catch (e) {}
+// Restore saved theme & subtitle font size before first paint (then server per-account prefs override on loadState)
+try { applyTheme(localStorage.getItem('kiku.theme') || 'washi'); } catch (e) { applyTheme('washi'); }
+try { const savedSz = localStorage.getItem('mingo.subSize') || localStorage.getItem('kiku.subSize'); if (savedSz) applySubFontSize(savedSz); } catch (e) {}
 
 setInterval(updateLiveTimers, 200);
 loadState().catch(e => toast(e.message, true));
