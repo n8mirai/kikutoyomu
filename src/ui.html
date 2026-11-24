@@ -87,30 +87,30 @@
 
 /* ================= APP-WIDE LIQUID GLASS MATERIAL SYSTEM ================= */
 :root{
-  --lg-bg:linear-gradient(152deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 48%,rgba(255,255,255,.07) 100%);
-  --lg-tint:color-mix(in srgb,var(--bg2) 62%,transparent);
-  --lg-border:rgba(255,255,255,.16);
-  --lg-rim:inset 0 1px 0 rgba(255,255,255,.26),inset 1px 0 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.22);
-  --lg-shadow:0 14px 38px rgba(0,0,0,.32),0 2px 8px rgba(0,0,0,.14);
-  --lg-blur:blur(22px) saturate(185%);
+  --lg-bg:linear-gradient(148deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.04) 46%,rgba(255,255,255,.12) 100%);
+  --lg-tint:color-mix(in srgb,var(--bg2) 44%,transparent);
+  --lg-border:rgba(255,255,255,.26);
+  --lg-rim:inset 0 1.5px 1px rgba(255,255,255,.46),inset 1px 0 1px rgba(255,255,255,.20),inset 0 -1.5px 2px rgba(0,0,0,.28);
+  --lg-shadow:0 16px 42px rgba(0,0,0,.36),0 2px 10px rgba(0,0,0,.16);
+  --lg-blur:url(#kiku-liquid-glass) blur(10px) saturate(210%) brightness(1.06);
 }
 :root[data-theme="washi"]{
-  --lg-bg:linear-gradient(152deg,rgba(255,255,255,.68) 0%,rgba(255,255,255,.32) 52%,rgba(255,255,255,.52) 100%);
-  --lg-tint:rgba(246,242,233,.66);
-  --lg-border:rgba(255,255,255,.78);
-  --lg-rim:inset 0 1px 0 rgba(255,255,255,.92),inset 1px 0 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(28,25,23,.08);
-  --lg-shadow:0 12px 32px rgba(28,25,23,.10),0 2px 6px rgba(28,25,23,.05);
-  --lg-blur:blur(24px) saturate(165%);
+  --lg-bg:linear-gradient(148deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,.22) 50%,rgba(255,255,255,.58) 100%);
+  --lg-tint:rgba(246,242,233,.42);
+  --lg-border:rgba(255,255,255,.88);
+  --lg-rim:inset 0 1.5px 1px rgba(255,255,255,.98),inset 1px 0 1px rgba(255,255,255,.72),inset 0 -1.5px 2px rgba(28,25,23,.12);
+  --lg-shadow:0 14px 36px rgba(28,25,23,.13),0 2px 8px rgba(28,25,23,.06);
+  --lg-blur:url(#kiku-liquid-glass) blur(10px) saturate(190%) brightness(1.04);
 }
 /* Subtle ambient depth glow so frosted Liquid Glass refracts gentle warmth & cool tone */
 body::before{
   content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(620px 420px at 14% 6%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 70%),
-    radial-gradient(560px 420px at 88% 82%,color-mix(in srgb,var(--cool2) 9%,transparent),transparent 72%);
+    radial-gradient(640px 440px at 14% 6%,color-mix(in srgb,var(--acc) 12%,transparent),transparent 70%),
+    radial-gradient(580px 440px at 88% 82%,color-mix(in srgb,var(--cool2) 12%,transparent),transparent 72%);
 }
 #dock,#pop,#dict-pop,.modal,#syn-scroll,.yt-trace-bar,.yt-trace-card,.yt-ai-ans,
-.app-pill[aria-selected="true"],#live-pill,.yt-pill.on,.ai-msg,.sub-row.cur{
+.app-pill[aria-selected="true"],#live-pill,.yt-pill.on,.ai-msg,.sub-row.cur .sub-row-inner{
   background-image:var(--lg-bg);
   background-color:var(--lg-tint);
   border-color:var(--lg-border);
@@ -119,15 +119,16 @@ body::before{
   -webkit-backdrop-filter:var(--lg-blur);
 }
 .app-pill[aria-selected="true"],.yt-pill.on,#live-pill,.yt-trace-bar{
-  box-shadow:var(--lg-rim),0 6px 18px rgba(0,0,0,.14);
+  box-shadow:var(--lg-rim),0 8px 22px rgba(0,0,0,.16);
 }
-.sub-row.cur{
-  box-shadow:var(--lg-rim),0 10px 28px rgba(0,0,0,.18);
+.sub-row.cur .sub-row-inner{
+  border-radius:16px;
+  box-shadow:var(--lg-rim),0 10px 28px rgba(0,0,0,.14);
 }
 .icon-btn:hover,.sub-mini-btn.on,.yt-ai-btn{
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
-  backdrop-filter:blur(14px) saturate(160%);
-  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.36);
+  backdrop-filter:blur(12px) saturate(180%);
+  -webkit-backdrop-filter:blur(12px) saturate(180%);
 }
 /* Legendary Purple highlighting:
    (1) High-confidence words explicitly marked unknown ("priority") in the wild (ANY sentence!), and
@@ -1008,28 +1009,28 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 /* ================= DEDICATED AI AGENT APP ================= */
 .ai-shell{max-width:740px;margin:0 auto;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:420px}
 .ai-cal-bar{
-  display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;min-height:28px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:10px;
+  margin-bottom:16px;min-height:40px;
 }
 .ai-cal-chip{
-  display:inline-flex;align-items:stretch;gap:0;padding:0;border-radius:999px;overflow:hidden;
-  font-size:15.5px;min-height:40px;
+  display:flex;align-items:stretch;width:100%;gap:0;padding:0;border-radius:999px;overflow:hidden;
+  font-size:15.5px;height:42px;
   background-image:var(--lg-bg);
-  background-color:color-mix(in srgb,rgba(168,85,247,.20) 65%,var(--lg-tint));
-  border:1px solid rgba(192,132,252,.42);color:var(--text);
-  box-shadow:var(--lg-rim),0 6px 18px rgba(168,85,247,.14);
+  background-color:color-mix(in srgb,rgba(168,85,247,.16) 55%,var(--lg-tint));
+  border:1px solid rgba(192,132,252,.44);color:var(--text);
+  box-shadow:var(--lg-rim),0 8px 22px rgba(168,85,247,.14);
   backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
-  transition:border-color .2s,box-shadow .22s,transform .22s var(--spring);
+  transition:border-color .2s,box-shadow .22s;
 }
-.ai-cal-chip:hover{border-color:rgba(192,132,252,.68);box-shadow:var(--lg-rim),0 10px 26px rgba(168,85,247,.22)}
+.ai-cal-chip:hover{border-color:rgba(192,132,252,.72);box-shadow:var(--lg-rim),0 10px 26px rgba(168,85,247,.22)}
 .ai-cal-mid{
-  display:inline-flex;align-items:center;justify-content:center;padding:0 13px;
-  transition:padding .26s cubic-bezier(.19,1,.22,1),opacity .2s;
+  flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:0 8px;
 }
-.ai-cal-chip .cal-w{padding:2px 2px;border-radius:6px;cursor:default;font-weight:500;letter-spacing:.02em;white-space:nowrap}
+.ai-cal-chip .cal-w{padding:2px 4px;border-radius:6px;cursor:default;font-weight:500;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ai-cal-btn{
-  min-width:36px;padding:0 11px;display:grid;place-items:center;cursor:pointer;overflow:hidden;
+  flex:0 0 38px;width:38px;padding:0;display:grid;place-items:center;cursor:pointer;overflow:hidden;
   font-size:14px;font-weight:700;line-height:1;
-  transition:min-width .28s cubic-bezier(.19,1,.22,1),width .28s cubic-bezier(.19,1,.22,1),padding .28s cubic-bezier(.19,1,.22,1),flex .28s cubic-bezier(.19,1,.22,1),opacity .2s,background .18s var(--smooth),color .18s var(--smooth),border-color .2s;
+  transition:flex-basis .26s cubic-bezier(.19,1,.22,1),width .26s cubic-bezier(.19,1,.22,1),opacity .2s,background .18s var(--smooth),color .18s var(--smooth),border-color .2s;
 }
 .ai-cal-btn span{display:inline-block;transition:transform .24s var(--spring)}
 .ai-cal-btn.no{
@@ -1038,24 +1039,22 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .ai-cal-btn.yes{
   background:rgba(34,197,94,.20);color:#22C55E;border-left:1px solid rgba(34,197,94,.26);
 }
-/* Magnetic morph-fill: hovering X collapses ✓ and expands X to fill most of the pill (and vice versa!) */
+/* Constant-sum morph-fill (38+38=76 -> 76+0 or 0+76): ZERO sibling layout shift! */
 .ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.yes{
-  min-width:0;width:0;padding:0;opacity:0;border-left-width:0;pointer-events:none;
+  flex-basis:0;width:0;opacity:0;border-left-width:0;pointer-events:none;
 }
 .ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no{
-  min-width:74px;flex:1;background:#EF4444;color:#FFFFFF;border-right-color:transparent;
+  flex-basis:76px;width:76px;background:#EF4444;color:#FFFFFF;border-right-color:transparent;
 }
 .ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no span{transform:scale(1.42)}
-.ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-mid{padding:0 10px 0 8px}
 
 .ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.no{
-  min-width:0;width:0;padding:0;opacity:0;border-right-width:0;pointer-events:none;
+  flex-basis:0;width:0;opacity:0;border-right-width:0;pointer-events:none;
 }
 .ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes{
-  min-width:74px;flex:1;background:#22C55E;color:#FFFFFF;border-left-color:transparent;
+  flex-basis:76px;width:76px;background:#22C55E;color:#FFFFFF;border-left-color:transparent;
 }
 .ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes span{transform:scale(1.42)}
-.ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-mid{padding:0 8px 0 10px}
 .ai-cal-btn:active span{transform:scale(.96)}
 
 /* Reverse of 浮かぶ: gently sink & dissolve back into the water when sorted */
@@ -1124,6 +1123,16 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 </style>
 </head>
 <body>
+<!-- SVG Optical Liquid Glass Refraction Filter (Chromium/Edge native backdrop-filter lens!) -->
+<svg width="0" height="0" style="position:fixed;pointer-events:none" aria-hidden="true">
+  <defs>
+    <filter id="kiku-liquid-glass" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2.2" result="softNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="11" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 <div id="progress"></div>
 <div id="drop-veil" hidden><span>Drop MP3s or .srt subtitles</span></div>
 
