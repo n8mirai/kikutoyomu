@@ -159,7 +159,7 @@ pub fn gemini_generate_raw(
     if session.0.is_null() {
         return Err(format!("WinHttpOpen failed ({})", unsafe { GetLastError() }));
     }
-    unsafe { WinHttpSetTimeouts(session.0, 10_000, 10_000, 30_000, 45_000); }
+    unsafe { WinHttpSetTimeouts(session.0, 6_000, 6_000, 12_000, 18_000); }
 
     let connect = Handle(unsafe {
         WinHttpConnect(session.0, host.as_ptr(), INTERNET_DEFAULT_HTTPS_PORT, 0)
@@ -240,17 +240,17 @@ pub fn gemini_generate_raw(
     Err("Windows WinHTTP required".into())
 }
 
-/// Resilient modern Gemini Flash cascade: prefers `gemini-3.8-flash` and transparently fails over
-/// to `3.7-flash` -> `3.6-flash` -> `3.5-flash` -> `3.5-flash-lite` on temporary 503 demand spikes.
+/// Resilient modern Gemini Flash cascade: prefers fast, stable `gemini-3.7-flash` and transparently
+/// fails over through `3.6-flash` -> `3.5-flash` -> `3.8-flash` -> `3.5-flash-lite` on 503/429 spikes.
 pub fn gemini_generate_flash(
     auth: &AiAuth,
     payload: &serde_json::Value,
 ) -> Result<serde_json::Value, String> {
     let models = [
-        "gemini-3.8-flash",
         "gemini-3.7-flash",
         "gemini-3.6-flash",
         "gemini-3.5-flash",
+        "gemini-3.8-flash",
         "gemini-3.5-flash-lite",
     ];
     let mut last_err = String::from("No Gemini model succeeded");

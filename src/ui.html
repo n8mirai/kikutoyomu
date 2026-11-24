@@ -1054,7 +1054,13 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   border:1px solid rgba(192,132,252,.44);color:var(--text);
   box-shadow:var(--lg-rim),0 8px 22px rgba(168,85,247,.14);
   backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
+  animation:ukabuToken .95s cubic-bezier(.19,1,.22,1) var(--stagger,0ms) both;
   transition:border-color .2s,box-shadow .22s;
+}
+@keyframes ukabuToken{
+  0%{opacity:0;transform:scale(.86);filter:blur(12px)}
+  58%{opacity:.9;filter:blur(1.4px)}
+  100%{opacity:1;transform:scale(1);filter:blur(0)}
 }
 .ai-cal-chip:hover{border-color:rgba(192,132,252,.72);box-shadow:var(--lg-rim),0 10px 26px rgba(168,85,247,.22)}
 .ai-cal-mid{
@@ -1094,23 +1100,24 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 /* Reverse of 浮かぶ: gently sink & dissolve back into the water when sorted */
 .ai-cal-chip.sinking{
   pointer-events:none;
-  animation:shizumu .42s cubic-bezier(.19,1,.22,1) forwards;
+  animation:shizumu .82s cubic-bezier(.19,1,.22,1) forwards;
 }
 @keyframes shizumu{
   0%{opacity:1;transform:scale(1);filter:blur(0)}
-  60%{opacity:.22;transform:scale(.88);filter:blur(7px)}
-  100%{opacity:0;transform:scale(.80);filter:blur(12px)}
+  55%{opacity:.28;transform:scale(.88);filter:blur(8px)}
+  100%{opacity:0;transform:scale(.79);filter:blur(14px)}
 }
 :root[data-theme="washi"] .ai-cal-btn.no{background:rgba(220,38,38,.16);color:#DC2626;border-right-color:rgba(220,38,38,.22)}
 :root[data-theme="washi"] .ai-cal-chip:has(.ai-cal-btn.no:hover) .ai-cal-btn.no{background:#DC2626;color:#FFFFFF}
 :root[data-theme="washi"] .ai-cal-btn.yes{background:rgba(22,163,74,.16);color:#16A34A;border-left-color:rgba(22,163,74,.22)}
 :root[data-theme="washi"] .ai-cal-chip:has(.ai-cal-btn.yes:hover) .ai-cal-btn.yes{background:#16A34A;color:#FFFFFF}
 .ai-msgs{
-  flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;
+  flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:6px 12px 18px;
 }
 .ai-msg{
   max-width:86%;padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;
   white-space:pre-wrap;word-break:break-word;
+  box-shadow:var(--lg-rim),0 3px 10px rgba(0,0,0,.06)!important;
 }
 .ai-msg.user{align-self:flex-end;background:var(--bg2);border:1px solid var(--line2);color:var(--text)}
 .ai-msg.model{align-self:flex-start;background:var(--bg1);border:1px solid var(--line);color:var(--text)}
@@ -3757,7 +3764,7 @@ async function loadAiCalibration(force = false) {
 function renderAiCalibrationBar() {
   const bar = $('#ai-cal-bar');
   if (!aiCalCandidates.length) { bar.innerHTML = ''; return; }
-  bar.innerHTML = aiCalCandidates.slice(0, 8).map(c => renderCalChipHtml(c)).join('');
+  bar.innerHTML = aiCalCandidates.slice(0, 8).map((c, i) => renderCalChipHtml(c, `--stagger:${i * 55}ms`)).join('');
 }
 
 function renderAiApp() {
@@ -3781,18 +3788,18 @@ async function sendAiAppMsg() {
   const txt = inp.value.trim();
   if (!txt) return;
   inp.value = '';
+  const prevHistory = aiChatHistory.slice(-10).map(m => ({ role: m.role, text: m.text }));
   aiChatHistory.push({ role: 'user', text: txt });
+  aiChatHistory.push({ role: 'model', text: 'Thinking…', pending: true });
   renderAiApp();
   const btn = $('#ai-send'); btn.disabled = true;
   try {
     const res = await api('/api/ai/ask', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: txt,
-        history: aiChatHistory.slice(-10).map(m => ({ role: m.role, text: m.text }))
-      })
+      body: JSON.stringify({ message: txt, history: prevHistory })
     });
     if (res.vocab_changed && res.vocab) { loadVocabFromState(res.vocab); refreshVocabHighlights(); }
+    aiChatHistory = aiChatHistory.filter(m => !m.pending);
     aiChatHistory.push({
       role: 'model',
       text: res.reply || '',
@@ -3801,6 +3808,7 @@ async function sendAiAppMsg() {
     });
     renderAiApp();
   } catch (e) {
+    aiChatHistory = aiChatHistory.filter(m => !m.pending);
     aiChatHistory.push({ role: 'model', text: e.message });
     renderAiApp();
   } finally { btn.disabled = false; }
@@ -3842,7 +3850,7 @@ aiViewEl.addEventListener('click', async e => {
       if (aiCalCandidates.length > 0) renderAiCalibrationBar();
       else loadAiCalibration(true);
     }
-  }, 410);
+  }, 820);
 });
 
 function ensureYtIframeApi(onReady) {
