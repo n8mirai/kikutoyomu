@@ -87,6 +87,7 @@
 
 /* ================= APP-WIDE LIQUID GLASS MATERIAL SYSTEM ================= */
 :root{
+  --dock-h:0px;
   --lg-bg:linear-gradient(150deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.04) 46%,rgba(255,255,255,.11) 100%);
   --lg-tint:color-mix(in srgb,var(--bg2) 48%,transparent);
   --lg-border:rgba(255,255,255,.24);
@@ -94,6 +95,8 @@
   --lg-shadow:0 16px 40px rgba(0,0,0,.34),0 2px 10px rgba(0,0,0,.16);
   --lg-blur:blur(22px) saturate(200%) brightness(1.05);
 }
+body.has-dock{--dock-h:82px}
+main{padding-bottom:calc(28px + var(--dock-h))!important}
 :root[data-theme="washi"]{
   --lg-bg:linear-gradient(150deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,.26) 50%,rgba(255,255,255,.58) 100%);
   --lg-tint:rgba(246,242,233,.48);
@@ -908,12 +911,57 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap;
 }
 .yt-pill{
+  display:inline-flex;align-items:center;gap:5px;
   height:27px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:500;
   color:var(--muted);background:var(--bg1);border:1px solid var(--line);
   transition:color .16s,background .16s,border-color .16s;
 }
 .yt-pill:hover{color:var(--text);border-color:var(--line2)}
 .yt-pill.on{color:var(--text);background:var(--bg2);border-color:var(--line3)}
+.yt-pill-x{
+  font-size:12px;line-height:1;opacity:.55;padding:0 1px;cursor:pointer;
+}
+.yt-pill-x:hover{opacity:1;color:var(--acc)}
+.yt-search-trace{
+  display:flex;align-items:center;gap:8px;min-height:36px;padding:4px 8px 4px 10px;
+  margin-bottom:12px;border-radius:12px;
+  background-image:var(--lg-bg);background-color:var(--lg-tint);
+  border:1px solid var(--lg-border);box-shadow:var(--lg-rim),0 6px 18px rgba(0,0,0,.08);
+  backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
+  animation:ukabuToken .5s cubic-bezier(.19,1,.22,1) both;
+}
+.yt-search-trace input{
+  width:140px;height:26px;padding:0 9px;border-radius:8px;font-size:12.5px;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--text);
+}
+.yt-search-trace input:focus{outline:none;border-color:var(--line3)}
+
+/* Audio-Only (Listening) mode for video player: keeps iframe alive off-screen while subtitles fill viewport */
+#v-yt-play.audio-only .yt-stage-wrap{
+  position:fixed;left:-9999px;top:0;width:320px;height:180px;opacity:0;pointer-events:none;
+}
+#v-yt-play.audio-only .yt-trace-wrap{margin-top:4px}
+
+/* Rich collapsible watch/listen history rows */
+.day-lbl{cursor:pointer;user-select:none}
+.day-lbl:hover{color:var(--text)}
+.day-chev{display:inline-block;margin-right:6px;transition:transform .2s var(--smooth);font-size:10px}
+.day-lbl.collapsed .day-chev{transform:rotate(-90deg)}
+.h-row{min-height:68px!important;padding:10px 14px!important;gap:14px!important}
+.h-thumb{
+  width:84px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);background:var(--bg2);
+}
+.h-thumb.sq{width:46px;height:54px}
+.h-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.h-title{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--faint)}
+.h-stat{
+  display:inline-flex;align-items:center;padding:1px 7px;border-radius:999px;
+  background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.h-stat.k{background:var(--gsoft);border-color:rgba(46,204,64,.22);color:var(--g2)}
 .yt-badge{
   position:absolute;top:8px;left:8px;padding:2px 7px;border-radius:999px;
   font-size:10.5px;font-weight:600;letter-spacing:.03em;backdrop-filter:blur(8px);
@@ -1041,22 +1089,21 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .yt-ai-ans-close{position:absolute;top:6px;right:8px;font-size:14px;color:var(--faint);cursor:pointer}
 
 /* ================= DEDICATED AI AGENT APP ================= */
-.ai-shell{max-width:740px;margin:0 auto;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:420px}
+.ai-shell{max-width:740px;margin:0 auto;display:flex;flex-direction:column;height:calc(100vh - 102px - var(--dock-h));min-height:360px}
 .ai-cal-bar{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:10px;
-  margin-bottom:16px;min-height:40px;
+  margin-bottom:16px;min-height:94px;
 }
 .ai-cal-chip{
   display:flex;align-items:stretch;width:100%;gap:0;padding:0;border-radius:999px;overflow:hidden;
-  font-size:15.5px;height:42px;
-  background-image:var(--lg-bg);
-  background-color:color-mix(in srgb,rgba(168,85,247,.16) 55%,var(--lg-tint));
+  font-size:15.5px;height:42px;isolation:isolate;
+  background:color-mix(in srgb,rgba(168,85,247,.12) 60%,var(--bg1));
   border:1px solid rgba(192,132,252,.44);color:var(--text);
-  box-shadow:var(--lg-rim),0 8px 22px rgba(168,85,247,.14);
-  backdrop-filter:var(--lg-blur);-webkit-backdrop-filter:var(--lg-blur);
+  box-shadow:var(--lg-rim),0 6px 18px rgba(168,85,247,.12);
   animation:ukabuToken .95s cubic-bezier(.19,1,.22,1) var(--stagger,0ms) both;
   transition:border-color .2s,box-shadow .22s;
 }
+.ai-cal-chip.gone{visibility:hidden;pointer-events:none;animation:none!important}
 @keyframes ukabuToken{
   0%{opacity:0;transform:scale(.86);filter:blur(12px)}
   58%{opacity:.9;filter:blur(1.4px)}
@@ -1300,23 +1347,21 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <div id="drawer" hidden></div>
   </section>
 
-  <!-- APP: YT (ImmersionTube thumbnail feed + 1-line URL bar) -->
+  <!-- APP: YT (ImmersionTube search / URL bar + editable category tabs + thumbnail feed) -->
   <section id="v-yt" class="view-pane" hidden>
     <div class="yt-bar">
-      <input id="yt-url" type="text" placeholder="https://youtu.be/..." autocomplete="off">
-      <button class="btn-pill" id="yt-add">+</button>
+      <input id="yt-url" type="text" placeholder="Search Japanese YouTube or paste link…" autocomplete="off">
+      <button class="btn-pill" id="yt-add">Go</button>
     </div>
-    <div class="yt-pills" id="yt-pills">
-      <button class="yt-pill on" data-yt-cat="foryou">For You</button>
-      <button class="yt-pill" data-yt-cat="all">All</button>
-      <button class="yt-pill" data-yt-cat="vlog">Vlog</button>
-      <button class="yt-pill" data-yt-cat="talk">Talk</button>
-      <button class="yt-pill" data-yt-cat="jp">JP</button>
-      <button class="yt-pill" data-yt-cat="news">News</button>
-      <button class="yt-pill" data-yt-cat="saved">Saved</button>
+    <div class="yt-search-trace" id="yt-search-trace" hidden>
+      <span style="color:var(--acc2);font-size:13px">✦</span>
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap">Save tab</span>
+      <input id="yt-save-tab-name" type="text" autocomplete="off">
+      <button class="btn-pill" id="yt-save-tab-ok" style="height:26px;padding:0 11px;font-size:12px">Save</button>
       <span class="sp"></span>
-      <button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>
+      <button class="icon-btn" id="yt-search-clear" title="Clear search" style="width:26px;height:26px">×</button>
     </div>
+    <div class="yt-pills" id="yt-pills"></div>
     <div class="yt-grid" id="yt-grid"></div>
   </section>
 
@@ -1337,6 +1382,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
           <button class="sub-mini-btn yt-sub-only" id="yt-off-p" title="Later 0.5s">+0.5s</button>
           <span class="yt-sub-only" id="yt-off-val" style="font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums"></span>
           <button class="sub-mini-btn yt-sub-only on" id="yt-autopause" title="Pause on Shift+hover lookup">Pause</button>
+          <button class="sub-mini-btn" id="yt-mode-toggle" title="Switch Watch / Audio-Only Listen mode">Watch</button>
           <button class="sub-mini-btn" id="yt-subs-toggle" title="Toggle Japanese subtitles (S)">字</button>
         </div>
       </div>
@@ -3022,7 +3068,9 @@ async function addEpisodeToPlaylist(plId, animeId, episodeId) {
   toast(`Added to ${pl.name}`);
 }
 
-/* ================= RENDER: HISTORY ================= */
+/* ================= RENDER: HISTORY (RICH THUMBNAILS + INTRA-ENTRY STATS + COLLAPSIBLE DAYS) ================= */
+const collapsedHistoryDays = new Set();
+
 function renderHistoryView() {
   const st = state.stats || { today_secs: 0, total_secs: 0, streak_days: 0 };
   const goalSecs = (state.config.daily_goal_minutes || 60) * 60;
@@ -3037,26 +3085,50 @@ function renderHistoryView() {
   for (const h of state.history) {
     const d = new Date(h.started_at), key = d.toDateString();
     const label = key === todayKey ? 'Today' : (key === yestKey ? 'Yesterday' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-    if (!groups.has(key)) groups.set(key, { label, secs: 0, rows: [] });
+    if (!groups.has(key)) groups.set(key, { key, label, secs: 0, rows: [] });
     const g = groups.get(key); g.secs += h.duration_secs; g.rows.push(h);
   }
 
-  $('#h-list').innerHTML = [...groups.values()].map(g => `
-    <div class="day-lbl"><span>${esc(g.label)}</span><span>${fmtHuman(g.secs)}</span></div>
-    <ul class="rows">
-      ${g.rows.map(h => {
-        const a = getAnime(h.anime_id);
-        return `
-          <li class="r" style="cursor:default">
-            ${a?.has_cover ? `<img class="r-thumb" src="${coverUrl(a)}" alt="">` : ''}
-            <span class="r-title">${esc(h.anime_title)} <span style="color:var(--faint)">· ${esc(h.episode_title)}</span></span>
-            <span class="r-dur">${fmtClock(h.duration_secs)}</span>
-            ${h.toggl_synced ? `<span class="sync-ok" title="Synced to Toggl">✓</span>` : `<button class="r-act-ic" data-sync="${esc(h.id)}" title="Sync to Toggl">↻</button>`}
-            <span class="r-hover-acts"><button class="r-act-ic del" data-hdel="${esc(h.id)}" title="Remove">${IC_X}</button></span>
-          </li>`;
-      }).join('')}
-    </ul>`).join('');
+  $('#h-list').innerHTML = [...groups.values()].map(g => {
+    const isCol = collapsedHistoryDays.has(g.key);
+    return `
+      <div class="day-lbl${isCol ? ' collapsed' : ''}" data-hday="${esc(g.key)}">
+        <span><span class="day-chev">▾</span>${esc(g.label)} <span style="opacity:.55;font-weight:400">· ${g.rows.length}</span></span>
+        <span>${fmtHuman(g.secs)}</span>
+      </div>
+      <ul class="rows"${isCol ? ' hidden' : ''}>
+        ${g.rows.map(h => {
+          const isYt = h.anime_id === 'yt';
+          const a = isYt ? null : getAnime(h.anime_id);
+          const thumbHtml = isYt
+            ? `<img class="h-thumb" src="https://i.ytimg.com/vi/${encodeURIComponent(h.episode_id)}/hqdefault.jpg" alt="" loading="lazy">`
+            : (a?.has_cover ? `<img class="h-thumb sq" src="${coverUrl(a)}" alt="" loading="lazy">` : '');
+          const lookups = h.words_looked_up > 0 ? `<span class="h-stat">${h.words_looked_up} lookup${h.words_looked_up === 1 ? '' : 's'}</span>` : '';
+          const knownAdd = h.words_marked_known > 0 ? `<span class="h-stat k">+${h.words_marked_known} known</span>` : '';
+          return `
+            <li class="r h-row" style="cursor:default">
+              ${thumbHtml}
+              <div class="h-body">
+                <div class="h-title">${esc(h.episode_title)}</div>
+                <div class="h-meta">
+                  <span>${esc(h.anime_title)}</span>
+                  ${lookups}${knownAdd}
+                </div>
+              </div>
+              <span class="r-dur">${fmtClock(h.duration_secs)}</span>
+              ${h.toggl_synced ? `<span class="sync-ok" title="Synced to Toggl">✓</span>` : `<button class="r-act-ic" data-sync="${esc(h.id)}" title="Sync to Toggl">↻</button>`}
+              <span class="r-hover-acts"><button class="r-act-ic del" data-hdel="${esc(h.id)}" title="Remove">${IC_X}</button></span>
+            </li>`;
+        }).join('')}
+      </ul>`;
+  }).join('');
 
+  $$('[data-hday]', $('#h-list')).forEach(el => el.onclick = () => {
+    const k = el.dataset.hday;
+    if (collapsedHistoryDays.has(k)) collapsedHistoryDays.delete(k);
+    else collapsedHistoryDays.add(k);
+    renderHistoryView();
+  });
   $$('[data-sync]', $('#h-list')).forEach(b => b.onclick = async () => {
     try { const res = await api(`/api/history/${encodeURIComponent(b.dataset.sync)}/sync-toggl`, { method: 'POST' }); state.history = res.history; toast('Synced'); renderHistoryView(); }
     catch (e) { toast(e.message, true); }
@@ -3074,6 +3146,7 @@ function renderDock() {
   const ytBgMode = !!ytCurrentVideo && curTab !== 'yt-play' && (!currentTrack || audio.paused);
   if (ytBgMode) {
     dock.hidden = false;
+    document.body.classList.add('has-dock');
     dock.classList.remove('toggl');
     const img = $('#d-thumb');
     img.src = `https://i.ytimg.com/vi/${encodeURIComponent(ytCurrentVideo.id)}/hqdefault.jpg`;
@@ -3088,8 +3161,9 @@ function renderDock() {
     $('#d-sub-btn').classList.remove('on');
     return;
   }
-  if (!currentTrack || curTab === 'yt-play') { dock.hidden = true; return; }
+  if (!currentTrack || curTab === 'yt-play') { dock.hidden = true; document.body.classList.remove('has-dock'); return; }
   dock.hidden = false;
+  document.body.classList.add('has-dock');
   $('#d-prev').hidden = false;
   $('#d-next').hidden = false;
   $('#d-speed').hidden = false;
@@ -3544,7 +3618,11 @@ let ytCueIdx = -1;
 let ytMaxSeen = -1;
 let ytOffset = 0;
 let ytSubsOn = true;
+let ytAudioOnly = false;
 let ytAutoScroll = true;
+let ytSearchQuery = '';
+let ytSearchResults = null; // null when browsing feed, Array when viewing search results
+const ytCustomTabCache = new Map(); // tabId -> FeedVideo[]
 let ytRevealAll = false;
 let ytUserAtTop = true;
 let ytPlayer = null;
@@ -3843,14 +3921,16 @@ aiViewEl.addEventListener('click', async e => {
     toast(`${w} → Priority watch`);
   }
   aiCalCandidates = aiCalCandidates.filter(c => c.word !== w);
+  // Keep chip in its fixed grid slot (visibility:hidden) so ZERO neighbors shift!
+  // Only after EVERY token in the batch is tagged do we populate the fresh batch.
   setTimeout(() => {
-    if (chip) chip.remove();
-    // Auto-refill queue as soon as all calibration tokens have sunk into the water!
-    if (!$('#ai-cal-bar').querySelector('[data-cal-chip]')) {
+    if (chip) chip.classList.add('gone');
+    const remaining = $('#ai-cal-bar').querySelectorAll('[data-cal-chip]:not(.sinking)');
+    if (remaining.length === 0) {
       if (aiCalCandidates.length > 0) renderAiCalibrationBar();
       else loadAiCalibration(true);
     }
-  }, 820);
+  }, 830);
 });
 
 function ensureYtIframeApi(onReady) {
@@ -3935,8 +4015,77 @@ function ytProgBarHtml(vid) {
   return `<div class="yt-prog-track"><div class="yt-prog-fill" style="width:${pct.toFixed(1)}%"></div></div>`;
 }
 
+const YT_BUILTIN_TABS = [
+  { id: 'foryou', label: 'For You' },
+  { id: 'all', label: 'All' },
+  { id: 'vlog', label: 'Vlog' },
+  { id: 'talk', label: 'Talk' },
+  { id: 'jp', label: 'JP' },
+  { id: 'news', label: 'News' },
+  { id: 'saved', label: 'Saved' }
+];
+
+function renderYtPills() {
+  const custom = state.config?.yt_tabs || [];
+  const customHtml = custom.map(t => `
+    <button class="yt-pill${ytCat === ('custom:' + t.id) ? ' on' : ''}" data-yt-cat="custom:${esc(t.id)}">
+      <span>${esc(t.label)}</span>
+      <span class="yt-pill-x" data-yt-rmtab="${esc(t.id)}" title="Remove tab">×</span>
+    </button>`).join('');
+  const builtHtml = YT_BUILTIN_TABS.map(t =>
+    `<button class="yt-pill${ytCat === t.id ? ' on' : ''}" data-yt-cat="${t.id}">${t.label}</button>`
+  ).join('');
+  $('#yt-pills').innerHTML = builtHtml + customHtml + `<span class="sp"></span><button class="icon-btn" id="yt-feed-refresh" title="Refresh feed" style="width:28px;height:28px">↻</button>`;
+  $('#yt-feed-refresh').onclick = () => {
+    if (ytCat.startsWith('custom:')) {
+      const tid = ytCat.slice(7);
+      ytCustomTabCache.delete(tid);
+      loadYtCustomTab(tid);
+    } else {
+      ensureYtFeed(true);
+    }
+  };
+}
+
+async function loadYtCustomTab(tabId) {
+  const tab = (state.config?.yt_tabs || []).find(t => t.id === tabId);
+  if (!tab) return;
+  if (ytCustomTabCache.has(tabId)) { renderYtGrid(); return; }
+  $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Loading ${esc(tab.label)}…</div>`;
+  try {
+    const res = await api('/api/yt/search', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: tab.query })
+    });
+    ytCustomTabCache.set(tabId, res.items || []);
+  } catch (e) { ytCustomTabCache.set(tabId, []); }
+  renderYtGrid();
+}
+
 function renderYtGrid() {
-  $$('[data-yt-cat]').forEach(b => b.classList.toggle('on', b.dataset.ytCat === ytCat));
+  renderYtPills();
+  const savedIds = new Set((state.youtube || []).map(v => v.id));
+
+  // Active search results view
+  if (ytSearchResults !== null) {
+    $('#yt-search-trace').hidden = false;
+    $('#yt-grid').innerHTML = ytSearchResults.length
+      ? ytSearchResults.map(v => {
+          const tierCls = v.tier ? v.tier.toLowerCase() : '';
+          const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>` : '';
+          return `
+            <div class="yt-card" data-yt-search-item="${esc(v.id)}">
+              <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+              ${badge}
+              <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
+              ${ytProgBarHtml(v.id)}
+            </div>`;
+        }).join('')
+      : `<div class="sub-empty-box" style="grid-column:1/-1">No results found</div>`;
+    return;
+  }
+  $('#yt-search-trace').hidden = true;
+
   if (ytCat === 'saved') {
     const vids = state.youtube || [];
     $('#yt-grid').innerHTML = vids.map(v => `
@@ -3947,6 +4096,24 @@ function renderYtGrid() {
         <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
         ${ytProgBarHtml(v.id)}
       </div>`).join('');
+    return;
+  }
+
+  if (ytCat.startsWith('custom:')) {
+    const tid = ytCat.slice(7);
+    if (!ytCustomTabCache.has(tid)) { loadYtCustomTab(tid); return; }
+    const list = ytCustomTabCache.get(tid) || [];
+    $('#yt-grid').innerHTML = list.map(v => {
+      const tierCls = v.tier ? v.tier.toLowerCase() : '';
+      const badge = v.tier ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>` : '';
+      return `
+        <div class="yt-card" data-yt-custom-item="${esc(v.id)}">
+          <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
+          ${badge}
+          <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div><div class="yt-card-ch">${esc(v.channel)}</div></div>
+          ${ytProgBarHtml(v.id)}
+        </div>`;
+    }).join('');
     return;
   }
 
@@ -3963,7 +4130,6 @@ function renderYtGrid() {
     list = list.filter(x => x.category === ytCat);
   }
 
-  const savedIds = new Set((state.youtube || []).map(v => v.id));
   $('#yt-grid').innerHTML = list.slice(0, 48).map(v => {
     const tierCls = v.tier ? v.tier.toLowerCase() : '';
     const badge = v.tier
@@ -3983,8 +4149,14 @@ function renderYtGrid() {
 }
 
 function updateYtHeadUI() {
-  $('#v-yt-play').classList.toggle('subs-off', !ytSubsOn);
-  $('#yt-subs-toggle').classList.toggle('on', ytSubsOn);
+  $('#v-yt-play').classList.toggle('subs-off', !ytSubsOn && !ytAudioOnly);
+  $('#v-yt-play').classList.toggle('audio-only', ytAudioOnly);
+  $('#yt-subs-toggle').classList.toggle('on', ytSubsOn || ytAudioOnly);
+  const modeBtn = $('#yt-mode-toggle');
+  if (modeBtn) {
+    modeBtn.textContent = ytAudioOnly ? 'Listen' : 'Watch';
+    modeBtn.classList.toggle('on', ytAudioOnly);
+  }
   $('#yt-play-title').textContent = ytCurrentVideo ? ytCurrentVideo.title : '';
   $('#yt-off-val').textContent = ytOffset ? `${ytOffset > 0 ? '+' : ''}${ytOffset.toFixed(1)}s` : '';
   $('#yt-reveal').classList.toggle('on', ytRevealAll);
@@ -4161,30 +4333,76 @@ async function openYtVideo(video, prefetchedCues = null) {
 
 async function addYtUrl() {
   const inp = $('#yt-url');
-  const url = inp.value.trim();
-  if (!url) return;
+  const raw = inp.value.trim();
+  if (!raw) return;
   const btn = $('#yt-add');
   btn.disabled = true; btn.textContent = '…';
+  const looksLikeUrl = /(youtube\.com|youtu\.be)/i.test(raw) || /^[a-zA-Z0-9_-]{11}$/.test(raw);
   try {
-    const res = await api('/api/yt/add', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    });
-    state.youtube = res.videos || state.youtube;
-    inp.value = '';
-    renderYtGrid();
-    if (res.video) openYtVideo(res.video, res.cues || []);
+    if (looksLikeUrl) {
+      const res = await api('/api/yt/add', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: raw })
+      });
+      state.youtube = res.videos || state.youtube;
+      inp.value = '';
+      ytSearchResults = null;
+      renderYtGrid();
+      if (res.video) openYtVideo(res.video, res.cues || []);
+    } else {
+      ytSearchQuery = raw;
+      $('#yt-grid').innerHTML = `<div class="sub-empty-box" style="grid-column:1/-1">Searching Japanese YouTube…</div>`;
+      const res = await api('/api/yt/search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: raw })
+      });
+      ytSearchResults = res.items || [];
+      $('#yt-save-tab-name').value = res.suggested_category || raw;
+      renderYtGrid();
+    }
   } catch (e) { toast(e.message, true); }
-  finally { btn.disabled = false; btn.textContent = '+'; }
+  finally { btn.disabled = false; btn.textContent = 'Go'; }
+}
+
+async function saveCustomYtTabs(tabs) {
+  const res = await api('/api/config', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ yt_tabs: tabs })
+  });
+  state.config = res.config;
 }
 
 $('#yt-add').onclick = addYtUrl;
 $('#yt-url').addEventListener('keydown', e => { if (e.key === 'Enter') addYtUrl(); });
-$('#yt-pills').addEventListener('click', e => {
+$('#yt-search-clear').onclick = () => { ytSearchResults = null; ytSearchQuery = ''; $('#yt-url').value = ''; renderYtGrid(); };
+$('#yt-save-tab-ok').onclick = async () => {
+  const label = $('#yt-save-tab-name').value.trim();
+  if (!label || !ytSearchQuery) return;
+  const cur = (state.config?.yt_tabs || []).slice();
+  const id = 't-' + Date.now();
+  cur.push({ id, label, query: ytSearchQuery });
+  await saveCustomYtTabs(cur);
+  ytCustomTabCache.set(id, ytSearchResults || []);
+  ytSearchResults = null;
+  ytCat = 'custom:' + id;
+  $('#yt-url').value = '';
+  renderYtGrid();
+  toast(`Saved "${label}" tab`);
+};
+$('#yt-pills').addEventListener('click', async e => {
+  const rm = e.target.closest('[data-yt-rmtab]');
+  if (rm) {
+    e.stopPropagation();
+    const tid = rm.dataset.ytRmtab;
+    const next = (state.config?.yt_tabs || []).filter(t => t.id !== tid);
+    await saveCustomYtTabs(next);
+    if (ytCat === 'custom:' + tid) ytCat = 'foryou';
+    renderYtGrid();
+    return;
+  }
   const b = e.target.closest('[data-yt-cat]');
-  if (b) { ytCat = b.dataset.ytCat; renderYtGrid(); }
+  if (b) { ytSearchResults = null; ytCat = b.dataset.ytCat; renderYtGrid(); }
 });
-$('#yt-feed-refresh').onclick = () => ensureYtFeed(true);
 $('#yt-grid').addEventListener('click', async e => {
   const del = e.target.closest('[data-yt-del]');
   if (del) {
@@ -4192,6 +4410,19 @@ $('#yt-grid').addEventListener('click', async e => {
     const res = await api(`/api/yt/${encodeURIComponent(del.dataset.ytDel)}`, { method: 'DELETE' });
     state.youtube = res.videos || [];
     renderYtGrid();
+    return;
+  }
+  const sCard = e.target.closest('[data-yt-search-item]');
+  if (sCard) {
+    const item = (ytSearchResults || []).find(x => x.id === sCard.dataset.ytSearchItem);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
+    return;
+  }
+  const cCard = e.target.closest('[data-yt-custom-item]');
+  if (cCard) {
+    const list = ytCustomTabCache.get(ytCat.slice(7)) || [];
+    const item = list.find(x => x.id === cCard.dataset.ytCustomItem);
+    if (item) openYtVideo({ id: item.id, title: item.title, channel: item.channel, has_subs: false });
     return;
   }
   const feedCard = e.target.closest('[data-yt-feed]');
@@ -4208,6 +4439,7 @@ $('#yt-grid').addEventListener('click', async e => {
   }
 });
 $('#yt-back').onclick = () => { closeDictPop(false); setTab('yt'); };
+$('#yt-mode-toggle').onclick = () => { ytAudioOnly = !ytAudioOnly; if (ytAudioOnly) ytSubsOn = true; updateYtHeadUI(); };
 $('#yt-subs-toggle').onclick = toggleYtSubs;
 $('#yt-size').oninput = e => { $('#v-yt-play').style.setProperty('--sub-size', e.target.value + 'px'); };
 $('#yt-autoscroll').onclick = () => { ytAutoScroll = !ytAutoScroll; ytUserAtTop = true; updateYtHeadUI(); if (ytAutoScroll) applyYtCueStates(true); };

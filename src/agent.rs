@@ -240,17 +240,16 @@ pub fn gemini_generate_raw(
     Err("Windows WinHTTP required".into())
 }
 
-/// Resilient modern Gemini Flash cascade: prefers fast, stable `gemini-3.7-flash` and transparently
-/// fails over through `3.6-flash` -> `3.5-flash` -> `3.8-flash` -> `3.5-flash-lite` on 503/429 spikes.
+/// Resilient modern Gemini Flash cascade: fails over cleanly across timeouts (12002), 503, 429, and 404.
 pub fn gemini_generate_flash(
     auth: &AiAuth,
     payload: &serde_json::Value,
 ) -> Result<serde_json::Value, String> {
     let models = [
+        "gemini-flash-latest",
         "gemini-3.7-flash",
         "gemini-3.6-flash",
         "gemini-3.5-flash",
-        "gemini-3.8-flash",
         "gemini-3.5-flash-lite",
     ];
     let mut last_err = String::from("No Gemini model succeeded");
@@ -258,10 +257,10 @@ pub fn gemini_generate_flash(
         match gemini_generate_raw(auth, m, payload) {
             Ok(v) => return Ok(v),
             Err(e) => {
-                // Only fail over on 404 (retired) or 503/429 (high demand / rate limit)
                 let retryable = e.contains("HTTP 503")
                     || e.contains("HTTP 404")
                     || e.contains("HTTP 429")
+                    || e.contains("12002")
                     || e.contains("UNAVAILABLE");
                 last_err = e;
                 if !retryable {
@@ -271,6 +270,29 @@ pub fn gemini_generate_flash(
         }
     }
     Err(last_err)
+}
+
+/// Suggests a clean 1-2 word broad category label when a user's YT search query is messy/long.
+pub fn suggest_search_category(auth: &AiAuth, raw_query: &str) -> Option<String> {
+    let payload = serde_json::json!({
+        "contents": [{ "parts": [{ "text": format!(
+            "Convert this YouTube search query into a clean 1-2 word category tab name (e.g. Gaming, Minecraft, Cooking, Tech, Vlog, Anime, Podcast, Travel). Return ONLY the short label, nothing else.\nQuery: {}",
+            raw_query
+        ) }] }],
+        "generationConfig": { "temperature": 0.2, "maxOutputTokens": 16 }
+    });
+    let root = gemini_generate_flash(auth, &payload).ok()?;
+    let txt = root["candidates"][0]["content"]["parts"][0]["text"]
+        .as_str()?
+        .trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .to_string();
+    if txt.is_empty() || txt.len() > 24 {
+        None
+    } else {
+        Some(txt)
+    }
 }
 
 /// Token-efficient multimodal YouTube synopsis generator:

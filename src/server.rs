@@ -20,7 +20,7 @@ use crate::library::{
 use crate::models::{
     ActiveSession, AnimeSeries, AnimeStat, AppConfig, CustomAnimeMeta, EpisodeProgress,
     GoogleOAuthSecrets, HistoryEntry, ImmersionStats, LocalSecrets, PersistedData, Playlist,
-    PlaylistItem, PublicConfig, UserProfile,
+    PlaylistItem, PublicConfig, UserProfile, YtCustomTab,
 };
 use crate::morph::{MorphAnalyzer, MorphToken};
 use crate::oauth::{self, AiAuth, PendingOAuth};
@@ -470,6 +470,8 @@ fn stop_active_session_internal(
         {
             prev.duration_secs += duration_secs;
             prev.ended_at = ended_at;
+            prev.words_looked_up = prev.words_looked_up.saturating_add(active.words_looked_up);
+            prev.words_marked_known = prev.words_marked_known.saturating_add(active.words_marked_known);
             let merged = prev.clone();
             st.save();
             return Some(merged);
@@ -490,6 +492,8 @@ fn stop_active_session_internal(
         toggl_entry_id: None,
         toggl_synced: false,
         toggl_error: None,
+        words_looked_up: active.words_looked_up,
+        words_marked_known: active.words_marked_known,
     };
     st.data.history.insert(0, entry.clone());
     st.save();
@@ -625,6 +629,8 @@ struct ConfigUpdateReq {
     cloud_sync_url: Option<String>,
     #[serde(default)]
     cloud_sync_secret: Option<String>,
+    #[serde(default)]
+    yt_tabs: Option<Vec<YtCustomTab>>,
 }
 
 #[derive(Deserialize)]
@@ -1381,7 +1387,10 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         }
 
         let (jmdict_arc, jmnedict_arc) = {
-            let st = state_arc.lock().unwrap();
+            let mut st = state_arc.lock().unwrap();
+            if let Some(ref mut sess) = st.active_session {
+                sess.words_looked_up = sess.words_looked_up.saturating_add(1);
+            }
             (Arc::clone(&st.jmdict), Arc::clone(&st.jmnedict))
         };
         let (entries, dict_words, name_words) = {
@@ -1416,7 +1425,13 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         let vocab = {
             let mut st = state_arc.lock().unwrap();
             let vf = st.vocab_file.clone();
+            let was_known = st.vocab.known.contains(parsed.word.trim());
             st.vocab.set_status(&parsed.word, &parsed.status);
+            if parsed.status == "known" && !was_known {
+                if let Some(ref mut sess) = st.active_session {
+                    sess.words_marked_known = sess.words_marked_known.saturating_add(1);
+                }
+            }
             st.vocab.save(&vf);
             st.save();
             st.vocab.clone()
@@ -1925,6 +1940,8 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             toggl_workspace_id: toggl_wid,
             toggl_live: false,
             toggl_error: None,
+            words_looked_up: 0,
+            words_marked_known: 0,
         };
 
         let (history, stats) = {
@@ -2117,6 +2134,9 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                     st.cloud_sync_secret = csec.trim().to_string();
                 }
             }
+            if let Some(tabs) = upd.yt_tabs {
+                st.data.config.yt_tabs = tabs;
+            }
             st.save();
             st.public_config()
         };
@@ -2163,6 +2183,64 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         }
 
         respond_json(req, 200, &serde_json::json!({ "items": items }));
+        return;
+    }
+
+    // POST /api/yt/search (Japanese YouTube search + T+1 scoring + AI category suggestion for messy queries)
+    if method == Method::Post && path_only == "/api/yt/search" {
+        let body = match read_body_string(&mut req) {
+            Ok(b) => b,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let v: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(p) => p,
+            Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
+        };
+        let q = v["query"].as_str().unwrap_or("").trim().to_string();
+        if q.is_empty() {
+            return respond_err(req, 400, "Enter a search term or YouTube URL");
+        }
+        let (app_root, morph_arc, jmdict_arc, vocab_snap) = {
+            let st = state_arc.lock().unwrap();
+            (
+                st.app_root.clone(),
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+                st.vocab.clone(),
+            )
+        };
+        let mut items = match youtube::search_youtube_jp(&app_root, &q, 16) {
+            Ok(list) => list,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        {
+            let mp_g = morph_arc.lock().unwrap();
+            let jm_g = jmdict_arc.lock().unwrap();
+            youtube::score_immersion_feed(&mut items, mp_g.as_ref(), jm_g.as_ref(), &vocab_snap);
+        }
+        // If the query is messy/long, ask the agent for a clean broad category name; otherwise title-case cleanly
+        let word_count = q.split_whitespace().count();
+        let suggested = if word_count > 2 || q.chars().count() > 16 {
+            resolve_ai_auth(&state_arc)
+                .ok()
+                .and_then(|auth| agent::suggest_search_category(&auth, &q))
+                .unwrap_or_else(|| q.split_whitespace().next().unwrap_or(&q).to_string())
+        } else {
+            let mut chs = q.chars();
+            match chs.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chs.as_str(),
+                None => q.clone(),
+            }
+        };
+        respond_json(
+            req,
+            200,
+            &serde_json::json!({
+                "query": q,
+                "suggested_category": suggested,
+                "items": items,
+            }),
+        );
         return;
     }
 

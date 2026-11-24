@@ -475,3 +475,84 @@ pub fn score_immersion_feed(
             .then_with(|| b.published.cmp(&a.published))
     });
 }
+
+fn has_japanese_chars(s: &str) -> bool {
+    s.chars().any(|c| {
+        ('\u{3040}'..='\u{30FF}').contains(&c) || ('\u{4E00}'..='\u{9FFF}').contains(&c)
+    })
+}
+
+/// Searches YouTube for Japanese immersion content via bundled `yt-dlp` (`ytsearchN:...`).
+pub fn search_youtube_jp(
+    app_root: &Path,
+    raw_query: &str,
+    count: usize,
+) -> Result<Vec<FeedVideo>, String> {
+    let Some(ytdlp) = find_yt_dlp(app_root) else {
+        return Err("yt-dlp.exe not found in tools/yt-dlp/".into());
+    };
+    let q = raw_query.trim();
+    if q.is_empty() {
+        return Ok(Vec::new());
+    }
+    let search_q = if has_japanese_chars(q) {
+        q.to_string()
+    } else {
+        format!("{} 日本語", q)
+    };
+    let spec = format!("ytsearch{}:{}", count.clamp(4, 20), search_q);
+    let mut cmd = Command::new(&ytdlp);
+    cmd.args([
+        "--no-check-certificates",
+        "--flat-playlist",
+        "--dump-single-json",
+        &spec,
+    ]);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    }
+    let out = cmd
+        .output()
+        .map_err(|e| format!("Failed running yt-dlp search: {}", e))?;
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let root: serde_json::Value =
+        serde_json::from_str(&stdout).map_err(|_| "No search results returned".to_string())?;
+    let entries = root["entries"].as_array().cloned().unwrap_or_default();
+    let mut items = Vec::new();
+    for e in entries {
+        let Some(id) = e.get("id").and_then(|v| v.as_str()) else { continue };
+        if !is_valid_yt_id(id) {
+            continue;
+        }
+        let title = e
+            .get("title")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .trim()
+            .to_string();
+        if title.is_empty() {
+            continue;
+        }
+        let channel = e
+            .get("channel")
+            .or_else(|| e.get("uploader"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("YouTube")
+            .trim()
+            .to_string();
+        items.push(FeedVideo {
+            id: id.to_string(),
+            title,
+            channel,
+            category: "search".to_string(),
+            published: String::new(),
+            known_pct: 0,
+            unknown_count: 0,
+            tier: String::new(),
+            score: 0.0,
+        });
+    }
+    Ok(items)
+}

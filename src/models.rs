@@ -3,6 +3,13 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct YtCustomTab {
+    pub id: String,
+    pub label: String,
+    pub query: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppConfig {
     pub toggl_api_token: String,
@@ -10,6 +17,8 @@ pub struct AppConfig {
     pub gemini_api_key: String,
     #[serde(default)]
     pub cloud_sync_url: String,
+    #[serde(default)]
+    pub yt_tabs: Vec<YtCustomTab>,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -28,6 +37,7 @@ impl Default for AppConfig {
             toggl_api_token: String::new(),
             gemini_api_key: String::new(),
             cloud_sync_url: String::new(),
+            yt_tabs: Vec::new(),
             toggl_workspace_id: None,
             toggl_workspace_name: String::new(),
             toggl_project_id: None,
@@ -98,6 +108,10 @@ pub struct HistoryEntry {
     pub toggl_entry_id: Option<i64>,
     pub toggl_synced: bool,
     pub toggl_error: Option<String>,
+    #[serde(default)]
+    pub words_looked_up: u32,
+    #[serde(default)]
+    pub words_marked_known: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -114,6 +128,10 @@ pub struct ActiveSession {
     pub toggl_workspace_id: Option<i64>,
     pub toggl_live: bool,
     pub toggl_error: Option<String>,
+    #[serde(default)]
+    pub words_looked_up: u32,
+    #[serde(default)]
+    pub words_marked_known: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -224,6 +242,7 @@ pub struct PublicConfig {
     pub has_ai_auth: bool,
     pub cloud_sync_url: String,
     pub has_cloud_sync_secret: bool,
+    pub yt_tabs: Vec<YtCustomTab>,
     pub toggl_workspace_id: Option<i64>,
     pub toggl_workspace_name: String,
     pub toggl_project_id: Option<i64>,
@@ -263,6 +282,7 @@ impl From<&AppConfig> for PublicConfig {
             has_ai_auth: has_gem,
             cloud_sync_url: c.cloud_sync_url.clone(),
             has_cloud_sync_secret: false,
+            yt_tabs: c.yt_tabs.clone(),
             toggl_workspace_id: c.toggl_workspace_id,
             toggl_workspace_name: c.toggl_workspace_name.clone(),
             toggl_project_id: c.toggl_project_id,
