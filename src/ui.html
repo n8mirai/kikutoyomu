@@ -917,7 +917,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   transition:transform .24s var(--spring),border-color .2s,box-shadow .24s;
 }
 .yt-card:hover{transform:translateY(-3px);border-color:var(--line3);box-shadow:0 14px 32px rgba(0,0,0,.3)}
-.yt-card img{width:100%;height:100%;object-fit:cover;display:block}
+.yt-card>img{width:100%;height:100%;object-fit:cover;display:block}
 .yt-card-veil{
   position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px 12px;
   background:linear-gradient(180deg,transparent 38%,rgba(10,6,16,.84) 100%);
@@ -1043,18 +1043,22 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   pointer-events:none;
 }
 .yt-card-ch-row{
-  display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0;
+  display:flex;align-items:center;gap:5px;margin-top:4px;min-width:0;
 }
 .yt-card-pfp{
-  width:16px;height:16px;border-radius:50%;object-fit:cover;flex-shrink:0;
-  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);
+  width:16px!important;height:16px!important;min-width:16px;max-width:16px;min-height:16px;max-height:16px;
+  border-radius:50%;object-fit:cover;flex:0 0 16px;display:block;
+  border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.12);
 }
-.yt-card-ch{font-size:11px;color:rgba(246,241,248,.74);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-card-ch{font-size:11px;color:rgba(246,241,248,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yt-card-ch-btn{
   display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:100%;
-  background:none;border:0;padding:0;cursor:pointer;text-align:left;
+  background:rgba(14,9,22,.46);border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  padding:2px 8px 2px 3px;cursor:pointer;text-align:left;
+  transition:background .15s,border-color .15s;
 }
-.yt-card-ch-btn:hover .yt-card-ch{color:#fff;text-decoration:underline}
+.yt-card-ch-btn:hover{background:rgba(14,9,22,.78);border-color:rgba(255,255,255,.32)}
+.yt-card-ch-btn:hover .yt-card-ch{color:#fff}
 .yt-ch-head{
   display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px 12px;
   border-radius:14px;background:var(--bg1);border:1px solid var(--line2);
@@ -1090,7 +1094,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   transition:transform .22s var(--spring),border-color .16s;
 }
 .yt-next-card:hover{transform:translateY(-2px);border-color:var(--line3)}
-.yt-next-card img{width:100%;height:100%;object-fit:cover;display:block}
+.yt-next-card>img{width:100%;height:100%;object-fit:cover;display:block}
 .yt-next-card .yt-card-veil{padding:18px 8px 6px}
 .yt-next-card .yt-card-title{font-size:11px;line-height:1.28}
 .yt-next-card .yt-badge{top:5px;left:5px;padding:1px 5px;font-size:9.5px}
@@ -4567,11 +4571,13 @@ function ytCardHtml(v, dataAttr, savedIds) {
     ? `<span class="yt-badge ${tierCls}">${esc(v.tier)}${v.known_pct ? ` · ${v.known_pct}%` : ''}</span>`
     : (savedIds && savedIds.has(v.id) ? `<span class="yt-sub-dot"></span>` : '');
   const dur = v.duration ? `<span class="yt-dur">${esc(v.duration)}</span>` : '';
-  const pfp = v.channel_pfp ? `<img class="yt-card-pfp" src="${esc(v.channel_pfp)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  const pfp = v.channel_pfp
+    ? `<img class="yt-card-pfp" src="${esc(v.channel_pfp)}" alt="" loading="lazy" onerror="this.remove()">`
+    : `<span class="yt-card-pfp" style="display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff">${esc(((v.channel || 'Y').trim()[0] || 'Y').toUpperCase())}</span>`;
   const chInner = `${pfp}<span class="yt-card-ch">${esc(v.channel || '')}</span>`;
   const chRow = v.channel_id
-    ? `<div class="yt-card-ch-row"><button class="yt-card-ch-btn" data-yt-ch-id="${esc(v.channel_id)}" data-yt-ch-name="${esc(v.channel || '')}" data-yt-ch-pfp="${esc(v.channel_pfp || '')}" title="Browse channel">${chInner}</button></div>`
-    : (v.channel ? `<div class="yt-card-ch-row">${chInner}</div>` : '');
+    ? `<div class="yt-card-ch-row"><button class="yt-card-ch-btn" data-yt-ch-id="${esc(v.channel_id)}" data-yt-ch-name="${esc(v.channel || '')}" data-yt-ch-pfp="${esc(v.channel_pfp || '')}" title="Browse ${esc(v.channel || 'channel')}">${chInner}</button></div>`
+    : (v.channel ? `<div class="yt-card-ch-row"><button class="yt-card-ch-btn" data-yt-ch-search="${esc(v.channel)}" title="Search ${esc(v.channel)}">${chInner}</button></div>` : '');
   return `
     <div class="yt-card" ${dataAttr}="${esc(v.id)}">
       <img src="https://i.ytimg.com/vi/${encodeURIComponent(v.id)}/hqdefault.jpg" alt="${esc(v.title)}" loading="lazy">
@@ -5008,6 +5014,13 @@ $('#yt-grid').addEventListener('click', async e => {
   if (chBtn) {
     e.stopPropagation();
     openYtChannel(chBtn.dataset.ytChId, chBtn.dataset.ytChName, chBtn.dataset.ytChPfp);
+    return;
+  }
+  const chSearch = e.target.closest('[data-yt-ch-search]');
+  if (chSearch) {
+    e.stopPropagation();
+    $('#yt-url').value = chSearch.dataset.ytChSearch;
+    addYtUrl();
     return;
   }
   const del = e.target.closest('[data-yt-del]');
@@ -5592,7 +5605,8 @@ document.addEventListener('pointerout', e => {
 });
 document.addEventListener('click', e => {
   if (e.target.closest('[data-cal-yes],[data-cal-no],[data-seek-cue],#dict-pop')) return;
-  const tok = e.target.closest('.tok');
+  // Click-to-lookup is for token chips in AI, Vocab, and History (subtitles stay click=toggle Known, Shift+hover=lookup!)
+  const tok = e.target.closest('#v-ai .tok, #v-vocab .tok, .h-word-chip.tok');
   if (tok) { openDictPop(tok); }
 });
 

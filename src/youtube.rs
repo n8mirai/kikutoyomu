@@ -61,16 +61,16 @@ pub struct ChannelPage {
     pub continuation: Option<String>,
 }
 
-const CURATED_CHANNELS: &[(&str, &str, &str)] = &[
-    ("UC8dWfySP_cKDMFj6aFfQbFA", "YUYUの日本語Podcast", "talk"),
-    ("UCh-GhnQ7qDQmS6Bz3pGc1Mw", "あかね的日本語教室", "vlog"),
-    ("UCSbH_BPR_AoARW6RDYLlLog", "Speak Japanese Naturally", "vlog"),
-    ("UCB_Bvgg4oCHEAzxvZju4S3A", "Bite Size Japanese", "talk"),
-    ("UCaXIrZ5Ere4lC4cdPE_ujXA", "けんさんおかえり", "vlog"),
-    ("UCmpkIzF3xFzhPez7gXOyhVg", "ゆる言語学ラジオ", "talk"),
-    ("UCgMPP6RRjktV7krOfyUewqw", "はじめしゃちょー", "jp"),
-    ("UCFbp2XdRpKfk7mYt_uT8dxw", "Kevin's English Room", "jp"),
-    ("UCGCZAYq5Xxojl_tSXcVJhiQ", "ANNnewsCH", "news"),
+const CURATED_CHANNELS: &[(&str, &str, &str, &str)] = &[
+    ("UC8dWfySP_cKDMFj6aFfQbFA", "YUYUの日本語Podcast", "talk", "https://yt3.googleusercontent.com/gSp7_d8NvgTPBOFfJTSsVt-auJq89Jb6hp1XV7JdQRYIMbGD84TJapNfnil2z2rlQHuH6xZ7vg=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCh-GhnQ7qDQmS6Bz3pGc1Mw", "あかね的日本語教室", "vlog", "https://yt3.googleusercontent.com/ytc/AIdro_kykxNolZAhyFMec4m7G-1XvOaIVU5IY1hZDE867JdwFw=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCSbH_BPR_AoARW6RDYLlLog", "Speak Japanese Naturally", "vlog", "https://yt3.googleusercontent.com/vNhlOnvOL0J1xhCZJ3urGA7R0LJ6HVJzg1GUdJ53Lk8wqkKzK_6nhJf4QjcOEJyM_N55aFjGHw=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCB_Bvgg4oCHEAzxvZju4S3A", "Bite Size Japanese", "talk", "https://yt3.googleusercontent.com/ytc/AIdro_nGVDhM5MWm1PIhnh26ofyXHIwIKXqq-MRw7DF0okJa7A=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCaXIrZ5Ere4lC4cdPE_ujXA", "けんさんおかえり", "vlog", "https://yt3.googleusercontent.com/WdMna2oNs-rUT7VGfZUNjQxJy8fEGI5GTs8Dv7CHnaQStDGV4DCMnSEe0uNN79iQ7hXjKMRQxw=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCmpkIzF3xFzhPez7gXOyhVg", "ゆる言語学ラジオ", "talk", "https://yt3.googleusercontent.com/ytc/AIdro_na3cTkSA0sWhtO4SUp7lKdTc2LRjJ6ivp-UVHb3dzqqfU=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCgMPP6RRjktV7krOfyUewqw", "はじめしゃちょー", "jp", "https://yt3.googleusercontent.com/0KVCl_7XS0e6THDRqygC0hiUXjqDAaDGUVITLREGEnbjscem5gss6WTWgznH_jvXVs_DEAFprA=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCFbp2XdRpKfk7mYt_uT8dxw", "Kevin's English Room", "jp", "https://yt3.googleusercontent.com/ytc/AIdro_kWXTpkmV6BgSW-j7zxvWP8E_VnIxSjuMiMNeR0PFreJXU=s72-c-k-c0x00ffffff-no-rj"),
+    ("UCGCZAYq5Xxojl_tSXcVJhiQ", "ANNnewsCH", "news", "https://yt3.googleusercontent.com/YNCCp1NNe4z2aL7Iv82YHL8qKYmU6uOSn8NKep4qKRBK_E2XJCF5evjRiArUbs-gmLX2dnwtIQ=s72-c-k-c0x00ffffff-no-rj"),
 ];
 
 /// Category-specific native Japanese YouTube discovery seed waves (for infinite breadth!).
@@ -683,6 +683,11 @@ fn parse_video_renderer(vr: &serde_json::Value, category: &str, source: &str) ->
             vr["longBylineText"]["runs"][0]["navigationEndpoint"]["browseEndpoint"]["browseId"]
                 .as_str()
         })
+        .or_else(|| {
+            vr["channelThumbnailSupportedRenderers"]["channelThumbnailWithLinkRenderer"]
+                ["navigationEndpoint"]["browseEndpoint"]["browseId"]
+                .as_str()
+        })
         .unwrap_or("")
         .to_string();
 
@@ -1201,6 +1206,7 @@ fn parse_atom_entries(
     channel_id: &str,
     fallback_ch: &str,
     category: &str,
+    channel_pfp: &str,
 ) -> Vec<FeedVideo> {
     let mut out = Vec::new();
     for chunk in xml.split("<entry>").skip(1) {
@@ -1237,7 +1243,7 @@ fn parse_atom_entries(
             tier: String::new(),
             score: 0.0,
             channel_id: channel_id.to_string(),
-            channel_pfp: String::new(),
+            channel_pfp: channel_pfp.to_string(),
             duration: String::new(),
             views: String::new(),
             has_cc: false,
@@ -1245,30 +1251,6 @@ fn parse_atom_entries(
         });
     }
     out
-}
-
-/// Fetches fresh videos from all curated Japanese ImmersionTube channels in parallel via fast RSS.
-pub fn fetch_raw_immersion_feed() -> Vec<FeedVideo> {
-    let mut handles = Vec::new();
-    for &(cid, cname, cat) in CURATED_CHANNELS {
-        let cid_s = cid.to_string();
-        let cname_s = cname.to_string();
-        let cat_s = cat.to_string();
-        handles.push(std::thread::spawn(move || {
-            let path = format!("/feeds/videos.xml?channel_id={}", cid_s);
-            match winhttp_get_text("www.youtube.com", &path) {
-                Ok(xml) => parse_atom_entries(&xml, &cid_s, &cname_s, &cat_s),
-                Err(_) => Vec::new(),
-            }
-        }));
-    }
-    let mut all = Vec::new();
-    for h in handles {
-        if let Ok(mut list) = h.join() {
-            all.append(&mut list);
-        }
-    }
-    all
 }
 
 /// Hybrid ImmersionTube Breadth & Depth Discovery Engine:
@@ -1289,17 +1271,18 @@ pub fn fetch_hybrid_immersion_wave(
 
     // 1. Wave 0 on broad views includes the fast curated RSS pool
     if wave == 0 && matches!(cat, "foryou" | "all" | "vlog" | "talk" | "jp" | "news") {
-        for &(cid, cname, ccat) in CURATED_CHANNELS {
+        for &(cid, cname, ccat, cpfp) in CURATED_CHANNELS {
             if cat != "foryou" && cat != "all" && ccat != cat {
                 continue;
             }
             let cid_s = cid.to_string();
             let cname_s = cname.to_string();
             let cat_s = ccat.to_string();
+            let pfp_s = cpfp.to_string();
             handles.push(std::thread::spawn(move || {
                 let path = format!("/feeds/videos.xml?channel_id={}", cid_s);
                 match winhttp_get_text("www.youtube.com", &path) {
-                    Ok(xml) => parse_atom_entries(&xml, &cid_s, &cname_s, &cat_s),
+                    Ok(xml) => parse_atom_entries(&xml, &cid_s, &cname_s, &cat_s, &pfp_s),
                     Err(_) => Vec::new(),
                 }
             }));
