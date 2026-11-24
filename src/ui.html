@@ -929,11 +929,13 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   background:var(--g2);box-shadow:0 0 8px rgba(46,204,64,.65);
 }
 .yt-pills{
-  display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap;
+  display:flex;align-items:center;gap:6px;margin-bottom:14px;
+  flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
 }
+.yt-pills::-webkit-scrollbar{display:none}
 .yt-pill{
-  display:inline-flex;align-items:center;gap:5px;
-  height:27px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:500;
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  height:28px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:500;
   color:var(--muted);background:var(--bg1);border:1px solid var(--line);
   transition:color .16s,background .16s,border-color .16s;
 }
@@ -983,7 +985,7 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .h-title{font-size:13.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-meta{font-size:11.5px;color:var(--faint)}
 .h-stats-bar{
-  display:flex;align-items:center;gap:14px;padding:6px 14px 9px 112px;
+  display:flex;align-items:center;gap:14px;padding:6px 14px 9px;
   font-size:11.5px;font-weight:500;border-top:1px solid var(--line);
 }
 .h-stat-btn{
@@ -996,12 +998,14 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 .h-stat-btn.lr{color:#D97706}
 .h-stat-btn.kn{color:var(--g2)}
 .h-words-drawer{
-  display:flex;flex-wrap:wrap;gap:6px;padding:4px 14px 11px 112px;
+  display:flex;flex-wrap:wrap;gap:7px;padding:4px 14px 12px;width:100%;
 }
 .h-word-chip{
-  padding:2px 8px;border-radius:7px;font-size:12.5px;background:var(--bg2);
-  border:1px solid var(--line2);color:var(--text);
+  padding:3px 10px;border-radius:8px;font-size:13.5px;background:var(--bg2);
+  border:1px solid var(--line2);color:var(--text);cursor:pointer;
+  transition:transform .16s var(--spring),border-color .15s,background .15s;
 }
+.h-word-chip:hover{transform:translateY(-1px);border-color:var(--line3);background:var(--bg3)}
 .yt-ch-btn{
   display:inline-flex;align-items:center;gap:7px;padding:3px 9px 3px 4px;border-radius:999px;
   background:var(--bg2);border:1px solid var(--line2);cursor:pointer;
@@ -1213,9 +1217,20 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:6px 12px 18px;
 }
 .ai-msg{
-  max-width:86%;padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;
-  white-space:pre-wrap;word-break:break-word;
+  max-width:86%;padding:12px 15px;border-radius:14px;font-size:13.5px;line-height:1.65;
+  word-break:break-word;
   box-shadow:var(--lg-rim),0 3px 10px rgba(0,0,0,.06)!important;
+}
+.ai-msg.fresh{animation:ukabuToken .82s cubic-bezier(.19,1,.22,1) both}
+.ai-msg p{margin:0 0 8px}.ai-msg p:last-child{margin-bottom:0}
+.ai-msg ul,.ai-msg ol{margin:4px 0 8px;padding-left:18px}
+.ai-msg li{margin:2px 0}
+.ai-msg strong{font-weight:600;color:var(--text)}
+.ai-msg em{font-style:italic;color:var(--muted)}
+.ai-msg code{padding:1px 5px;border-radius:5px;background:var(--bg2);font-size:12.5px}
+.ai-msg-cals{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(154px,1fr));gap:8px;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
 }
 .ai-msg.user{align-self:flex-end;background:var(--bg2);border:1px solid var(--line2);color:var(--text)}
 .ai-msg.model{align-self:flex-start;background:var(--bg1);border:1px solid var(--line);color:var(--text)}
@@ -3770,6 +3785,7 @@ async function saveYtProgress(forceCompleted = false, useBeacon = false) {
 
 let ytTraceStage = 0; // 0 = 1-line trace, 1 = Video synopsis (with clickable channel PFP for channel info)
 let ytChannelOpen = false;
+let ytCardRenderKey = '';
 let ytAiAutoInflight = new Set();
 
 function updateYtTraceUI() {
@@ -3779,6 +3795,7 @@ function updateYtTraceUI() {
   if (!ytCurrentVideo || !synData) {
     if (lineEl) lineEl.textContent = ytCurrentVideo ? (ytCurrentVideo.title || '') : '';
     if (drawer) drawer.classList.remove('open');
+    ytCardRenderKey = '';
     return;
   }
   const beats = synData.beats || [];
@@ -3801,11 +3818,14 @@ function updateYtTraceUI() {
     const epSum = synData.episode_summary || (generating ? 'Generating video context…' : ytCurrentVideo.title);
     const chName = synData.series_title || ytCurrentVideo.channel || 'Channel';
     const chSum = synData.series_summary || (generating ? 'Generating channel context…' : '');
+    const key = `${ytCurrentVideo.id}|${ytTraceStage}|${ytChannelOpen}|${generating}|${epSum}|${chSum}`;
+    if (key === ytCardRenderKey) return; // Zero DOM churn during playback -> zero flashing!
+    ytCardRenderKey = key;
     const chInit = (chName.trim()[0] || 'Y').toUpperCase();
     card.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px">
         <h4 style="margin:0">Video</h4>
-        ${chSum ? `<button class="yt-ch-btn${ytChannelOpen ? ' on' : ''}" id="yt-ch-pfp-btn" title="Toggle channel overview"><span class="yt-ch-pfp">${esc(chInit)}</span><span>${esc(chName)}</span></button>` : ''}
+        ${chSum ? `<button class="yt-ch-btn${ytChannelOpen ? ' on' : ''}" id="yt-ch-pfp-btn" title="Toggle channel overview"><span class="yt-ch-pfp"><img src="https://i.ytimg.com/vi/${encodeURIComponent(ytCurrentVideo.id)}/default.jpg" alt="" onerror="this.remove()">${esc(chInit)}</span><span>${esc(chName)}</span></button>` : ''}
       </div>
       <p>${esc(epSum)}</p>
       ${ytChannelOpen && chSum ? `<div class="yt-ch-sec"><h4>${esc(chName)}</h4><p>${esc(chSum)}</p></div>` : ''}`;
@@ -3816,6 +3836,8 @@ function updateYtTraceUI() {
         updateYtTraceUI();
       };
     }
+  } else {
+    ytCardRenderKey = '';
   }
 }
 
@@ -3936,20 +3958,60 @@ function renderAiCalibrationBar() {
   bar.innerHTML = aiCalCandidates.slice(0, 8).map((c, i) => renderCalChipHtml(c, `--stagger:${i * 55}ms`)).join('');
 }
 
-function renderAiApp() {
-  if (!aiCalLoaded) loadAiCalibration(false);
-  renderAiCalibrationBar();
+function renderMd(raw) {
+  const safe = esc(raw || '');
+  const inline = s => s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  const lines = safe.split('\n');
+  let html = '', inUl = false, inOl = false;
+  const closeLists = () => {
+    if (inUl) { html += '</ul>'; inUl = false; }
+    if (inOl) { html += '</ol>'; inOl = false; }
+  };
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { closeLists(); continue; }
+    const ulM = t.match(/^[\*\-•]\s+(.*)$/);
+    const olM = t.match(/^\d+\.\s+(.*)$/);
+    if (ulM) {
+      if (inOl) { html += '</ol>'; inOl = false; }
+      if (!inUl) { html += '<ul>'; inUl = true; }
+      html += `<li>${inline(ulM[1])}</li>`;
+    } else if (olM) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (!inOl) { html += '<ol>'; inOl = true; }
+      html += `<li>${inline(olM[1])}</li>`;
+    } else {
+      closeLists();
+      html += `<p>${inline(t)}</p>`;
+    }
+  }
+  closeLists();
+  return html;
+}
+
+function renderAiMessages() {
   const box = $('#ai-msgs');
   if (!aiChatHistory.length) {
-    box.innerHTML = `<div class="ai-msg model">Ask me about your Japanese immersion, grammar, or calibrate your purple words above (Shift+hover to look up, × / ✓ to clear).</div>`;
+    box.innerHTML = `<div class="ai-msg model"><p>Ask me about your Japanese immersion, grammar, or calibrate your purple words above.</p></div>`;
     return;
   }
-  box.innerHTML = aiChatHistory.map(m => {
+  box.innerHTML = aiChatHistory.map((m, idx) => {
+    const isLast = idx === aiChatHistory.length - 1;
     const acts = (m.actions || []).map(a => `<span class="ai-act-tag">${esc(a.summary)}</span>`).join('');
-    const cals = (m.calibration || []).map(c => renderCalChipHtml(c, 'margin:6px 5px 0 0')).join('');
-    return `<div class="ai-msg ${m.role}">${esc(m.text)}${acts ? `<div>${acts}</div>` : ''}${cals ? `<div>${cals}</div>` : ''}</div>`;
+    const cals = (m.calibration || []).map((c, ci) => renderCalChipHtml(c, `--stagger:${ci * 55}ms`)).join('');
+    const body = m.role === 'model' ? renderMd(m.text) : `<p>${esc(m.text)}</p>`;
+    return `<div class="ai-msg ${m.role}${isLast ? ' fresh' : ''}">${body}${acts ? `<div>${acts}</div>` : ''}${cals ? `<div class="ai-msg-cals">${cals}</div>` : ''}</div>`;
   }).join('');
   box.scrollTop = box.scrollHeight;
+}
+
+function renderAiApp() {
+  if (!aiCalLoaded) loadAiCalibration(false);
+  else if (!$('#ai-cal-bar').children.length && aiCalCandidates.length) renderAiCalibrationBar();
+  renderAiMessages();
 }
 
 async function sendAiAppMsg() {
@@ -3958,14 +4020,15 @@ async function sendAiAppMsg() {
   if (!txt) return;
   inp.value = '';
   const prevHistory = aiChatHistory.slice(-10).map(m => ({ role: m.role, text: m.text }));
+  const visibleTokens = [...$('#ai-cal-bar').querySelectorAll('[data-cal-chip]:not(.sinking):not(.gone)')].map(el => el.dataset.calChip);
   aiChatHistory.push({ role: 'user', text: txt });
   aiChatHistory.push({ role: 'model', text: 'Thinking…', pending: true });
-  renderAiApp();
+  renderAiMessages(); // NEVER re-render top calibration tokens when chatting!
   const btn = $('#ai-send'); btn.disabled = true;
   try {
     const res = await api('/api/ai/ask', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: txt, history: prevHistory })
+      body: JSON.stringify({ message: txt, history: prevHistory, visible_tokens: visibleTokens })
     });
     if (res.vocab_changed && res.vocab) { loadVocabFromState(res.vocab); refreshVocabHighlights(); }
     aiChatHistory = aiChatHistory.filter(m => !m.pending);
@@ -3975,11 +4038,11 @@ async function sendAiAppMsg() {
       actions: res.actions || [],
       calibration: res.calibration || []
     });
-    renderAiApp();
+    renderAiMessages();
   } catch (e) {
     aiChatHistory = aiChatHistory.filter(m => !m.pending);
     aiChatHistory.push({ role: 'model', text: e.message });
-    renderAiApp();
+    renderAiMessages();
   } finally { btn.disabled = false; }
 }
 
@@ -4161,7 +4224,7 @@ function renderYtGrid() {
   if (ytSearchResults !== null) {
     $('#yt-search-shell').classList.add('has-drop');
     $('#yt-search-trace').hidden = false;
-    $('#yt-save-drop-lbl').textContent = `Save "${ytSuggestedTab || ytSearchQuery}" as tab?`;
+    $('#yt-save-drop-lbl').textContent = 'Save tab?';
     $('#yt-grid').innerHTML = ytSearchResults.length
       ? ytSearchResults.map(v => {
           const tierCls = v.tier ? v.tier.toLowerCase() : '';
@@ -5040,10 +5103,31 @@ window.addEventListener('message', e => {
 });
 
 // Keyboard (including Shift+Hover trigger & 1/2/3/4 instant word tagging!)
+// Global delegated lookup: EVERY .tok app-wide (Subtitles, YT, Word Map, AI, History) is lookup-able via click OR Shift+hover!
+document.addEventListener('pointerover', e => {
+  const tok = e.target.closest('.tok');
+  if (tok) {
+    hoveredTokEl = tok;
+    if (e.shiftKey || shiftHeld) openDictPop(tok);
+  }
+});
+document.addEventListener('pointerout', e => {
+  const tok = e.target.closest('.tok');
+  if (tok && hoveredTokEl === tok) {
+    hoveredTokEl = null;
+    if (popOpen) scheduleCloseDictPop();
+  }
+});
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-cal-yes],[data-cal-no],[data-seek-cue],#dict-pop')) return;
+  const tok = e.target.closest('.tok');
+  if (tok) { openDictPop(tok); }
+});
+
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
     shiftHeld = true;
-    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play' || curTab === 'ai')) openDictPop(hoveredTokEl);
+    if (hoveredTokEl) openDictPop(hoveredTokEl);
     return;
   }
   const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');

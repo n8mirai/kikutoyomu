@@ -793,6 +793,8 @@ struct AiAskReq {
     timestamp: Option<f64>,
     #[serde(default)]
     context_lines: Vec<String>,
+    #[serde(default)]
+    visible_tokens: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -2546,17 +2548,28 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 .take(8)
                 .map(|h| format!("{} — {} ({}m)", h.anime_title, h.episode_title, (h.duration_secs / 60).max(1)))
                 .collect();
+            let vis_str = if parsed.visible_tokens.is_empty() {
+                "none".to_string()
+            } else {
+                parsed.visible_tokens.join("、")
+            };
             let mut ctx = format!(
                 "You are Kiku, a concise, insightful Japanese immersion AI companion.\n\
                 User profile: {} known words, {} learning words (sample: {}), {}m immersed today ({}d streak).\n\
                 Recent immersion: {}.\n\
-                You have tools to update the user's vocabulary (mark_vocab) and surface likely-known calibration words (suggest_calibration_words). Keep answers crisp, natural, and directly helpful.",
+                Calibration tokens ALREADY visible at the top of the user's screen: [{}].\n\
+                IMPORTANT RULES:\n\
+                - NEVER repeat or suggest any word that is already in the visible calibration tokens list above.\n\
+                - Whenever you want to suggest or check candidate words with the user, ALWAYS call `suggest_calibration_words` (which renders interactive clickable pills) and NEVER write out a plain-text bulleted list of those candidate words in your text reply.\n\
+                - You can call `mark_vocab(word, status)` to directly update the user's VocabStore.\n\
+                Keep responses concise, warm, and directly helpful.",
                 st.vocab.known.len(),
                 st.vocab.learning.len(),
                 learning.join("、"),
                 stats.today_secs / 60,
                 stats.streak_days,
                 if recent.is_empty() { "none yet".to_string() } else { recent.join(" | ") },
+                vis_str,
             );
             if let Some(ref t) = parsed.title {
                 ctx.push_str(&format!("\nCurrently watching/listening: \"{}\"", t));
@@ -2652,14 +2665,18 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                         }
                     }
                     "suggest_calibration_words" => {
-                        let cnt = args["count"].as_u64().unwrap_or(8) as usize;
-                        let cands = collect_calibration_words(&state_arc, cnt);
+                        let cnt = args["count"].as_u64().unwrap_or(6) as usize;
+                        let vis_set: std::collections::HashSet<&str> =
+                            parsed.visible_tokens.iter().map(|s| s.as_str()).collect();
+                        let mut cands = collect_calibration_words(&state_arc, cnt + vis_set.len() + 12);
+                        cands.retain(|c| !vis_set.contains(c.word.as_str()));
+                        cands.truncate(cnt.clamp(1, 8));
                         calibration = cands.clone();
                         actions.push(AgentAction {
                             tool: "suggest_calibration_words".into(),
-                            summary: format!("Found {} likely-known words", cands.len()),
+                            summary: format!("Suggested {} new words", cands.len()),
                         });
-                        serde_json::json!({ "candidates": cands })
+                        serde_json::json!({ "candidates": cands, "note": "Rendered as interactive clickable pills below your reply — do NOT repeat these words as a text list." })
                     }
                     _ => serde_json::json!({ "error": "unknown tool" }),
                 };
