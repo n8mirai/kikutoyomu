@@ -1768,22 +1768,42 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
 
         let (anime_title, episode_title, playlist_name, cfg) = {
             let st = state_arc.lock().unwrap();
-            let anime = st.library.iter().find(|a| a.id == parsed.anime_id);
-            let anime_title = anime
-                .map(|a| a.title.clone())
-                .unwrap_or_else(|| parsed.anime_id.clone());
-            let episode_title = anime
-                .and_then(|a| a.episodes.iter().find(|e| e.id == parsed.episode_id))
-                .map(|e| format!("Ep {:02}: {}", e.number, e.title))
-                .unwrap_or_else(|| parsed.episode_id.clone());
-            let playlist_name = parsed.playlist_id.as_ref().and_then(|pid| {
-                st.data
-                    .playlists
-                    .iter()
-                    .find(|p| &p.id == pid)
-                    .map(|p| p.name.clone())
-            });
-            (anime_title, episode_title, playlist_name, st.data.config.clone())
+            if parsed.anime_id == "yt" {
+                let yt_vid = st.youtube.videos.iter().find(|v| v.id == parsed.episode_id);
+                let feed_vid = st.yt_feed_cache.iter().find(|v| v.id == parsed.episode_id);
+                let ch = yt_vid
+                    .map(|v| v.channel.as_str())
+                    .filter(|s| !s.is_empty())
+                    .or_else(|| feed_vid.map(|v| v.channel.as_str()).filter(|s| !s.is_empty()))
+                    .unwrap_or("YouTube");
+                let title = yt_vid
+                    .map(|v| v.title.clone())
+                    .or_else(|| feed_vid.map(|v| v.title.clone()))
+                    .unwrap_or_else(|| parsed.episode_id.clone());
+                (
+                    format!("YT · {}", ch),
+                    title,
+                    None,
+                    st.data.config.clone(),
+                )
+            } else {
+                let anime = st.library.iter().find(|a| a.id == parsed.anime_id);
+                let anime_title = anime
+                    .map(|a| a.title.clone())
+                    .unwrap_or_else(|| parsed.anime_id.clone());
+                let episode_title = anime
+                    .and_then(|a| a.episodes.iter().find(|e| e.id == parsed.episode_id))
+                    .map(|e| format!("Ep {:02}: {}", e.number, e.title))
+                    .unwrap_or_else(|| parsed.episode_id.clone());
+                let playlist_name = parsed.playlist_id.as_ref().and_then(|pid| {
+                    st.data
+                        .playlists
+                        .iter()
+                        .find(|p| &p.id == pid)
+                        .map(|p| p.name.clone())
+                });
+                (anime_title, episode_title, playlist_name, st.data.config.clone())
+            }
         };
 
         let started_at = timeutil::now_utc_rfc3339();
@@ -2092,6 +2112,115 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             200,
             &serde_json::json!({ "video": video, "videos": videos, "cues": rich_cues }),
         );
+        return;
+    }
+
+    // POST /api/yt/{id}/synopsis/generate (AI moment-by-moment context trace + video/channel synopsis)
+    if method == Method::Post
+        && path_only.starts_with("/api/yt/")
+        && path_only.ends_with("/synopsis/generate")
+    {
+        let id_raw = path_only
+            .trim_start_matches("/api/yt/")
+            .trim_end_matches("/synopsis/generate");
+        let Some(video_id) = youtube::extract_video_id(id_raw) else {
+            return respond_err(req, 400, "Invalid YouTube video ID");
+        };
+        let auth = match resolve_ai_auth(&state_arc) {
+            Ok(a) => a,
+            Err(e) => return respond_err(req, 400, &e),
+        };
+        let (yt_subs_dir, syn_file, title, channel) = {
+            let st = state_arc.lock().unwrap();
+            let yt_v = st.youtube.videos.iter().find(|v| v.id == video_id);
+            let fd_v = st.yt_feed_cache.iter().find(|v| v.id == video_id);
+            let t = yt_v
+                .map(|v| v.title.clone())
+                .or_else(|| fd_v.map(|v| v.title.clone()))
+                .unwrap_or_else(|| video_id.clone());
+            let ch = yt_v
+                .map(|v| v.channel.clone())
+                .filter(|s| !s.is_empty())
+                .or_else(|| fd_v.map(|v| v.channel.clone()).filter(|s| !s.is_empty()))
+                .unwrap_or_else(|| "YouTube".to_string());
+            (st.yt_subs_dir.clone(), st.synopsis_file.clone(), t, ch)
+        };
+        let Some(sub_p) = youtube::find_sub_file(&yt_subs_dir, &video_id) else {
+            return respond_err(req, 400, "No Japanese subtitles cached for this video yet");
+        };
+        let cues = match subs::load_subtitles(&sub_p) {
+            Ok(c) => c,
+            Err(e) => return respond_err(req, 500, &e),
+        };
+        match synopsis::generate_ai_synopsis(&auth, &channel, &title, &cues) {
+            Ok(gen) => {
+                let key = format!("yt/{}", video_id);
+                {
+                    let mut st = state_arc.lock().unwrap();
+                    st.synopses.episodes.insert(key, gen.clone());
+                    st.synopses.save(&syn_file);
+                }
+                respond_json(req, 200, &gen);
+            }
+            Err(e) => respond_err(req, 400, &e),
+        }
+        return;
+    }
+
+    // GET /api/yt/{id}/synopsis (ephemeral scene trace + video/channel synopsis for YT videos)
+    if method == Method::Get
+        && path_only.starts_with("/api/yt/")
+        && path_only.ends_with("/synopsis")
+    {
+        let id_raw = path_only
+            .trim_start_matches("/api/yt/")
+            .trim_end_matches("/synopsis");
+        let Some(video_id) = youtube::extract_video_id(id_raw) else {
+            return respond_err(req, 400, "Invalid YouTube video ID");
+        };
+        let key = format!("yt/{}", video_id);
+        let (cached_ep, yt_subs_dir, title, channel, morph_arc, jmdict_arc) = {
+            let st = state_arc.lock().unwrap();
+            let yt_v = st.youtube.videos.iter().find(|v| v.id == video_id);
+            let fd_v = st.yt_feed_cache.iter().find(|v| v.id == video_id);
+            let t = yt_v
+                .map(|v| v.title.clone())
+                .or_else(|| fd_v.map(|v| v.title.clone()))
+                .unwrap_or_else(|| video_id.clone());
+            let ch = yt_v
+                .map(|v| v.channel.clone())
+                .filter(|s| !s.is_empty())
+                .or_else(|| fd_v.map(|v| v.channel.clone()).filter(|s| !s.is_empty()))
+                .unwrap_or_else(|| "YouTube".to_string());
+            (
+                st.synopses.episodes.get(&key).cloned(),
+                st.yt_subs_dir.clone(),
+                t,
+                ch,
+                Arc::clone(&st.morph),
+                Arc::clone(&st.jmdict),
+            )
+        };
+        let mut out: EpisodeSynopsis = cached_ep.unwrap_or_default();
+        if out.series_title.is_empty() {
+            out.series_title = channel.clone();
+        }
+        if out.series_summary.is_empty() {
+            out.series_summary = format!("Japanese immersion video from {}. Click ✦ AI to generate full video & channel context.", channel);
+        }
+        if out.episode_summary.is_empty() {
+            out.episode_summary = format!("{} — Click ✦ AI to generate a natural English summary & moment-by-moment scene trace.", title);
+        }
+        if out.beats.is_empty() {
+            if let Some(p) = youtube::find_sub_file(&yt_subs_dir, &video_id) {
+                if let Ok(cues) = subs::load_subtitles(&p) {
+                    let mp_g = morph_arc.lock().unwrap();
+                    let jm_g = jmdict_arc.lock().unwrap();
+                    out.beats = synopsis::build_offline_beats(&cues, mp_g.as_ref(), jm_g.as_ref());
+                }
+            }
+        }
+        respond_json(req, 200, &out);
         return;
     }
 

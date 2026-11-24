@@ -862,27 +862,34 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 }
 #yt-iframe-slot,#yt-iframe-slot iframe{width:100%;height:100%;border:0;display:block}
 .yt-waterfall-scroll{
-  flex:1;min-height:0;overflow-y:auto;position:relative;
+  flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;position:relative;
   padding:14px 4px 120px;
-  mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
-  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 14px,#000 84%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,#000 18px,#000 84%,transparent 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 18px,#000 84%,transparent 100%);
 }
 #v-yt-play.subs-off .yt-waterfall-scroll{display:none}
 #v-yt-play.subs-off .yt-sub-only{display:none}
 .yt-waterfall-feed{
   display:flex;flex-direction:column-reverse;gap:10px;
   max-width:780px;margin:0 auto;
+  will-change:transform;
 }
 .yt-waterfall-feed.reveal-all{flex-direction:column}
 .yt-waterfall-feed .sub-row{
   font-size:var(--sub-size,20px);
-  animation:ukabuDown .72s cubic-bezier(.19,1,.22,1) both;
+  transition:opacity .48s var(--smooth),filter .48s var(--smooth);
+}
+.yt-waterfall-feed .sub-row.yt-fresh{
+  animation:ukabuPour .58s cubic-bezier(.19,1,.22,1) both;
 }
 .yt-waterfall-feed .sub-row.submerged{display:none}
-@keyframes ukabuDown{
-  0%{opacity:0;transform:translateY(-10px) scale(.94);filter:blur(9px)}
-  60%{opacity:.95;filter:blur(.8px)}
-  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+.yt-prog-track{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.45);z-index:3}
+.yt-prog-fill{height:100%;background:var(--flame)}
+#syn-anchor.yt-mode{bottom:14px}
+@keyframes ukabuPour{
+  0%{opacity:0;transform:scale(.97);filter:blur(7px)}
+  60%{opacity:.95;filter:blur(.6px)}
+  100%{opacity:1;transform:scale(1);filter:blur(0)}
 }
 
 /* ================= BOOKS APP (MINIMALIST AOZORA SHELF) ================= */
@@ -974,13 +981,11 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
     <label class="chk"><input id="s-tag-anime" type="checkbox"> Tag anime name</label>
     <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)">
       <div class="field" style="margin-bottom:8px">
-        <label>Google AI <span id="s-gcli-status" style="color:var(--g2)"></span></label>
-        <div class="row-inline">
-          <button class="btn-pill" id="s-gcli-login" style="flex:1">Sign in with Google</button>
-        </div>
+        <label>Gemini API Key <span id="s-gem-hint" style="color:var(--g2)"></span></label>
+        <input id="s-gemini" type="password" placeholder="aistudio.google.com/apikey" autocomplete="off">
       </div>
       <details style="margin-bottom:8px">
-        <summary style="font-size:11px;color:var(--faint);cursor:pointer;user-select:none">Custom OAuth / API Key</summary>
+        <summary style="font-size:11px;color:var(--faint);cursor:pointer;user-select:none">Google OAuth / CLI</summary>
         <div style="margin-top:7px">
           <div class="field" style="margin-bottom:6px">
             <label>Google OAuth <span id="s-oauth-status" style="color:var(--g2)"></span></label>
@@ -999,8 +1004,8 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>Gemini API Key <span id="s-gem-hint" style="color:var(--cool2)"></span></label>
-            <input id="s-gemini" type="password" placeholder="Optional fallback key" autocomplete="off">
+            <label>Gemini CLI <span id="s-gcli-status" style="color:var(--faint)"></span></label>
+            <button class="btn-sub" id="s-gcli-login" style="width:100%">Launch CLI Sign-in</button>
           </div>
         </div>
       </details>
@@ -1615,11 +1620,13 @@ async function loadSynopsisForTrack(animeId, episodeId) {
 }
 
 function renderSynopsisScrollContent() {
-  if (!synData || !currentTrack) return;
-  $('#syn-ep-title').textContent = currentTrack.ep.title || '';
-  $('#syn-ep-text').textContent = synData.episode_summary || 'No episode synopsis yet. Add a free Gemini API key in Settings and click ✦ AI to generate one.';
-  $('#syn-ser-title').textContent = synData.series_title || currentTrack.anime.title || '';
-  $('#syn-ser-text').textContent = synData.series_summary || 'No series synopsis available.';
+  if (!synData) return;
+  const isYt = curTab === 'yt-play' && !!ytCurrentVideo;
+  if (!isYt && !currentTrack) return;
+  $('#syn-ep-title').textContent = isYt ? (ytCurrentVideo.title || '') : (currentTrack.ep.title || '');
+  $('#syn-ep-text').textContent = synData.episode_summary || 'No synopsis yet. Add a Gemini API key in Settings and click ✦ AI.';
+  $('#syn-ser-title').textContent = synData.series_title || (isYt ? (ytCurrentVideo.channel || 'YouTube') : (currentTrack.anime.title || ''));
+  $('#syn-ser-text').textContent = synData.series_summary || 'No channel/series synopsis available.';
   const aiBtn = $('#syn-gen-ai');
   aiBtn.disabled = synGenerating;
   aiBtn.textContent = synGenerating ? 'Generating…' : (synData.ai_generated ? '✦ Refresh' : '✦ AI');
@@ -1628,7 +1635,10 @@ function renderSynopsisScrollContent() {
 function updateEphemeralSynopsis() {
   const anchor = $('#syn-anchor');
   const lineEl = $('#syn-line');
-  const show = curTab === 'subs' && !!currentTrack && !!synData;
+  const isYt = curTab === 'yt-play' && !!ytCurrentVideo;
+  const isSub = curTab === 'subs' && !!currentTrack;
+  const show = (isSub || isYt) && !!synData;
+  anchor.classList.toggle('yt-mode', isYt);
   if (!show) {
     anchor.hidden = true;
     return;
@@ -1638,7 +1648,7 @@ function updateEphemeralSynopsis() {
   let nextIdx = -1;
   const beats = synData.beats || [];
   if (beats.length) {
-    const t = audio.currentTime + subOffset;
+    const t = isYt ? (ytAdapter.getTime() + ytOffset) : (audio.currentTime + subOffset);
     nextIdx = 0;
     for (let i = 0; i < beats.length; i++) {
       if (t >= beats[i].start - 0.5) nextIdx = i;
@@ -1660,18 +1670,22 @@ function updateEphemeralSynopsis() {
 }
 
 async function generateAiSynopsisForCurrent() {
-  if (!currentTrack || synGenerating) return;
+  const isYt = curTab === 'yt-play' && !!ytCurrentVideo;
+  if ((!isYt && !currentTrack) || synGenerating) return;
   if (!state.config?.has_ai_auth) {
-    toast('Click "Sign in with Google" in Settings first', true);
+    toast('Add a free Gemini API key in Settings first', true);
     return;
   }
   synGenerating = true;
   renderSynopsisScrollContent();
   try {
-    const res = await api(`/api/synopsis/${encodeURIComponent(currentTrack.anime.id)}/${encodeURIComponent(currentTrack.ep.id)}/generate`, { method: 'POST' });
+    const url = isYt
+      ? `/api/yt/${encodeURIComponent(ytCurrentVideo.id)}/synopsis/generate`
+      : `/api/synopsis/${encodeURIComponent(currentTrack.anime.id)}/${encodeURIComponent(currentTrack.ep.id)}/generate`;
+    const res = await api(url, { method: 'POST' });
     synData = res;
     synBeatIdx = -1;
-    toast('Scene synopsis generated');
+    toast('Context trace generated');
   } catch (e) {
     toast(e.message, true);
   } finally {
@@ -2449,6 +2463,7 @@ audio.addEventListener('ended', async () => {
 });
 window.addEventListener('beforeunload', () => {
   if (currentTrack) saveTrackProgress(false, true);
+  if (curTab === 'yt-play' && ytCurrentVideo) saveYtProgress(false, true);
   // Flush active session & batch-commit any pending local history to Toggl on app close!
   navigator.sendBeacon('/api/toggl/flush', new Blob([JSON.stringify({ elapsed_secs: sessionActive ? currentSessionSecs() : null })], { type: 'application/json' }));
 });
@@ -3088,7 +3103,11 @@ function renderWordMapGrid() {
 /* ================= NAV & EVENTS ================= */
 function setTab(t) {
   if (t !== 'subs' && t !== 'wordmap' && t !== 'yt-play') lastNonSubTab = t;
-  if (curTab === 'yt-play' && t !== 'yt-play') ytAdapter.pause();
+  if (curTab === 'yt-play' && t !== 'yt-play') {
+    saveYtProgress(false, false);
+    ytAdapter.pause();
+    if (ytSessionRunning) { ytSessionRunning = false; stopBackendSession(true); }
+  }
   curTab = t;
   ['anime', 'yt', 'yt-play', 'books', 'playlists', 'history', 'subs', 'wordmap'].forEach(k => {
     const v = $('#v-' + k);
@@ -3097,7 +3116,7 @@ function setTab(t) {
     if (tb) tb.setAttribute('aria-selected', String(k === t || (k === 'yt' && t === 'yt-play')));
   });
   $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
-  if (t !== 'subs') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
+  if (t !== 'subs' && t !== 'yt-play') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
   else { updateEphemeralSynopsis(); }
   renderAll();
 }
@@ -3151,12 +3170,20 @@ let ytPlayer = null;
 let ytApiLoading = false;
 let ytApiReady = false;
 let ytPendingId = null;
+let ytPendingStart = 0;
 let ytPollTimer = 0;
+let ytLastProgSaveMs = 0;
+let ytSessionRunning = false;
+let ytFlipTimer = 0;
 
 // Clean VideoAdapter interface — YouTube IFrame now, mpv JSON-IPC plugs into this exact interface later!
 const ytAdapter = {
   getTime() {
     try { return (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') ? (ytPlayer.getCurrentTime() || 0) : 0; }
+    catch (e) { return 0; }
+  },
+  getDuration() {
+    try { return (ytPlayer && typeof ytPlayer.getDuration === 'function') ? (ytPlayer.getDuration() || 0) : 0; }
     catch (e) { return 0; }
   },
   isPlaying() {
@@ -3168,6 +3195,52 @@ const ytAdapter = {
   toggle() { if (this.isPlaying()) this.pause(); else this.play(); },
   seek(sec) { try { if (ytPlayer?.seekTo) ytPlayer.seekTo(Math.max(0, sec), true); } catch (e) {} }
 };
+
+async function saveYtProgress(forceCompleted = false, useBeacon = false) {
+  if (!ytCurrentVideo) return;
+  const pos = ytAdapter.getTime();
+  const dur = ytAdapter.getDuration() || ytCurrentVideo.duration_secs || 0;
+  if (!forceCompleted && pos < 2) return;
+  const nearEnd = dur > 20 && (pos >= dur - 12 || (pos / dur) >= 0.95);
+  const payload = {
+    anime_id: 'yt',
+    episode_id: ytCurrentVideo.id,
+    position_secs: (forceCompleted || nearEnd) ? 0 : pos,
+    duration_secs: dur,
+    completed: forceCompleted || nearEnd
+  };
+  if (!state.progress) state.progress = {};
+  const key = progressKey('yt', ytCurrentVideo.id);
+  const prev = state.progress[key] || { position_secs: 0, duration_secs: dur, completions: 0, last_played_at: '' };
+  state.progress[key] = {
+    position_secs: payload.position_secs,
+    duration_secs: dur || prev.duration_secs,
+    completions: prev.completions + (payload.completed ? 1 : 0),
+    last_played_at: new Date().toISOString()
+  };
+  if (useBeacon) {
+    navigator.sendBeacon('/api/progress', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    return;
+  }
+  try {
+    const res = await api('/api/progress', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.progress) state.progress[key] = res.progress;
+  } catch (e) {}
+}
+
+async function loadSynopsisForYt(videoId) {
+  try {
+    const res = await api(`/api/yt/${encodeURIComponent(videoId)}/synopsis`);
+    if (!ytCurrentVideo || ytCurrentVideo.id !== videoId) return;
+    synData = res;
+    synBeatIdx = -1;
+    renderSynopsisScrollContent();
+    updateEphemeralSynopsis();
+  } catch (e) {}
+}
 
 function ensureYtIframeApi(onReady) {
   if (ytApiReady && window.YT && window.YT.Player) { onReady(); return; }
@@ -3185,12 +3258,13 @@ function ensureYtIframeApi(onReady) {
   }
 }
 
-function mountYtPlayer(videoId) {
+function mountYtPlayer(videoId, startSecs = 0) {
   ytPendingId = videoId;
+  ytPendingStart = Math.floor(Math.max(0, startSecs || 0));
   ensureYtIframeApi(() => {
     if (ytPendingId !== videoId) return;
     if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-      ytPlayer.loadVideoById(videoId);
+      ytPlayer.loadVideoById({ videoId, startSeconds: ytPendingStart });
       return;
     }
     $('#yt-iframe-slot').innerHTML = '<div id="yt-iframe-el"></div>';
@@ -3198,15 +3272,27 @@ function mountYtPlayer(videoId) {
       videoId,
       width: '100%',
       height: '100%',
-      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1, cc_load_policy: 0, iv_load_policy: 3 },
+      playerVars: { rel: 0, modestbranding: 1, playsinline: 1, autoplay: 1, start: ytPendingStart, cc_load_policy: 0, iv_load_policy: 3 },
       events: {
         onReady: e => {
           try { e.target.unloadModule('captions'); e.target.unloadModule('cc'); } catch (_) {}
-          if (ytPendingId && ytPendingId !== videoId && ytPlayer?.loadVideoById) ytPlayer.loadVideoById(ytPendingId);
+          if (ytPendingId && ytPendingId !== videoId && ytPlayer?.loadVideoById) {
+            ytPlayer.loadVideoById({ videoId: ytPendingId, startSeconds: ytPendingStart });
+          }
         },
         onStateChange: e => {
           if (e.data === 1) {
             try { e.target.unloadModule('captions'); e.target.unloadModule('cc'); } catch (_) {}
+            if (curTab === 'yt-play' && ytCurrentVideo && !ytSessionRunning) {
+              ytSessionRunning = true;
+              startBackendSession('yt', ytCurrentVideo.id, null);
+            }
+          } else if (e.data === 2 || e.data === 0) {
+            saveYtProgress(e.data === 0, false);
+            if (ytSessionRunning) {
+              ytSessionRunning = false;
+              stopBackendSession(true);
+            }
           }
         }
       }
@@ -3230,6 +3316,13 @@ async function ensureYtFeed(force = false) {
   }
 }
 
+function ytProgBarHtml(vid) {
+  const pr = getProgress('yt', vid);
+  if (!pr || pr.position_secs < 3 || !pr.duration_secs) return '';
+  const pct = Math.min(100, (pr.position_secs / pr.duration_secs) * 100);
+  return `<div class="yt-prog-track"><div class="yt-prog-fill" style="width:${pct.toFixed(1)}%"></div></div>`;
+}
+
 function renderYtGrid() {
   $$('[data-yt-cat]').forEach(b => b.classList.toggle('on', b.dataset.ytCat === ytCat));
   if (ytCat === 'saved') {
@@ -3240,6 +3333,7 @@ function renderYtGrid() {
         ${v.has_subs ? `<span class="yt-sub-dot" title="JP subtitles ready"></span>` : ''}
         <button class="yt-card-del" data-yt-del="${esc(v.id)}" title="Remove">×</button>
         <div class="yt-card-veil"><div class="yt-card-title">${esc(v.title)}</div></div>
+        ${ytProgBarHtml(v.id)}
       </div>`).join('');
     return;
   }
@@ -3271,6 +3365,7 @@ function renderYtGrid() {
           <div class="yt-card-title">${esc(v.title)}</div>
           <div class="yt-card-ch">${esc(v.channel)}</div>
         </div>
+        ${ytProgBarHtml(v.id)}
       </div>`;
   }).join('');
 }
@@ -3333,10 +3428,14 @@ function applyYtCueStates(forceScroll = false) {
   const rows = feed.querySelectorAll('.sub-row');
   if (!rows.length) return;
   const revealThrough = Math.max(ytCueIdx, ytMaxSeen);
+  const newlyRevealed = [];
   rows.forEach((r, i) => {
     const shouldSub = !ytRevealAll && i > revealThrough;
     const wasSub = r.classList.contains('submerged');
-    if (wasSub !== shouldSub) r.classList.toggle('submerged', shouldSub);
+    if (wasSub !== shouldSub) {
+      r.classList.toggle('submerged', shouldSub);
+      if (wasSub && !shouldSub) newlyRevealed.push(r);
+    }
     r.classList.toggle('cur', i === ytCueIdx);
     r.classList.toggle('past', i < ytCueIdx);
     if (wasSub && !shouldSub && i === ytCueIdx && r.classList.contains('t1')) {
@@ -3344,10 +3443,33 @@ function applyYtCueStates(forceScroll = false) {
     }
   });
   updateYtWaterfallDepth();
+
+  // Dynamic FLIP liquid pour: measure exact height of newly revealed block(s) and glide the
+  // entire waterfall down smoothly by that exact pixel distance so nothing "shoves" or teleports!
+  if (!ytRevealAll && newlyRevealed.length > 0 && newlyRevealed.length <= 3 && ytUserAtTop) {
+    let dh = 0;
+    for (const r of newlyRevealed) {
+      dh += r.offsetHeight + 10;
+      r.classList.remove('yt-fresh');
+      void r.offsetWidth;
+      r.classList.add('yt-fresh');
+    }
+    if (dh > 0) {
+      clearTimeout(ytFlipTimer);
+      const durMs = Math.min(720, Math.max(400, Math.round(310 + dh * 2.1)));
+      feed.style.transition = 'none';
+      feed.style.transform = `translate3d(0,${-dh}px,0)`;
+      void feed.offsetHeight;
+      feed.style.transition = `transform ${durMs}ms cubic-bezier(.19,1,.22,1)`;
+      feed.style.transform = 'translate3d(0,0,0)';
+      ytFlipTimer = setTimeout(() => { feed.style.transition = ''; feed.style.transform = ''; }, durMs + 40);
+    }
+  }
+
   if (ytAutoScroll && (ytUserAtTop || forceScroll)) {
     const sc = $('#yt-scroll');
     if (!ytRevealAll) {
-      sc.scrollTo({ top: 0, behavior: forceScroll ? 'smooth' : 'auto' });
+      if (sc.scrollTop > 2) sc.scrollTo({ top: 0, behavior: forceScroll ? 'smooth' : 'auto' });
     } else if (ytCueIdx >= 0 && rows[ytCueIdx]) {
       rows[ytCueIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -3355,7 +3477,14 @@ function applyYtCueStates(forceScroll = false) {
 }
 
 function syncYtSubtitles(force = false) {
-  if (curTab !== 'yt-play' || !ytCues.length) return;
+  if (curTab !== 'yt-play') return;
+  // Periodically cache YT watch timestamp every 4s for seamless resume!
+  if (ytCurrentVideo && ytAdapter.isPlaying() && Date.now() - ytLastProgSaveMs >= 4000) {
+    ytLastProgSaveMs = Date.now();
+    saveYtProgress(false, false);
+  }
+  updateEphemeralSynopsis();
+  if (!ytCues.length) return;
   const t = ytAdapter.getTime() + ytOffset;
   let active = -1;
   for (let i = 0; i < ytCues.length; i++) {
@@ -3378,18 +3507,41 @@ async function openYtVideo(video, prefetchedCues = null) {
   ytOffset = 0;
   ytSubsOn = true;
   ytUserAtTop = true;
+  ytLastProgSaveMs = Date.now();
+  synData = null; synBeatIdx = -1; setSynopsisStage(0);
+
+  // Seamless timestamp pickup from cached progress!
+  const prog = getProgress('yt', video.id);
+  const startSecs = (prog && prog.position_secs > 3 && (!prog.duration_secs || prog.position_secs < prog.duration_secs - 12))
+    ? prog.position_secs
+    : 0;
+
   setTab('yt-play');
   updateYtHeadUI();
-  mountYtPlayer(video.id);
+  mountYtPlayer(video.id, startSecs);
+
   if (!prefetchedCues) {
     $('#yt-feed').innerHTML = `<div class="sub-empty-box">Loading Japanese subtitles…</div>`;
     try {
-      const res = await api(`/api/yt/${encodeURIComponent(video.id)}/subtitles`);
-      ytCues = res.cues || [];
+      // Save to watched YT library & fetch subtitles cleanly in one call
+      const alreadySaved = (state.youtube || []).some(v => v.id === video.id);
+      if (!alreadySaved) {
+        const res = await api('/api/yt/add', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: video.id })
+        });
+        if (res.videos) state.youtube = res.videos;
+        if (res.video) ytCurrentVideo = res.video;
+        ytCues = res.cues || [];
+      } else {
+        const res = await api(`/api/yt/${encodeURIComponent(video.id)}/subtitles`);
+        ytCues = res.cues || [];
+      }
     } catch (e) { ytCues = []; }
   }
   rebuildYtFeed();
   syncYtSubtitles(true);
+  loadSynopsisForYt(video.id);
   clearInterval(ytPollTimer);
   ytPollTimer = setInterval(() => syncYtSubtitles(false), 140);
 }
