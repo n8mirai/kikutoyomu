@@ -74,6 +74,7 @@
       "むしろ",
       "もう",
       "もう少し",
+      "もちろん",
       "やっと",
       "やっぱり",
       "やみ",
@@ -134,6 +135,7 @@
       "勇気",
       "半年",
       "南",
+      "反応",
       "取り",
       "口",
       "右",
@@ -185,6 +187,7 @@
       "我慢",
       "所",
       "手",
+      "払う",
       "持",
       "持ち",
       "持つ",
@@ -206,6 +209,7 @@
       "本当に",
       "村",
       "来",
+      "来る",
       "森",
       "楽しい",
       "止め",
@@ -217,6 +221,7 @@
       "無い",
       "父",
       "父様",
+      "理解",
       "生き",
       "生徒",
       "生活",
@@ -291,7 +296,7 @@
     "ignored": [
       "ろう"
     ],
-    "updated_at": "2026-11-24T13:39:24Z"
+    "updated_at": "2026-11-24T13:44:02Z"
   },
   "config": {
     "toggl_api_token": "",
@@ -559,6 +564,21 @@
     }
   ],
   "history": [
+    {
+      "id": "ses-1795527794051",
+      "anime_id": "example-japanese-stories",
+      "anime_title": "Japanese Stories",
+      "episode_id": "ep-41",
+      "episode_title": "Ep 41: Kaze Tachinu (Hori) Ch 3",
+      "playlist_id": null,
+      "playlist_name": null,
+      "started_at": "2026-11-24T13:43:14Z",
+      "ended_at": "2026-11-24T13:43:25Z",
+      "duration_secs": 11,
+      "toggl_entry_id": null,
+      "toggl_synced": false,
+      "toggl_error": null
+    },
     {
       "id": "ses-1795527375154",
       "anime_id": "example-japanese-stories",
@@ -1378,10 +1398,10 @@
       "last_played_at": "2026-11-23T19:19:17Z"
     },
     "example-japanese-stories/ep-41": {
-      "position_secs": 2203.520793,
+      "position_secs": 2861.577297,
       "duration_secs": 3447.250068,
       "completions": 0,
-      "last_played_at": "2026-11-24T13:39:27Z"
+      "last_played_at": "2026-11-24T13:54:29Z"
     }
   },
   "custom_anime": []

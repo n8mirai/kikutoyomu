@@ -614,58 +614,135 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(-3px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes dockIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes traceIn{from{opacity:0;filter:blur(3px);transform:translateY(2px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
-
-/* ================= EPHEMERAL 1-LINE SYNOPSIS TRACE (KANJI MODE, ABOVE DOCK) ================= */
-#syn-bar{
-  position:fixed;left:50%;bottom:69px;transform:translateX(-50%);z-index:34;
-  width:min(660px,calc(100vw - 32px));
-  display:flex;align-items:center;gap:7px;padding:4px 12px;border-radius:999px;
-  background:color-mix(in srgb,var(--bg1) 70%,transparent);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1px solid var(--line);
-  color:var(--muted);font-size:12px;line-height:1.35;cursor:pointer;
-  opacity:.72;transition:opacity .22s var(--smooth),border-color .22s,background .22s;
+@keyframes traceIn{from{opacity:0;filter:blur(4px);transform:translateY(2px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+@keyframes synShine{
+  0%{background-position:130% 0}
+  100%{background-position:-130% 0}
 }
-#syn-bar:hover{opacity:1;border-color:var(--line2);background:color-mix(in srgb,var(--bg2) 82%,transparent)}
-.syn-glyph{color:var(--cool2);font-size:10px;flex:none;opacity:.85;animation:pulse 3.2s ease-in-out infinite}
-.syn-line{
-  flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  letter-spacing:.01em;font-weight:400;
-  mask-image:linear-gradient(90deg,#000 90%,transparent 100%);
-  -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent 100%);
-}
-.syn-line.fresh{animation:traceIn .55s var(--smooth) both}
 
-/* Expandable Episode / Series / Scene Synopsis Sheet */
-#syn-sheet{
-  position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:42;
-  width:min(660px,calc(100vw - 24px));max-height:min(350px,48vh);
+/* ================= EPHEMERAL UNROLLING SYNOPSIS SCROLL (CENTERED ABOVE PLAY BAR) ================= */
+#syn-anchor{
+  position:fixed;left:0;right:0;bottom:65px;z-index:34;
+  display:flex;justify-content:center;padding:0 18px;
+  pointer-events:none;
+}
+#syn-scroll{
+  width:min(656px,100%);pointer-events:auto;
   display:flex;flex-direction:column;
-  background:color-mix(in srgb,var(--bg1) 94%,transparent);
-  backdrop-filter:blur(24px) saturate(1.25);-webkit-backdrop-filter:blur(24px) saturate(1.25);
-  border:1px solid var(--line3);border-radius:14px;
-  box-shadow:0 18px 46px rgba(0,0,0,.58);
-  animation:popIn .22s var(--spring) both;
+  border-radius:14px 14px 4px 4px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 86%,transparent),color-mix(in srgb,var(--bg1) 92%,transparent));
+  backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);
+  border:1px solid var(--line);border-bottom:0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 -12px 34px rgba(0,0,0,.38);
+  overflow:hidden;
+  transition:border-color .3s var(--smooth),box-shadow .35s var(--smooth),background .3s var(--smooth);
 }
-:root[data-theme="washi"] #syn-sheet{box-shadow:0 16px 38px rgba(28,25,23,.14)}
-.syn-sheet-head{
-  display:flex;align-items:center;gap:6px;padding:9px 12px 8px;
-  border-bottom:1px solid var(--line);flex:none;
+#syn-scroll[data-stage="0"]{
+  border-radius:12px 12px 3px 3px;
+  background:color-mix(in srgb,var(--bg1) 66%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 -4px 18px rgba(0,0,0,.2);
 }
-.syn-sheet-body{
-  padding:11px 14px 13px;overflow-y:auto;font-size:13px;line-height:1.6;color:var(--text);
+#syn-scroll[data-stage="0"]:hover{
+  border-color:var(--line2);
+  background:color-mix(in srgb,var(--bg2) 78%,transparent);
 }
-.syn-sub-title{font-size:12px;font-weight:600;color:var(--cool2);margin-bottom:5px}
-.syn-beats{display:flex;flex-direction:column;gap:4px}
-.syn-beat{
-  display:flex;align-items:baseline;gap:9px;padding:5px 8px;border-radius:8px;
-  font-size:12.5px;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;
+#syn-scroll[data-stage="1"],#syn-scroll[data-stage="2"]{
+  border-color:var(--line2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 -18px 46px rgba(0,0,0,.56);
 }
-.syn-beat:hover{background:rgba(255,255,255,.05);color:var(--text)}
-.syn-beat.on{background:var(--coolsoft);color:var(--text);font-weight:500}
-.syn-beat-t{font-size:11px;font-variant-numeric:tabular-nums;color:var(--faint);flex:none}
-.syn-beat.on .syn-beat-t{color:var(--cool2)}
+:root[data-theme="washi"] #syn-scroll{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 -10px 28px rgba(28,25,23,.12);
+}
+
+/* Smooth CSS-Grid parchment unroll panels (Stage 1 = Episode, Stage 2 = Series) */
+.syn-roll{
+  display:grid;grid-template-rows:0fr;opacity:0;
+  transition:grid-template-rows .48s cubic-bezier(.19,1,.22,1),opacity .36s var(--smooth);
+}
+.syn-roll-in{overflow:hidden;min-height:0}
+#syn-scroll[data-stage="1"] .syn-roll-ep,
+#syn-scroll[data-stage="2"] .syn-roll-ep{grid-template-rows:1fr;opacity:1}
+#syn-scroll[data-stage="2"] .syn-roll-ser{grid-template-rows:1fr;opacity:1}
+
+.syn-sec{
+  padding:12px 18px 10px;
+  border-bottom:1px solid var(--line);
+  cursor:pointer;
+}
+.syn-sec-ser{
+  padding:13px 18px 11px;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),transparent);
+  border-bottom:1px solid var(--line);
+}
+.syn-sec-head{
+  display:flex;align-items:center;gap:8px;margin-bottom:5px;
+}
+.syn-kicker{
+  font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--cool2);opacity:.9;
+}
+.syn-sec-title{
+  font-size:12.5px;font-weight:500;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.syn-copy{
+  font-size:12.8px;line-height:1.62;color:var(--muted);
+  max-height:130px;overflow-y:auto;
+}
+.syn-roll-down{
+  width:24px;height:24px;border-radius:999px;display:grid;place-items:center;
+  color:var(--faint);flex:none;
+  transition:color .18s,background .18s,transform .35s var(--spring);
+}
+.syn-roll-down:hover{color:var(--text);background:rgba(255,255,255,.07)}
+
+/* Bottom ephemeral 1-line trace lip (always visible right above the play bar in Kanji mode) */
+.syn-lip{
+  display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;user-select:none;
+}
+.syn-glyph{
+  color:var(--cool2);font-size:10px;flex:none;opacity:.85;
+  animation:pulse 3.4s ease-in-out infinite;
+}
+/* Ephemeral shining grey-to-white sweeping gradient text (AI reasoning trace vibe!) */
+.syn-line{
+  flex:1;min-width:0;font-size:12px;line-height:1.35;letter-spacing:.015em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(
+    105deg,
+    rgba(195,186,214,.46) 0%,
+    rgba(215,208,230,.58) 38%,
+    #ffffff 50%,
+    rgba(215,208,230,.58) 62%,
+    rgba(195,186,214,.46) 100%
+  );
+  background-size:240% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:synShine 4.2s ease-in-out infinite;
+}
+:root[data-theme="washi"] .syn-line{
+  background:linear-gradient(
+    105deg,
+    rgba(87,83,78,.52) 0%,
+    rgba(87,83,78,.68) 38%,
+    #1C1917 50%,
+    rgba(87,83,78,.68) 62%,
+    rgba(87,83,78,.52) 100%
+  );
+  background-size:240% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.syn-line.fresh{animation:traceIn .55s var(--smooth) both,synShine 4.2s ease-in-out infinite}
+.syn-dots{display:inline-flex;align-items:center;gap:4px;flex:none;opacity:.65}
+.syn-dot{width:4px;height:4px;border-radius:50%;background:var(--faint);transition:background .25s,transform .25s}
+#syn-scroll[data-stage="1"] .syn-dot.d1,
+#syn-scroll[data-stage="2"] .syn-dot.d1,
+#syn-scroll[data-stage="2"] .syn-dot.d2{background:var(--cool2);transform:scale(1.2)}
+.syn-chev{
+  color:var(--faint);flex:none;transition:transform .42s var(--spring),color .2s;
+}
+#syn-scroll:hover .syn-chev{color:var(--muted)}
+#syn-scroll[data-stage="2"] .syn-chev{transform:rotate(180deg);color:var(--cool2)}
 
 @media (max-width:560px){
   main{padding:8px 12px 28px}
@@ -815,21 +892,52 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
 
 <div id="idle-veil" aria-hidden="true"><div class="idle-stage" id="idle-stage"></div></div>
 
-<!-- Ephemeral 1-line English Synopsis Trace (Kanji mode, resting above dock) -->
-<button id="syn-bar" hidden title="Click to expand Episode / Series synopsis">
-  <span class="syn-glyph">✦</span>
-  <span class="syn-line" id="syn-line"></span>
-</button>
-<div id="syn-sheet" hidden>
-  <div class="syn-sheet-head">
-    <button class="sub-mini-btn on" data-syn-tab="now">Now</button>
-    <button class="sub-mini-btn" data-syn-tab="episode">Episode</button>
-    <button class="sub-mini-btn" data-syn-tab="series">Series</button>
-    <span class="sp"></span>
-    <button class="sub-mini-btn" id="syn-gen-ai" title="Generate AI narrative scene beats with Gemini">✦ AI</button>
-    <button class="icon-btn" id="syn-close" style="width:24px;height:24px" title="Close (Esc)">×</button>
+<!-- Ephemeral Unrolling Synopsis Scroll (centered directly above play dock in Kanji mode) -->
+<div id="syn-anchor" hidden>
+  <div id="syn-scroll" data-stage="0">
+    <!-- Stage 2: Series Synopsis (unrolls cleanly above Episode) -->
+    <div class="syn-roll syn-roll-ser">
+      <div class="syn-roll-in">
+        <div class="syn-sec-ser">
+          <div class="syn-sec-head">
+            <span class="syn-kicker">Series</span>
+            <span class="syn-sec-title" id="syn-ser-title"></span>
+            <span class="sp"></span>
+            <button class="sub-mini-btn" id="syn-gen-ai" style="font-size:11px;padding:2px 7px" title="Generate AI narrative traces with Gemini">✦ AI</button>
+            <button class="syn-roll-down" data-syn-collapse="1" title="Roll down (Esc)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          <div class="syn-copy" id="syn-ser-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 1: Episode Synopsis (unrolls out of play bar on first click) -->
+    <div class="syn-roll syn-roll-ep">
+      <div class="syn-roll-in">
+        <div class="syn-sec" id="syn-ep-sec" title="Click to unroll Series synopsis">
+          <div class="syn-sec-head">
+            <span class="syn-kicker">Episode</span>
+            <span class="syn-sec-title" id="syn-ep-title"></span>
+            <span class="sp"></span>
+            <button class="syn-roll-down" data-syn-collapse="1" title="Roll down (Esc)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          <div class="syn-copy" id="syn-ep-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage 0: Ephemeral 1-line shimmering trace resting directly above play bar -->
+    <div class="syn-lip" id="syn-lip" title="Click to unroll Episode · Click again for Series">
+      <span class="syn-glyph">✦</span>
+      <span class="syn-line" id="syn-line"></span>
+      <span class="syn-dots" aria-hidden="true"><span class="syn-dot d1"></span><span class="syn-dot d2"></span></span>
+      <svg class="syn-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </div>
   </div>
-  <div class="syn-sheet-body" id="syn-body"></div>
 </div>
 
 <button id="sub-jump-bottom" hidden title="Jump to live subtitle">
@@ -1172,11 +1280,10 @@ let popCloseTimer = 0;
 let pausedByDict = false;
 const dictClientCache = new Map();
 
-// Ephemeral English Synopsis state
-let synData = null;         // { episode_summary, series_summary, series_title, ai_generated, beats: [{start, text}] }
+// Ephemeral Unrolling Synopsis Scroll state (stage: 0 = 1-line trace, 1 = Episode, 2 = Series)
+let synData = null;
 let synBeatIdx = -1;
-let synOpen = false;
-let synTab = 'now';         // 'now' | 'episode' | 'series'
+let synStage = 0;
 let synGenerating = false;
 
 // Word Map & Series Frequency Statistics state
@@ -1213,8 +1320,7 @@ function applySubFontSize(px) {
 async function loadSubtitlesForTrack(animeId, episodeId) {
   subCues = []; subCueIdx = -1; subMaxSeen = -1; subRenderedCount = 0; subOffset = 0;
   pingedCues = new Set(); idleRenderedIdx = -2;
-  synData = null; synBeatIdx = -1; synOpen = false;
-  $('#syn-sheet').hidden = true;
+  synData = null; synBeatIdx = -1; setSynopsisStage(0);
   closeDictPop(false);
   ensureSeriesFreq(animeId); // Preload series-wide Zipf frequency stats in background for 1-5★ dict hovers
   loadSynopsisForTrack(animeId, episodeId);
@@ -1226,23 +1332,40 @@ async function loadSubtitlesForTrack(animeId, episodeId) {
   updateEphemeralSynopsis();
 }
 
+function setSynopsisStage(stage) {
+  synStage = Math.max(0, Math.min(2, stage));
+  const sc = $('#syn-scroll');
+  if (sc) sc.dataset.stage = String(synStage);
+}
+
 async function loadSynopsisForTrack(animeId, episodeId) {
   try {
     const res = await api(`/api/synopsis/${encodeURIComponent(animeId)}/${encodeURIComponent(episodeId)}`);
     if (!currentTrack || currentTrack.anime.id !== animeId || currentTrack.ep.id !== episodeId) return;
     synData = res;
     synBeatIdx = -1;
+    renderSynopsisScrollContent();
     updateEphemeralSynopsis();
-    if (synOpen) renderSynopsisSheet();
   } catch (e) {}
 }
 
+function renderSynopsisScrollContent() {
+  if (!synData || !currentTrack) return;
+  $('#syn-ep-title').textContent = currentTrack.ep.title || '';
+  $('#syn-ep-text').textContent = synData.episode_summary || 'No episode synopsis yet. Add a free Gemini API key in Settings and click ✦ AI to generate one.';
+  $('#syn-ser-title').textContent = synData.series_title || currentTrack.anime.title || '';
+  $('#syn-ser-text').textContent = synData.series_summary || 'No series synopsis available.';
+  const aiBtn = $('#syn-gen-ai');
+  aiBtn.disabled = synGenerating;
+  aiBtn.textContent = synGenerating ? 'Generating…' : (synData.ai_generated ? '✦ Refresh' : '✦ AI');
+}
+
 function updateEphemeralSynopsis() {
-  const bar = $('#syn-bar');
+  const anchor = $('#syn-anchor');
   const lineEl = $('#syn-line');
-  const showBar = curTab === 'subs' && !!currentTrack && !!synData && !synOpen;
-  if (!showBar) {
-    bar.hidden = true;
+  const show = curTab === 'subs' && !!currentTrack && !!synData;
+  if (!show) {
+    anchor.hidden = true;
     return;
   }
 
@@ -1259,53 +1382,15 @@ function updateEphemeralSynopsis() {
     text = beats[nextIdx]?.text || '';
   }
   if (!text) text = synData.episode_summary || synData.series_summary || '';
-  if (!text) { bar.hidden = true; return; }
+  if (!text) { anchor.hidden = true; return; }
 
-  bar.hidden = false;
+  anchor.hidden = false;
   if (nextIdx !== synBeatIdx || lineEl.textContent !== text) {
     synBeatIdx = nextIdx;
     lineEl.classList.remove('fresh');
     void lineEl.offsetWidth;
     lineEl.textContent = text;
     lineEl.classList.add('fresh');
-    if (synOpen && synTab === 'now') renderSynopsisSheet();
-  }
-}
-
-function renderSynopsisSheet() {
-  const sheet = $('#syn-sheet');
-  if (!synOpen || curTab !== 'subs' || !currentTrack || !synData) {
-    sheet.hidden = true;
-    return;
-  }
-  sheet.hidden = false;
-  $('#syn-bar').hidden = true;
-  $$('[data-syn-tab]').forEach(b => b.classList.toggle('on', b.dataset.synTab === synTab));
-  const aiBtn = $('#syn-gen-ai');
-  aiBtn.disabled = synGenerating;
-  aiBtn.textContent = synGenerating ? 'Generating…' : (synData.ai_generated ? '✦ Refresh' : '✦ AI');
-
-  const body = $('#syn-body');
-  if (synTab === 'episode') {
-    const txt = synData.episode_summary || 'No episode synopsis yet. Add a Gemini API key in Settings and click ✦ AI to generate one from the subtitles.';
-    body.innerHTML = `<div class="syn-sub-title">${esc(currentTrack.ep.title)}</div><div>${esc(txt)}</div>`;
-  } else if (synTab === 'series') {
-    const title = synData.series_title || currentTrack.anime.title;
-    const txt = synData.series_summary || 'No series synopsis available.';
-    body.innerHTML = `<div class="syn-sub-title">${esc(title)}</div><div>${esc(txt)}</div>`;
-  } else {
-    const beats = synData.beats || [];
-    if (!beats.length) {
-      body.innerHTML = `<div style="color:var(--muted)">${esc(synData.episode_summary || 'No live scene beats yet.')}</div>`;
-    } else {
-      body.innerHTML = `<div class="syn-beats">${beats.map((b, i) => `
-        <div class="syn-beat${i === synBeatIdx ? ' on' : ''}" data-syn-seek="${b.start}">
-          <span class="syn-beat-t">${fmtClock(b.start)}</span>
-          <span>${esc(b.text)}</span>
-        </div>`).join('')}</div>`;
-      const curEl = body.querySelector('.syn-beat.on');
-      if (curEl) curEl.scrollIntoView({ block: 'nearest' });
-    }
   }
 }
 
@@ -1316,7 +1401,7 @@ async function generateAiSynopsisForCurrent() {
     return;
   }
   synGenerating = true;
-  renderSynopsisSheet();
+  renderSynopsisScrollContent();
   try {
     const res = await api(`/api/synopsis/${encodeURIComponent(currentTrack.anime.id)}/${encodeURIComponent(currentTrack.ep.id)}/generate`, { method: 'POST' });
     synData = res;
@@ -1326,7 +1411,7 @@ async function generateAiSynopsisForCurrent() {
     toast(e.message, true);
   } finally {
     synGenerating = false;
-    renderSynopsisSheet();
+    renderSynopsisScrollContent();
     updateEphemeralSynopsis();
   }
 }
@@ -2731,7 +2816,7 @@ function setTab(t) {
     if (tb) tb.setAttribute('aria-selected', String(k === t));
   });
   $('#sub-jump-bottom').hidden = !(t === 'subs' && !userAtBottom);
-  if (t !== 'subs') { synOpen = false; $('#syn-sheet').hidden = true; $('#syn-bar').hidden = true; }
+  if (t !== 'subs') { setSynopsisStage(0); $('#syn-anchor').hidden = true; }
   else { updateEphemeralSynopsis(); }
   renderAll();
 }
@@ -2862,23 +2947,26 @@ subScrollEl.addEventListener('scroll', () => {
 }, { passive: true });
 audio.addEventListener('play', () => ensureSubCameraRunning());
 
-// Ephemeral Synopsis Bar & Expandable Sheet (Kanji Mode)
-$('#syn-bar').onclick = () => { synOpen = true; renderSynopsisSheet(); };
-$('#syn-close').onclick = () => { synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis(); };
-$('#syn-gen-ai').onclick = generateAiSynopsisForCurrent;
-$$('[data-syn-tab]').forEach(b => b.onclick = () => { synTab = b.dataset.synTab; renderSynopsisSheet(); });
-$('#syn-body').addEventListener('click', e => {
-  const beat = e.target.closest('[data-syn-seek]');
-  if (beat) {
-    audio.currentTime = Math.max(0, Number(beat.dataset.synSeek) - subOffset);
-    syncSubtitleToAudio(true);
-    updateEphemeralSynopsis();
-    if (synOpen) renderSynopsisSheet();
-  }
+// Ephemeral Unrolling Synopsis Scroll:
+// Click 1 -> Unroll Episode synopsis | Click 2 -> Unroll Series synopsis | Click 3 or roll-down arrow -> Roll back down
+$('#syn-lip').onclick = () => {
+  setSynopsisStage(synStage === 0 ? 1 : (synStage === 1 ? 2 : 0));
+};
+$('#syn-ep-sec').onclick = e => {
+  if (e.target.closest('[data-syn-collapse]')) return;
+  if (synStage === 1) setSynopsisStage(2);
+};
+$$('[data-syn-collapse]').forEach(btn => btn.onclick = e => {
+  e.stopPropagation();
+  setSynopsisStage(0);
 });
+$('#syn-gen-ai').onclick = e => {
+  e.stopPropagation();
+  generateAiSynopsisForCurrent();
+};
 document.addEventListener('click', e => {
-  if (synOpen && !$('#syn-sheet').contains(e.target) && !e.target.closest('#syn-bar')) {
-    synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis();
+  if (synStage > 0 && !$('#syn-scroll').contains(e.target)) {
+    setSynopsisStage(0);
   }
 });
 
@@ -3078,7 +3166,7 @@ document.addEventListener('keydown', e => {
   if (e.altKey && e.key === '3') { e.preventDefault(); setTab('history'); return; }
   if (e.key === 'Escape') {
     if (popOpen) { closeDictPop(true); return; }
-    if (synOpen) { synOpen = false; $('#syn-sheet').hidden = true; updateEphemeralSynopsis(); return; }
+    if (synStage > 0) { setSynopsisStage(0); return; }
     if (curTab === 'wordmap') { setTab(wmReturnTab); return; }
     if (curTab === 'subs') { setTab(lastNonSubTab); return; }
     $('#pop').hidden = true; $('#add-modal').hidden = true; $('#bulk-modal').hidden = true; return;
