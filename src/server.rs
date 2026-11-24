@@ -632,12 +632,15 @@ fn handle_stream(req: Request, file_path: &Path) {
 fn tokenize_cues(
     cues: &[subs::SubtitleCue],
     morph_arc: &Arc<Mutex<Option<MorphAnalyzer>>>,
+    jmdict_arc: &Arc<Mutex<Option<LocalJmDict>>>,
 ) -> Vec<serde_json::Value> {
     let guard = morph_arc.lock().unwrap();
+    let dict_guard = jmdict_arc.lock().unwrap();
+    let dict_ref = dict_guard.as_ref();
     cues.iter()
         .map(|c| {
             let tokens: Vec<MorphToken> = if let Some(ref analyzer) = *guard {
-                analyzer.tokenize_line(&c.text)
+                analyzer.tokenize_line(&c.text, dict_ref)
             } else {
                 Vec::new()
             };
@@ -783,8 +786,11 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 };
                 match subs::load_subtitles(&srt_path) {
                     Ok(cues) => {
-                        let morph_arc = { Arc::clone(&state_arc.lock().unwrap().morph) };
-                        let rich_cues = tokenize_cues(&cues, &morph_arc);
+                        let (morph_arc, jmdict_arc) = {
+                            let st = state_arc.lock().unwrap();
+                            (Arc::clone(&st.morph), Arc::clone(&st.jmdict))
+                        };
+                        let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc);
                         respond_json(
                             req,
                             200,
@@ -804,7 +810,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         return;
     }
 
-    // GET /api/subtitles/{anime_id}/{episode_id} (pre-tokenized by MeCab/IPADIC!)
+    // GET /api/subtitles/{anime_id}/{episode_id} (pre-tokenized by MeCab/IPADIC + JMdict compound merge!)
     if method == Method::Get && path_only.starts_with("/api/subtitles/") {
         let rest = path_only.trim_start_matches("/api/subtitles/");
         let Some((aid_raw, eid_raw)) = rest.split_once('/') else {
@@ -814,7 +820,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         else {
             return respond_err(req, 400, "Unsafe subtitle path");
         };
-        let (sub_path, morph_arc) = {
+        let (sub_path, morph_arc, jmdict_arc) = {
             let st = state_arc.lock().unwrap();
             let sp = st
                 .library
@@ -823,14 +829,14 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 .and_then(|a| a.episodes.iter().find(|e| e.id == episode_id))
                 .and_then(|e| e.subtitle_file.as_ref())
                 .map(|sf| st.media_root.join(&anime_id).join(sf));
-            (sp, Arc::clone(&st.morph))
+            (sp, Arc::clone(&st.morph), Arc::clone(&st.jmdict))
         };
         let Some(p) = sub_path else {
             return respond_json(req, 200, &serde_json::json!({ "cues": [] }));
         };
         match subs::load_subtitles(&p) {
             Ok(cues) => {
-                let rich_cues = tokenize_cues(&cues, &morph_arc);
+                let rich_cues = tokenize_cues(&cues, &morph_arc, &jmdict_arc);
                 respond_json(req, 200, &serde_json::json!({ "cues": rich_cues }));
             }
             Err(e) => respond_err(req, 500, &e),
@@ -852,7 +858,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 None
             }
         });
-        let (paths, morph_arc) = {
+        let (paths, morph_arc, jmdict_arc) = {
             let st = state_arc.lock().unwrap();
             let Some(anime) = st.library.iter().find(|a| a.id == anime_id) else {
                 return respond_err(req, 404, "Anime not found");
@@ -867,7 +873,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                         .map(|sf| st.media_root.join(&anime_id).join(sf))
                 })
                 .collect();
-            (ps, Arc::clone(&st.morph))
+            (ps, Arc::clone(&st.morph), Arc::clone(&st.jmdict))
         };
         let mut lines: Vec<String> = Vec::new();
         for p in &paths {
@@ -883,10 +889,12 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         // Aggregate true MeCab/IPADIC lemma counts across the corpus in Rust (<30ms for 7,000+ lines!)
         let words: Vec<serde_json::Value> = {
             let guard = morph_arc.lock().unwrap();
+            let dict_guard = jmdict_arc.lock().unwrap();
+            let dict_ref = dict_guard.as_ref();
             if let Some(ref analyzer) = *guard {
                 let mut agg: HashMap<String, (u32, bool, String, String)> = HashMap::new();
                 for line in &lines {
-                    let toks = analyzer.tokenize_line(line);
+                    let toks = analyzer.tokenize_line(line, dict_ref);
                     let mut char_pos: usize = 0;
                     for tok in toks {
                         let start_pos = char_pos;

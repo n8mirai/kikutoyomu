@@ -250,6 +250,10 @@ impl LocalJmDict {
         self.words.len()
     }
 
+    pub fn has_exact_word(&self, term: &str) -> bool {
+        self.kanji_index.contains_key(term) || self.kana_index.contains_key(term)
+    }
+
     fn get_ids(&self, term: &str) -> Vec<u32> {
         let mut out = Vec::new();
         if let Some(ids) = self.kanji_index.get(term) {

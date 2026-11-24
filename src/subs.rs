@@ -158,5 +158,151 @@ pub fn load_subtitles(path: &Path) -> Result<Vec<SubtitleCue>, String> {
     } else {
         parse_srt_or_vtt(&raw)
     };
-    Ok(cues)
+    Ok(normalize_japanese_cues(cues))
+}
+
+fn ends_with_sentence_terminal(s: &str) -> bool {
+    let Some(c) = s.trim_end().chars().last() else {
+        return true;
+    };
+    matches!(c, '。' | '！' | '？' | '」' | '』' | '…' | '!' | '?' | '.')
+}
+
+fn is_jp_continuation_start(s: &str) -> bool {
+    let Some(c) = s.trim_start().chars().next() else {
+        return false;
+    };
+    matches!(
+        c,
+        'っ' | 'ゃ' | 'ゅ' | 'ょ' | 'ぁ' | 'ぃ' | 'ぅ' | 'ぇ' | 'ぉ' | 'ー'
+            | 'ッ' | 'ャ' | 'ュ' | 'ョ' | 'ァ' | 'ィ' | 'ゥ' | 'ェ' | 'ォ'
+            | 'て' | 'で' | 'た' | 'だ' | 'る' | 'れ' | 'せ' | 'さ' | 'な'
+            | 'に' | 'の' | 'を' | 'が' | 'は' | 'も' | 'と' | 'へ' | 'か'
+            | 'よ' | 'ね' | 'わ' | '。' | '、' | '」' | '』' | '）'
+    )
+}
+
+fn is_kanji_char(c: char) -> bool {
+    ('\u{4E00}'..='\u{9FFF}').contains(&c) || c == '々'
+}
+
+fn is_kana_char(c: char) -> bool {
+    ('\u{3040}'..='\u{30FF}').contains(&c) || c == 'ー'
+}
+
+fn should_stitch(cur: &SubtitleCue, next: &SubtitleCue) -> bool {
+    let gap = next.start - cur.end;
+    if gap > 1.25 {
+        return false;
+    }
+    let cur_t = cur.text.trim_end();
+    let next_t = next.text.trim_start();
+    if cur_t.is_empty() || next_t.is_empty() {
+        return false;
+    }
+    if ends_with_sentence_terminal(cur_t) {
+        return false;
+    }
+    let cur_len = cur_t.chars().count();
+    let next_len = next_t.chars().count();
+    let cur_last = cur_t.chars().last().unwrap();
+    let next_first = next_t.chars().next().unwrap();
+
+    // 1. Mid-word fracture (e.g. 関 + 係, 帰 + ってきた, パレット + ナイフ, 裸体 + を)
+    let mid_word = is_jp_continuation_start(next_t)
+        || (is_kanji_char(cur_last) && (is_kanji_char(next_first) || is_kana_char(next_first)))
+        || (is_kana_char(cur_last) && is_kana_char(next_first) && cur_last != '、');
+    if mid_word && cur_len + next_len <= 110 {
+        return true;
+    }
+    // 2. Short dangling tail (e.g. "ってきた。", "です。")
+    if next_len <= 14 && gap <= 0.9 && cur_len + next_len <= 110 {
+        return true;
+    }
+    // 3. Mid-clause without comma and still concise
+    if cur_last != '、' && gap <= 0.65 && cur_len + next_len <= 70 {
+        return true;
+    }
+    false
+}
+
+/// Splits an overly long stitched cue ONLY on natural Japanese comma (`、`) boundaries
+/// (never mid-word!), interpolating timestamps proportionally by character length.
+fn split_long_cue_on_commas(cue: SubtitleCue, out: &mut Vec<SubtitleCue>) {
+    let chars: Vec<char> = cue.text.chars().collect();
+    let total = chars.len();
+    if total <= 54 {
+        out.push(cue);
+        return;
+    }
+    // Find all comma positions that leave >= 14 chars on both sides
+    let commas: Vec<usize> = chars
+        .iter()
+        .enumerate()
+        .filter_map(|(i, &c)| {
+            if c == '、' && i + 1 >= 14 && total.saturating_sub(i + 1) >= 14 {
+                Some(i + 1)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if commas.is_empty() {
+        out.push(cue);
+        return;
+    }
+    let mid = total / 2;
+    let split_at = *commas
+        .iter()
+        .min_by_key(|&&pos| pos.abs_diff(mid))
+        .unwrap();
+
+    let left_text: String = chars[..split_at].iter().collect();
+    let right_text: String = chars[split_at..].iter().collect();
+    let frac = split_at as f64 / total as f64;
+    let mid_t = cue.start + (cue.end - cue.start) * frac;
+
+    split_long_cue_on_commas(
+        SubtitleCue {
+            start: cue.start,
+            end: mid_t,
+            text: left_text.trim().to_string(),
+        },
+        out,
+    );
+    split_long_cue_on_commas(
+        SubtitleCue {
+            start: mid_t,
+            end: cue.end,
+            text: right_text.trim().to_string(),
+        },
+        out,
+    );
+}
+
+/// Repairs mid-word & mid-clause Whisper `-ml` splits while keeping clean sentence/clause chunks.
+fn normalize_japanese_cues(raw: Vec<SubtitleCue>) -> Vec<SubtitleCue> {
+    if raw.len() <= 1 {
+        return raw;
+    }
+    let mut stitched: Vec<SubtitleCue> = Vec::with_capacity(raw.len());
+    for cue in raw {
+        if let Some(last) = stitched.last_mut() {
+            if should_stitch(last, &cue) {
+                last.text = format!("{}{}", last.text.trim_end(), cue.text.trim_start());
+                if cue.end > last.end {
+                    last.end = cue.end;
+                }
+                continue;
+            }
+        }
+        stitched.push(cue);
+    }
+
+    let mut result: Vec<SubtitleCue> = Vec::with_capacity(stitched.len());
+    for c in stitched {
+        split_long_cue_on_commas(c, &mut result);
+    }
+    result
 }

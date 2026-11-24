@@ -6,6 +6,8 @@ use ruzstd::StreamingDecoder;
 use serde::{Deserialize, Serialize};
 use vibrato::{Dictionary, Tokenizer};
 
+use crate::dict::LocalJmDict;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MorphToken {
     /// Exact text as it appears in the subtitle
@@ -130,6 +132,9 @@ fn is_basic_grammar_lemma(lemma: &str, pos: &str) -> bool {
             "する" | "なる" | "いる" | "ある" | "おる" | "しまう" | "くる" | "いく" | "できる"
         );
     }
+    if pos == "形容詞" {
+        return matches!(lemma, "ない" | "よい" | "いい");
+    }
     if pos == "名詞" {
         return matches!(
             lemma,
@@ -240,7 +245,7 @@ impl MorphAnalyzer {
         Ok(Self { tokenizer })
     }
 
-    pub fn tokenize_line(&self, text: &str) -> Vec<MorphToken> {
+    pub fn tokenize_line(&self, text: &str, dict: Option<&LocalJmDict>) -> Vec<MorphToken> {
         if text.is_empty() {
             return Vec::new();
         }
@@ -286,12 +291,13 @@ impl MorphAnalyzer {
             });
         }
 
-        // Light smart post-pass:
-        // 1. If Whisper/MeCab emitted a pure-hiragana verb stem followed by a verbal suffix/causative/passive fragment
-        //    OR an unknown hiragana verb fragment like こび + つか (from こびりつく/こびつく), keep valid lemmas clean.
-        // 2. Merge prefix (接頭詞) like お + 茶 / ご + 飯 only when appropriate? Actually keep clean MeCab morphemes
-        //    except merge tiny broken single-hiragana stem + verb when previous is an unrecognized 1-char kana fragment.
-        merge_broken_hiragana_verbs(raw_tokens)
+        // Post-passes for natural Japanese word boundaries:
+        // 1. Merge split hiragana compound verbs (e.g. こび + つか)
+        // 2. Merge JMdict-validated compound nouns & kanji noun suffixes (看護+婦 -> 看護婦, 診察+室 -> 診察室, パレット+ナイフ -> パレットナイフ)
+        // 3. Attach bound verb/adjective conjugations (上がら+せ -> 上がらせ, 離れ+た -> 離れた, 食べ+られ+なかった -> 食べられなかった)
+        let t1 = merge_broken_hiragana_verbs(raw_tokens);
+        let t2 = merge_compound_nouns(t1, dict);
+        merge_verb_adj_conjugations(t2)
     }
 }
 
@@ -371,6 +377,86 @@ fn merge_broken_hiragana_verbs(tokens: Vec<MorphToken>) -> Vec<MorphToken> {
             }
         }
         out.push(tokens[i].clone());
+        i += 1;
+    }
+    out
+}
+
+fn has_kanji_or_kata(s: &str) -> bool {
+    s.chars().any(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c) || ('\u{30A0}'..='\u{30FF}').contains(&c) || c == '々')
+}
+
+/// Merges IPADIC-split compound nouns validated by JMdict (e.g. 看護+婦 -> 看護婦, 診察+室 -> 診察室, パレット+ナイフ -> パレットナイフ).
+fn merge_compound_nouns(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> Vec<MorphToken> {
+    let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len());
+    let mut i = 0;
+    while i < tokens.len() {
+        let mut cur = tokens[i].clone();
+        if cur.pos == "名詞"
+            && !matches!(cur.sub_pos.as_str(), "数" | "非自立" | "代名詞" | "特殊")
+            && has_kanji_or_kata(&cur.surface)
+        {
+            while i + 1 < tokens.len() {
+                let next = &tokens[i + 1];
+                if next.pos != "名詞" || !has_kanji_or_kata(&next.surface) {
+                    break;
+                }
+                if matches!(next.sub_pos.as_str(), "数" | "非自立" | "代名詞" | "特殊") {
+                    break;
+                }
+                let merged = format!("{}{}", cur.surface, next.surface);
+                let in_dict = dict.map(|d| d.has_exact_word(&merged)).unwrap_or(false);
+                // Merge if validated in JMdict, OR if it's a single-kanji nominal suffix (like 婦, 室, 欲, 浴, 的)
+                let is_kanji_suffix = next.sub_pos == "接尾"
+                    && next.surface.chars().count() == 1
+                    && next.surface.chars().all(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c));
+                if in_dict || is_kanji_suffix {
+                    cur.surface = merged.clone();
+                    cur.lemma = merged;
+                    cur.reading = format!("{}{}", cur.reading, next.reading);
+                    cur.sub_pos = "一般".to_string();
+                    cur.ignore = false;
+                    cur.content = !is_wordmap_stopword(&cur.lemma);
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+        }
+        out.push(cur);
+        i += 1;
+    }
+    out
+}
+
+/// Attaches bound inflectional conjugation suffixes (causative せ/させ, passive/potential れ/られ,
+/// tense/negation/politeness た/ない/ます/たい/ぬ/う/よう) directly onto the main verb or i-adjective
+/// so `上がらせ`, `離れた`, `食べられなかった`, `高かった` highlight & hover as ONE cohesive word
+/// while preserving the canonical base form lemma (`上がる`, `離れる`, `食べる`, `高い`)!
+fn merge_verb_adj_conjugations(tokens: Vec<MorphToken>) -> Vec<MorphToken> {
+    let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len());
+    let mut i = 0;
+    while i < tokens.len() {
+        let mut cur = tokens[i].clone();
+        let is_conjugatable = !cur.ignore
+            && ((cur.pos == "動詞" && cur.sub_pos == "自立")
+                || (cur.pos == "形容詞" && cur.sub_pos == "自立"));
+        if is_conjugatable {
+            while i + 1 < tokens.len() {
+                let next = &tokens[i + 1];
+                let is_bound_suffix = (next.pos == "動詞" && next.sub_pos == "接尾")
+                    || (next.pos == "助動詞"
+                        && !matches!(next.lemma.as_str(), "だ" | "です" | "らしい" | "みたい"));
+                if is_bound_suffix {
+                    cur.surface.push_str(&next.surface);
+                    cur.reading.push_str(&next.reading);
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+        }
+        out.push(cur);
         i += 1;
     }
     out
