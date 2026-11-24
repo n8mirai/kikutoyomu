@@ -240,6 +240,39 @@ pub fn gemini_generate_raw(
     Err("Windows WinHTTP required".into())
 }
 
+/// Resilient modern Gemini Flash cascade: prefers `gemini-3.8-flash` and transparently fails over
+/// to `3.7-flash` -> `3.6-flash` -> `3.5-flash` -> `3.5-flash-lite` on temporary 503 demand spikes.
+pub fn gemini_generate_flash(
+    auth: &AiAuth,
+    payload: &serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    let models = [
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+    ];
+    let mut last_err = String::from("No Gemini model succeeded");
+    for m in models {
+        match gemini_generate_raw(auth, m, payload) {
+            Ok(v) => return Ok(v),
+            Err(e) => {
+                // Only fail over on 404 (retired) or 503/429 (high demand / rate limit)
+                let retryable = e.contains("HTTP 503")
+                    || e.contains("HTTP 404")
+                    || e.contains("HTTP 429")
+                    || e.contains("UNAVAILABLE");
+                last_err = e;
+                if !retryable {
+                    return Err(last_err);
+                }
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Token-efficient multimodal YouTube synopsis generator:
 /// Intakes compact timestamped Japanese transcript + 4 YouTube keyframe JPEGs (`hqdefault`, `hq1`, `hq2`, `hq3`)
 /// using `gemini-2.5-flash-lite` (~$0.0005 per video, permanently cached in `synopses.json`!).
@@ -302,9 +335,8 @@ pub fn generate_yt_multimodal_synopsis(
         }
     });
 
-    // Use modern Gemini 3.8 Flash (sharp multimodal reasoning + Flash-class cost, cached permanently!)
-    let root = gemini_generate_raw(auth, "gemini-3.8-flash", &payload)
-        .or_else(|_| gemini_generate_raw(auth, "gemini-flash-latest", &payload))?;
+    // Resilient modern Gemini 3.x Flash cascade (multimodal keyframes + transcript, cached permanently!)
+    let root = gemini_generate_flash(auth, &payload)?;
 
     let text = root["candidates"][0]["content"]["parts"][0]["text"]
         .as_str()

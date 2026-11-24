@@ -2442,9 +2442,7 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
                 "tools": agent::tool_declarations(),
                 "generationConfig": { "temperature": 0.4, "maxOutputTokens": 700 }
             });
-            let resp = match agent::gemini_generate_raw(&auth, "gemini-3.8-flash", &payload)
-                .or_else(|_| agent::gemini_generate_raw(&auth, "gemini-flash-latest", &payload))
-            {
+            let resp = match agent::gemini_generate_flash(&auth, &payload) {
                 Ok(v) => v,
                 Err(e) => return respond_err(req, 400, &e),
             };
