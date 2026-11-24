@@ -193,7 +193,13 @@ pub fn merge_profiles(local: &mut UserProfile, remote: UserProfile) {
     for w in remote.vocab.known {
         local.vocab.learning.remove(&w);
         local.vocab.ignored.remove(&w);
+        local.vocab.priority.remove(&w);
         local.vocab.known.insert(w);
+    }
+    for w in remote.vocab.priority {
+        if !local.vocab.known.contains(&w) && !local.vocab.ignored.contains(&w) {
+            local.vocab.priority.insert(w);
+        }
     }
     for w in remote.vocab.learning {
         if !local.vocab.known.contains(&w) && !local.vocab.ignored.contains(&w) {

@@ -84,18 +84,22 @@
 :root[data-theme="washi"] #toast{background:#1C1917;color:#F6F2E9;border-color:rgba(28,25,23,.2)}
 :root[data-theme="washi"] .tok.st-learning{color:#92400E}
 :root[data-theme="washi"] .tok.active-lookup{color:#1C1917}
-/* Legendary Purple highlighting: T1-T3 target word that the Knowledge Model predicts you likely already know! */
+/* Legendary Purple highlighting:
+   (1) High-confidence words explicitly marked unknown ("priority") in the wild (ANY sentence!), and
+   (2) T1-T3 target words the Knowledge Model predicts you likely already know! */
+.tok.priority,
 .sub-row.t1 .tok.st-unknown.likely,.sub-row.t2 .tok.st-unknown.likely,.sub-row.t3 .tok.st-unknown.likely,
 .idle-row.t1 .tok.st-unknown.likely,.idle-row.t2 .tok.st-unknown.likely,.idle-row.t3 .tok.st-unknown.likely{
-  background:rgba(168,85,247,.22);border:1px solid rgba(192,132,252,.52);
+  background:rgba(168,85,247,.24);border:1px solid rgba(192,132,252,.58);
   color:#E9D5FF;border-radius:6px;padding:0 4px;margin:0 1px;
-  box-shadow:0 0 12px rgba(168,85,247,.22);
+  box-shadow:0 0 14px rgba(168,85,247,.28);
 }
+:root[data-theme="washi"] .tok.priority,
 :root[data-theme="washi"] .sub-row.t1 .tok.st-unknown.likely,
 :root[data-theme="washi"] .sub-row.t2 .tok.st-unknown.likely,
 :root[data-theme="washi"] .sub-row.t3 .tok.st-unknown.likely{
-  background:rgba(147,51,234,.14);border-color:rgba(147,51,234,.42);
-  color:#6B21A8;box-shadow:none;
+  background:rgba(147,51,234,.15);border-color:rgba(147,51,234,.48);
+  color:#6B21A8;box-shadow:0 0 10px rgba(147,51,234,.12);
 }
 
 .theme-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
@@ -962,13 +966,22 @@ nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;backg
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;min-height:28px;
 }
 .ai-cal-chip{
-  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
-  font-size:12px;cursor:pointer;
-  background:rgba(168,85,247,.16);border:1px solid rgba(192,132,252,.38);color:var(--text);
-  transition:transform .16s var(--spring),background .16s;
+  display:inline-flex;align-items:center;gap:4px;padding:3px 5px;border-radius:999px;
+  font-size:12.5px;
+  background:rgba(168,85,247,.15);border:1px solid rgba(192,132,252,.36);color:var(--text);
+  transition:transform .16s var(--spring),background .16s,border-color .16s;
 }
-.ai-cal-chip:hover{transform:translateY(-1px);background:rgba(168,85,247,.28)}
-.ai-cal-chip .p{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.ai-cal-chip:hover{border-color:rgba(192,132,252,.6)}
+.ai-cal-chip .cal-w{padding:1px 4px;border-radius:6px;cursor:default}
+.ai-cal-chip .p{font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums;margin-right:2px}
+.ai-cal-btn{
+  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  font-size:11.5px;line-height:1;color:var(--muted);background:transparent;
+  transition:background .15s,color .15s,transform .14s var(--spring);
+}
+.ai-cal-btn:active{transform:scale(.88)}
+.ai-cal-btn.no:hover{background:rgba(239,68,68,.22);color:#EF4444}
+.ai-cal-btn.yes:hover{background:var(--gsoft);color:var(--g2)}
 .ai-msgs{
   flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 16px;
 }
@@ -1534,7 +1547,7 @@ const jaSegmenter = typeof Intl !== 'undefined' && Intl.Segmenter
   ? new Intl.Segmenter('ja', { granularity: 'word' })
   : null;
 
-const vocab = { known: new Set(), learning: new Set(), ignored: new Set() };
+const vocab = { known: new Set(), learning: new Set(), ignored: new Set(), priority: new Set() };
 
 // Grammatical particles, auxiliaries, copula fragments & tiny kana noise auto-ignored for clean T1/T2/T3
 const AUTO_IGNORE_KANA = new Set([
@@ -1582,6 +1595,7 @@ function loadVocabFromState(v) {
   vocab.known = new Set(v?.known || []);
   vocab.learning = new Set(v?.learning || []);
   vocab.ignored = new Set(v?.ignored || []);
+  vocab.priority = new Set(v?.priority || []);
   const el = $('#s-vocab-cnt');
   if (el) el.textContent = `${vocab.known.size} known`;
 }
@@ -1652,6 +1666,32 @@ function playT1Ping() {
     g2.connect(lp);
     osc2.start(now + 0.055);
     osc2.stop(now + 0.65);
+  } catch (e) {}
+}
+
+// Legendary Purple Priority Chime: delicate crystalline two-note shimmer when a flagged high-confidence word appears in the wild!
+function playPriorityChime() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(3400, now);
+    lp.connect(audioCtx.destination);
+    // Warm ascending violet fifth (F#5 -> C#6)
+    [[739.99, 0.0, 0.026, 0.42], [1108.73, 0.075, 0.020, 0.56]].forEach(([freq, delay, peak, dur]) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + delay);
+      g.gain.setValueAtTime(0.0001, now + delay);
+      g.gain.linearRampToValueAtTime(peak, now + delay + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + delay + dur);
+      osc.connect(g); g.connect(lp);
+      osc.start(now + delay);
+      osc.stop(now + delay + dur + 0.03);
+    });
   } catch (e) {}
 }
 
@@ -1865,12 +1905,18 @@ function segmentJapanese(text) {
 
 function computeRowTier(rowEl) {
   const unknownSet = new Set();
+  let hasPriority = false;
   rowEl.querySelectorAll('.tok').forEach(tok => {
-    const st = getWordStatus(tok.dataset.word, tok.dataset.autoign === '1');
+    const w = tok.dataset.word;
+    const st = getWordStatus(w, tok.dataset.autoign === '1');
+    const isPri = vocab.priority.has(w);
+    if (isPri) hasPriority = true;
     tok.classList.remove('st-known', 'st-learning', 'st-unknown', 'st-ignore');
     tok.classList.add('st-' + st);
-    if (st === 'unknown' || st === 'learning') unknownSet.add(tok.dataset.word);
+    tok.classList.toggle('priority', isPri);
+    if (st === 'unknown' || st === 'learning') unknownSet.add(w);
   });
+  rowEl.classList.toggle('has-priority', hasPriority);
   const n = unknownSet.size;
   rowEl.classList.remove('t1', 't2', 't3');
   const tagEl = rowEl.querySelector('.tier-tag');
@@ -2219,10 +2265,13 @@ function syncSubtitleToAudio(forceScroll = false) {
   updateEphemeralSynopsis();
   if (cueChanged) {
     if (idleP > 0.04) renderIdleSubtitles();
-    // Organic 浮かぶ T1 (i+1) chime when a newly spoken sentence has exactly 1 unknown word!
+    // Priority Purple chime (for flagged high-confidence unknown words!) or organic T1 (i+1) chime
     if (found >= 0 && !audio.paused && !pingedCues.has(found)) {
       const curRow = $('#sub-feed').querySelector(`.sub-row[data-sub-idx="${found}"]`);
-      if (curRow && curRow.classList.contains('t1')) {
+      if (curRow && curRow.classList.contains('has-priority')) {
+        pingedCues.add(found);
+        playPriorityChime();
+      } else if (curRow && curRow.classList.contains('t1')) {
         pingedCues.add(found);
         playT1Ping();
       }
@@ -3501,13 +3550,26 @@ $('#yt-trace-click').onclick = () => {
 /* ================= DEDICATED AI AGENT APP ================= */
 let aiChatHistory = [];
 let aiCalCandidates = [];
+let aiCalDismissed = new Set();
 let aiCalLoaded = false;
+
+function renderCalChipHtml(c, extraStyle = '') {
+  return `
+    <span class="ai-cal-chip" data-cal-chip="${esc(c.word)}"${extraStyle ? ` style="${extraStyle}"` : ''}>
+      <button class="ai-cal-btn no" data-cal-no="${esc(c.word)}" title="Don't know">×</button>
+      <span class="tok cal-w" data-word="${esc(c.word)}" data-surf="${esc(c.word)}" data-pos="" data-ctx="${esc(c.word)}" data-autoign="0">${esc(c.word)}</span>
+      <span class="p">${Math.round(c.prob * 100)}%</span>
+      <button class="ai-cal-btn yes" data-cal-yes="${esc(c.word)}" title="Mark known">✓</button>
+    </span>`;
+}
 
 async function loadAiCalibration(force = false) {
   if (aiCalLoaded && !force) return;
   try {
-    const res = await api('/api/knowledge/calibrate');
-    aiCalCandidates = res.candidates || [];
+    const ex = [...aiCalDismissed].join(',');
+    const qs = ex ? `?exclude=${encodeURIComponent(ex)}` : '';
+    const res = await api('/api/knowledge/calibrate' + qs);
+    aiCalCandidates = (res.candidates || []).filter(c => !aiCalDismissed.has(c.word));
     aiCalLoaded = true;
     renderAiCalibrationBar();
   } catch (e) {}
@@ -3516,11 +3578,7 @@ async function loadAiCalibration(force = false) {
 function renderAiCalibrationBar() {
   const bar = $('#ai-cal-bar');
   if (!aiCalCandidates.length) { bar.innerHTML = ''; return; }
-  bar.innerHTML = aiCalCandidates.slice(0, 8).map(c => `
-    <button class="ai-cal-chip" data-cal-word="${esc(c.word)}" title="${esc(c.reading + ' — ' + c.gloss)} (Click to mark Known)">
-      <span>${esc(c.word)}</span>
-      <span class="p">${Math.round(c.prob * 100)}%</span>
-    </button>`).join('');
+  bar.innerHTML = aiCalCandidates.slice(0, 8).map(c => renderCalChipHtml(c)).join('');
 }
 
 function renderAiApp() {
@@ -3528,15 +3586,12 @@ function renderAiApp() {
   renderAiCalibrationBar();
   const box = $('#ai-msgs');
   if (!aiChatHistory.length) {
-    box.innerHTML = `<div class="ai-msg model">Ask me about your Japanese immersion, grammar, or tap any purple word above to calibrate your known vocabulary.</div>`;
+    box.innerHTML = `<div class="ai-msg model">Ask me about your Japanese immersion, grammar, or calibrate your purple words above (Shift+hover to look up, × / ✓ to clear).</div>`;
     return;
   }
   box.innerHTML = aiChatHistory.map(m => {
     const acts = (m.actions || []).map(a => `<span class="ai-act-tag">${esc(a.summary)}</span>`).join('');
-    const cals = (m.calibration || []).map(c => `
-      <button class="ai-cal-chip" data-cal-word="${esc(c.word)}" title="${esc(c.reading + ' — ' + c.gloss)}" style="margin:6px 5px 0 0">
-        <span>${esc(c.word)}</span><span class="p">${Math.round(c.prob * 100)}%</span>
-      </button>`).join('');
+    const cals = (m.calibration || []).map(c => renderCalChipHtml(c, 'margin:6px 5px 0 0')).join('');
     return `<div class="ai-msg ${m.role}">${esc(m.text)}${acts ? `<div>${acts}</div>` : ''}${cals ? `<div>${cals}</div>` : ''}</div>`;
   }).join('');
   box.scrollTop = box.scrollHeight;
@@ -3574,14 +3629,37 @@ async function sendAiAppMsg() {
 
 $('#ai-send').onclick = sendAiAppMsg;
 $('#ai-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendAiAppMsg(); });
-$('#v-ai').addEventListener('click', async e => {
-  const chip = e.target.closest('[data-cal-word]');
-  if (!chip) return;
-  const w = chip.dataset.calWord;
-  await setWordStatus(w, 'known');
+
+const aiViewEl = $('#v-ai');
+aiViewEl.addEventListener('pointerover', e => {
+  const tok = e.target.closest('.tok');
+  if (tok) { hoveredTokEl = tok; if (e.shiftKey || shiftHeld) openDictPop(tok); }
+});
+aiViewEl.addEventListener('pointerout', e => {
+  const tok = e.target.closest('.tok');
+  if (tok && hoveredTokEl === tok) { hoveredTokEl = null; if (popOpen) scheduleCloseDictPop(); }
+});
+aiViewEl.addEventListener('click', async e => {
+  const yes = e.target.closest('[data-cal-yes]');
+  const no = e.target.closest('[data-cal-no]');
+  if (!yes && !no) return;
+  const w = yes ? yes.dataset.calYes : no.dataset.calNo;
+  const chip = e.target.closest('[data-cal-chip]');
+  if (yes) {
+    await setWordStatus(w, 'known');
+    toast(`${w} → Known`);
+  } else {
+    aiCalDismissed.add(w);
+    await setWordStatus(w, 'priority');
+    toast(`${w} → Priority watch (Purple)`);
+  }
   aiCalCandidates = aiCalCandidates.filter(c => c.word !== w);
-  chip.remove();
-  toast(`${w} → Known`);
+  if (chip) chip.remove();
+  // Auto-refill queue as soon as all calibration tokens are cleared!
+  if (!$('#ai-cal-bar').querySelector('[data-cal-chip]')) {
+    if (aiCalCandidates.length > 0) renderAiCalibrationBar();
+    else loadAiCalibration(true);
+  }
 });
 
 function ensureYtIframeApi(onReady) {
@@ -3780,8 +3858,9 @@ function applyYtCueStates(forceScroll = false) {
     }
     r.classList.toggle('cur', i === ytCueIdx);
     r.classList.toggle('past', i < ytCueIdx);
-    if (wasSub && !shouldSub && i === ytCueIdx && r.classList.contains('t1')) {
-      playT1Chime();
+    if (wasSub && !shouldSub && i === ytCueIdx) {
+      if (r.classList.contains('has-priority')) playPriorityChime();
+      else if (r.classList.contains('t1')) playT1Ping();
     }
   });
   updateYtWaterfallDepth();
@@ -4426,7 +4505,7 @@ window.addEventListener('message', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Shift') {
     shiftHeld = true;
-    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play')) openDictPop(hoveredTokEl);
+    if (hoveredTokEl && (curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play' || curTab === 'ai')) openDictPop(hoveredTokEl);
     return;
   }
   const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT');
@@ -4445,7 +4524,7 @@ document.addEventListener('keydown', e => {
   if (typing) return;
   // Instant 1/2/3/4 tagging for active lookup or hovered word
   const activeWord = popOpen ? popWord : (hoveredTokEl ? hoveredTokEl.dataset.word : '');
-  if ((curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play') && activeWord && !e.altKey && !e.ctrlKey) {
+  if ((curTab === 'subs' || curTab === 'wordmap' || curTab === 'yt-play' || curTab === 'ai') && activeWord && !e.altKey && !e.ctrlKey) {
     if (e.key === '1' || e.key === '!') { e.preventDefault(); setWordStatus(activeWord, 'known'); return; }
     if (e.key === '2' || e.key === '@') { e.preventDefault(); setWordStatus(activeWord, 'learning'); return; }
     if (e.key === '3' || e.key === '#') { e.preventDefault(); setWordStatus(activeWord, 'unknown'); return; }

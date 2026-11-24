@@ -111,6 +111,7 @@ impl KnowledgeModel {
                 || vocab.known.contains(clean)
                 || vocab.learning.contains(clean)
                 || vocab.ignored.contains(clean)
+                || vocab.priority.contains(clean)
                 || !seen.insert(clean.to_string())
             {
                 continue;

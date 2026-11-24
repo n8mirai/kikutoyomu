@@ -2358,9 +2358,26 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
         return;
     }
 
-    // GET /api/knowledge/calibrate (Probabilistic Knowledge Model — likely-known untagged words)
+    // GET /api/knowledge/calibrate?exclude=w1,w2 (Probabilistic Knowledge Model — likely-known untagged words)
     if method == Method::Get && path_only == "/api/knowledge/calibrate" {
-        let items = collect_calibration_words(&state_arc, 12);
+        let mut excluded: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for kv in query.split('&') {
+            if let Some(("exclude", val)) = kv.split_once('=') {
+                if let Ok(dec) = percent_decode_str(val).decode_utf8() {
+                    for w in dec.split(',') {
+                        let t = w.trim();
+                        if !t.is_empty() {
+                            excluded.insert(t.to_string());
+                        }
+                    }
+                }
+            }
+        }
+        let mut items = collect_calibration_words(&state_arc, 40);
+        if !excluded.is_empty() {
+            items.retain(|c| !excluded.contains(&c.word));
+        }
+        items.truncate(12);
         respond_json(req, 200, &serde_json::json!({ "candidates": items }));
         return;
     }

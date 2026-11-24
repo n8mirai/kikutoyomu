@@ -15,6 +15,8 @@ pub struct VocabStore {
     #[serde(default)]
     pub ignored: BTreeSet<String>,
     #[serde(default)]
+    pub priority: BTreeSet<String>,
+    #[serde(default)]
     pub updated_at: String,
 }
 
@@ -50,6 +52,7 @@ impl VocabStore {
         self.known.remove(&w);
         self.learning.remove(&w);
         self.ignored.remove(&w);
+        self.priority.remove(&w);
         match status {
             "known" => {
                 self.known.insert(w);
@@ -59,6 +62,9 @@ impl VocabStore {
             }
             "ignore" | "ignored" => {
                 self.ignored.insert(w);
+            }
+            "priority" => {
+                self.priority.insert(w);
             }
             _ => {
                 // "unknown" is default (not stored in any set)
