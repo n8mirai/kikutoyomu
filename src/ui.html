@@ -1388,29 +1388,32 @@ function updateSubDepthOptics() {
   }
 }
 
-function isUserActiveInApp() {
-  if (popOpen || shiftHeld || hoveredTokEl) return true;
-  if (document.hasFocus() && (Date.now() - lastActivityMs) < SUB_ACTIVE_PAUSE_MS) return true;
-  return false;
+function isAutoScrollPausedByDict() {
+  return popOpen || shiftHeld;
 }
 
 function tickSubCamera(now) {
   subCamRaf = 0;
-  if (curTab !== 'subs' || !subCues.length || subGenerating) { subCamLastMs = 0; return; }
+  if (curTab !== 'subs' || !subCues.length || subGenerating || !subAutoScroll) {
+    subCamLastMs = 0;
+    return;
+  }
   const dt = subCamLastMs ? Math.min(0.1, (now - subCamLastMs) / 1000) : 0.016;
   subCamLastMs = now;
 
   const sc = $('#sub-scroll');
-  const canGlide = subAutoScroll && userAtBottom && !audio.paused && !isUserActiveInApp();
+  const inHarness = userAtBottom && !isAutoScrollPausedByDict();
 
-  if (canGlide) {
+  if (inHarness) {
     const target = computeContinuousSubTargetY();
     if (target !== null) {
       if (!subCamInited) { subCamY = sc.scrollTop; subCamInited = true; }
       const diff = target - subCamY;
-      // Critically damped silky continuous glide (zero jerking!)
-      const alpha = 1 - Math.exp(-2.6 * dt);
-      subCamY = Math.abs(diff) < 0.25 ? target : subCamY + diff * alpha;
+      // Crisp magnetic snap when catching up (e.g. toggling Auto ON or falling back into harness),
+      // silky calm glide when tracking live speech!
+      const speed = Math.abs(diff) > 36 ? 9.0 : 3.2;
+      const alpha = 1 - Math.exp(-speed * dt);
+      subCamY = Math.abs(diff) < 0.35 ? target : subCamY + diff * alpha;
       isCamScrolling = true;
       sc.scrollTop = subCamY;
       isCamScrolling = false;
@@ -1420,8 +1423,8 @@ function tickSubCamera(now) {
     subCamY = sc.scrollTop;
   }
 
-  // Keep camera alive while in subtitles view and audio is playing (or settling)
-  if (curTab === 'subs' && (!audio.paused || canGlide)) {
+  // Keep camera alive whenever in reader with Auto ON so falling back into the harness catches instantly!
+  if (curTab === 'subs' && subAutoScroll) {
     subCamRaf = requestAnimationFrame(tickSubCamera);
   } else {
     subCamLastMs = 0;
@@ -1429,7 +1432,7 @@ function tickSubCamera(now) {
 }
 
 function ensureSubCameraRunning() {
-  if (!subCamRaf && curTab === 'subs' && subCues.length && !subGenerating) {
+  if (!subCamRaf && curTab === 'subs' && subAutoScroll && subCues.length && !subGenerating) {
     subCamLastMs = performance.now();
     subCamRaf = requestAnimationFrame(tickSubCamera);
   }
@@ -1441,8 +1444,12 @@ function scrollSubsToBottom(smooth = true) {
   $('#sub-jump-bottom').hidden = true;
   const target = computeContinuousSubTargetY();
   if (target !== null) {
-    if (smooth) {
-      progScrollUntil = Date.now() + 700;
+    if (smooth && subAutoScroll) {
+      // Let the unified 60fps harness spring glide cleanly to target (zero fight with native scrollTo!)
+      subCamY = sc.scrollTop;
+      subCamInited = true;
+    } else if (smooth) {
+      progScrollUntil = Date.now() + 650;
       sc.scrollTo({ top: target, behavior: 'smooth' });
       subCamY = target;
       subCamInited = true;
@@ -1481,7 +1488,7 @@ function applyCueStatesInPlace(shouldSnap) {
   }
 
   if (curTab === 'subs') {
-    if (shouldSnap && subAutoScroll && userAtBottom && !isUserActiveInApp()) {
+    if (shouldSnap && subAutoScroll && userAtBottom && !isAutoScrollPausedByDict()) {
       scrollSubsToBottom(true);
     }
     updateSubDepthOptics();
@@ -2606,11 +2613,8 @@ $('#sub-autoscroll').onclick = () => {
   $('#sub-autoscroll').classList.toggle('on', subAutoScroll);
   try { localStorage.setItem('kiku.autoScroll', subAutoScroll ? '1' : '0'); } catch (e) {}
   if (subAutoScroll) {
-    userAtBottom = true;
-    lastActivityMs = Date.now() - SUB_ACTIVE_PAUSE_MS;
-    $('#sub-jump-bottom').hidden = true;
+    // Immediately engage harness & snap smoothly to current subtitle!
     scrollSubsToBottom(true);
-    ensureSubCameraRunning();
   } else if (subCamRaf) {
     cancelAnimationFrame(subCamRaf);
     subCamRaf = 0;
@@ -2622,29 +2626,47 @@ $('#sub-off-m').onclick = () => { subOffset -= 0.5; updateSubHeadUI(); syncSubti
 $('#sub-off-p').onclick = () => { subOffset += 0.5; updateSubHeadUI(); syncSubtitleToAudio(true); };
 $('#sub-jump-bottom').onclick = () => scrollSubsToBottom(true);
 
-// Continuous depth optics + smart manual scroll detection (never fights user wheel/scrollbar!)
+// Harness scroll model:
+// - Scrolling UP releases the harness immediately (zero fighting)
+// - Scrolling DOWN into (or past) the live subtitle placement clicks straight back into the harness!
 const subScrollEl = $('#sub-scroll');
 subScrollEl.addEventListener('wheel', e => {
+  if (!subAutoScroll) return;
   if (e.deltaY < 0) {
+    // User scrolled upward -> release harness
     userAtBottom = false;
     $('#sub-jump-bottom').hidden = !(curTab === 'subs');
+  } else if (e.deltaY > 0 && !userAtBottom) {
+    // User scrolled downward -> check if falling back into the live subtitle harness
+    const target = computeContinuousSubTargetY();
+    if (target !== null && subScrollEl.scrollTop + e.deltaY >= target - 120) {
+      userAtBottom = true;
+      subCamY = subScrollEl.scrollTop;
+      subCamInited = true;
+      $('#sub-jump-bottom').hidden = true;
+      ensureSubCameraRunning();
+    }
   }
 }, { passive: true });
 subScrollEl.addEventListener('scroll', () => {
   updateSubDepthOptics();
   if (isCamScrolling || Date.now() < progScrollUntil) return;
   subCamY = subScrollEl.scrollTop;
+  subCamInited = true;
+  if (!subAutoScroll) return;
   const target = computeContinuousSubTargetY();
   if (target !== null) {
-    const dist = Math.abs(subScrollEl.scrollTop - target);
     if (subScrollEl.scrollTop < target - 110) {
       userAtBottom = false;
-    } else if (dist <= 90) {
+    } else if (subScrollEl.scrollTop >= target - 100) {
+      // Fell back into (or past) the live subtitle placement -> click right back into harness!
       userAtBottom = true;
+      ensureSubCameraRunning();
     }
     $('#sub-jump-bottom').hidden = !(curTab === 'subs' && !userAtBottom);
   }
 }, { passive: true });
+audio.addEventListener('play', () => ensureSubCameraRunning());
 
 // Word Map controls & Shift+Hover / Click interactions
 $('#wm-back').onclick = () => { closeDictPop(false); setTab(wmReturnTab); };

@@ -9,6 +9,7 @@
       "ありま",
       "あんなに",
       "いつ",
+      "いつの間にか",
       "いや",
       "いやあ",
       "うち",
@@ -178,6 +179,7 @@
       "白い",
       "的",
       "目",
+      "真っ黒",
       "知",
       "知らず",
       "私",
@@ -212,6 +214,7 @@
       "込",
       "遊び",
       "金",
+      "閉じる",
       "開",
       "雪",
       "静か",
@@ -227,7 +230,7 @@
     "ignored": [
       "ろう"
     ],
-    "updated_at": "2026-11-23T19:17:00Z"
+    "updated_at": "2026-11-24T12:46:15Z"
   },
   "config": {
     "toggl_api_token": "",
@@ -1196,7 +1199,7 @@
       "position_secs": 0.0,
       "duration_secs": 177.580408,
       "completions": 1,
-      "last_played_at": "2026-11-23T19:26:18Z"
+      "last_played_at": "2026-11-24T12:44:46Z"
     },
     "example-japanese-stories/ep-17": {
       "position_secs": 5.738079,
@@ -1223,10 +1226,10 @@
       "last_played_at": "2026-11-23T19:19:17Z"
     },
     "example-japanese-stories/ep-41": {
-      "position_secs": 10.114584,
+      "position_secs": 356.288312,
       "duration_secs": 3447.250068,
       "completions": 0,
-      "last_played_at": "2026-11-23T19:22:26Z"
+      "last_played_at": "2026-11-24T12:50:48Z"
     }
   },
   "custom_anime": []
