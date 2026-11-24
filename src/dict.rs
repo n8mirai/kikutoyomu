@@ -279,6 +279,187 @@ impl LocalJmDict {
         self.kanji_index.contains_key(term) || self.kana_index.contains_key(term)
     }
 
+    pub fn has_verb(&self, term: &str) -> bool {
+        for id in self.get_ids(term) {
+            if let Some(w) = self.words.get(id as usize) {
+                if w.senses.iter().any(|s| !s.arch_or_obs && is_verb_pos(&s.pos)) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    pub fn has_adj_i(&self, term: &str) -> bool {
+        for id in self.get_ids(term) {
+            if let Some(w) = self.words.get(id as usize) {
+                if w.senses.iter().any(|s| !s.arch_or_obs && is_adj_i_pos(&s.pos)) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Maps kanji/okurigana spelling variants within the SAME JMdict entry (e.g. 分る -> 分かる,
+    /// お話し -> お話, 行なう -> 行う) to the single primary kanji headword.
+    pub fn canonical_kanji_headword(&self, term: &str) -> Option<String> {
+        if !has_kanji(term) {
+            return None;
+        }
+        let ids = self.kanji_index.get(term)?;
+        let first_kanji = term
+            .chars()
+            .find(|c| ('\u{4E00}'..='\u{9FFF}').contains(c))?;
+        for &id in ids {
+            let Some(w) = self.words.get(id as usize) else { continue };
+            // If `term` is already the primary (first non-rare) kanji headword, keep it as-is!
+            let primary = w
+                .kanji
+                .iter()
+                .find(|(_, common, rare)| *common && !*rare)
+                .or_else(|| w.kanji.iter().find(|(_, _, rare)| !*rare))
+                .or_else(|| w.kanji.first());
+            if let Some((head, _, _)) = primary {
+                if head == term {
+                    return Some(term.to_string());
+                }
+                // Only normalize if primary headword shares the same leading kanji (okurigana variant!)
+                let head_fk = head
+                    .chars()
+                    .find(|c| ('\u{4E00}'..='\u{9FFF}').contains(c));
+                if head_fk == Some(first_kanji) {
+                    return Some(head.clone());
+                }
+            }
+        }
+        None
+    }
+
+    /// Checks whether a pure-kana word has a JMdict entry whose kanji headword is already in `known`.
+    pub fn find_known_kanji_alias(&self, kana_term: &str, known: &std::collections::BTreeSet<String>) -> Option<String> {
+        if !is_pure_kana(kana_term) {
+            return None;
+        }
+        let ids = self.kana_index.get(kana_term)?;
+        for &id in ids {
+            if let Some(w) = self.words.get(id as usize) {
+                for (k, _, rare) in &w.kanji {
+                    if !*rare && known.contains(k) {
+                        return Some(k.clone());
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// Canonicalizes any word / conjugation / masu-stem / potential form / -く adverbial / okurigana variant
+    /// into ONE consistent dictionary lemma so users never have to mark the same word Known twice!
+    pub fn canonicalize_lemma(&self, raw: &str, pos_hint: &str) -> String {
+        let w = raw.trim();
+        if w.is_empty() {
+            return String::new();
+        }
+        if w == "大きな" {
+            return "大きい".to_string();
+        }
+        if w == "小さな" {
+            return "小さい".to_string();
+        }
+        // 1. Kanji/okurigana variant normalization (e.g. 分る -> 分かる, お話し -> お話)
+        let mut cur = self
+            .canonical_kanji_headword(w)
+            .unwrap_or_else(|| w.to_string());
+
+        let chars: Vec<char> = cur.chars().collect();
+        let len = chars.len();
+        if len < 2 || !has_kanji(&cur) {
+            return cur;
+        }
+        let last = chars[len - 1];
+        let last_is_hira = ('\u{3040}'..='\u{309F}').contains(&last);
+        if !last_is_hira {
+            return cur;
+        }
+
+        // 2. Unambiguous godan potential verbs NOT listed as distinct JMdict verbs (打てる -> 打つ, 倒せる -> 倒す, 読める -> 読む)
+        if len >= 3 && last == 'る' && (pos_hint.is_empty() || pos_hint == "動詞") && !self.has_verb(&cur) {
+            let penult = chars[len - 2];
+            let mapped = match penult {
+                'え' => Some('う'),
+                'け' => Some('く'),
+                'げ' => Some('ぐ'),
+                'せ' => Some('す'),
+                'て' => Some('つ'),
+                'ね' => Some('ぬ'),
+                'べ' => Some('ぶ'),
+                'め' => Some('む'),
+                'れ' => Some('る'),
+                _ => None,
+            };
+            if let Some(u_ch) = mapped {
+                let mut base: String = chars[..len - 2].iter().collect();
+                base.push(u_ch);
+                if self.has_verb(&base) {
+                    return self.canonical_kanji_headword(&base).unwrap_or(base);
+                }
+            }
+        }
+
+        // 3. i-Adjective -く adverbial forms (多く -> 多い, 早く -> 早い, 近く -> 近い, 遠く -> 遠い, 良く -> 良い)
+        if last == 'く' && pos_hint != "動詞" && !self.has_verb(&cur) {
+            let mut adj: String = chars[..len - 1].iter().collect();
+            adj.push('い');
+            if self.has_adj_i(&adj) {
+                return self.canonical_kanji_headword(&adj).unwrap_or(adj);
+            }
+        }
+
+        // 4. Verb 連用形 masu-stem / nominalized stem unification (認め -> 認める, 怒り -> 怒る, 考え -> 考える, 違い -> 違う, 持ち -> 持つ)
+        // Skip words that are already dictionary verbs, i-adjectives, or honorific nouns (お話/お話し)
+        if !cur.starts_with('お')
+            && !cur.starts_with('ご')
+            && !self.has_verb(&cur)
+            && !self.has_adj_i(&cur)
+            && matches!(pos_hint, "" | "名詞" | "動詞")
+        {
+            // 4a. Ichidan stem + る (認め -> 認める, 考え -> 考える, 上げ -> 上げる, 入れ -> 入れる, 始め -> 始める, 落ち -> 落ちる, 生き -> 生きる, 感じ -> 感じる)
+            if matches!(
+                last,
+                'え' | 'け' | 'げ' | 'せ' | 'ぜ' | 'て' | 'で' | 'ね' | 'べ' | 'め' | 'れ'
+                    | 'い' | 'き' | 'ぎ' | 'じ' | 'ち' | 'び' | 'み' | 'り'
+            ) {
+                let ichidan = format!("{}る", cur);
+                if self.has_verb(&ichidan) {
+                    return self.canonical_kanji_headword(&ichidan).unwrap_or(ichidan);
+                }
+            }
+            // 4b. Godan i-dan -> u-dan (思い -> 思う, 怒り -> 怒る, 出し -> 出す, 持ち -> 持つ, 立ち -> 立つ, 笑い -> 笑う, 違い -> 違う, 歩き -> 歩く, 遊び -> 遊ぶ, 取り -> 取る, 振り -> 振る)
+            let godan_u = match last {
+                'い' => Some('う'),
+                'き' => Some('く'),
+                'ぎ' => Some('ぐ'),
+                'し' => Some('す'),
+                'ち' => Some('つ'),
+                'に' => Some('ぬ'),
+                'び' => Some('ぶ'),
+                'み' => Some('む'),
+                'り' => Some('る'),
+                _ => None,
+            };
+            if let Some(u_ch) = godan_u {
+                let mut base: String = chars[..len - 1].iter().collect();
+                base.push(u_ch);
+                if self.has_verb(&base) {
+                    return self.canonical_kanji_headword(&base).unwrap_or(base);
+                }
+            }
+        }
+
+        cur
+    }
+
     fn get_ids(&self, term: &str) -> Vec<u32> {
         let mut out = Vec::new();
         if let Some(ids) = self.kanji_index.get(term) {

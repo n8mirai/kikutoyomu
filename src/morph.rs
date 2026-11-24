@@ -291,13 +291,33 @@ impl MorphAnalyzer {
             });
         }
 
-        // Post-passes for natural Japanese word boundaries:
+        // Post-passes for natural Japanese word boundaries & canonical dictionary lemmas:
         // 1. Merge split hiragana compound verbs (e.g. こび + つか)
-        // 2. Merge JMdict-validated compound nouns & kanji noun suffixes (看護+婦 -> 看護婦, 診察+室 -> 診察室, パレット+ナイフ -> パレットナイフ)
+        // 2. Merge prefixes (現+説 -> 現説, 不+自然 -> 不自然), numeric JMdict compounds (万+人 -> 万人),
+        //    and JMdict-validated compound nouns & kanji noun suffixes (看護+婦 -> 看護婦, 暴力+的 -> 暴力的)
         // 3. Attach bound verb/adjective conjugations (上がら+せ -> 上がらせ, 離れ+た -> 離れた, 食べ+られ+なかった -> 食べられなかった)
+        // 4. Canonicalize every token's lemma against JMdict so conjugations, stems, potentials, -く forms & okurigana variants
+        //    always map to ONE single dictionary base form!
         let t1 = merge_broken_hiragana_verbs(raw_tokens);
         let t2 = merge_compound_nouns(t1, dict);
-        merge_verb_adj_conjugations(t2)
+        let mut t3 = merge_verb_adj_conjugations(t2);
+        if let Some(d) = dict {
+            for tok in &mut t3 {
+                if !tok.ignore {
+                    let canon = d.canonicalize_lemma(&tok.lemma, &tok.pos);
+                    if !canon.is_empty() && canon != tok.lemma {
+                        tok.lemma = canon;
+                        if is_basic_grammar_lemma(&tok.lemma, &tok.pos) {
+                            tok.ignore = true;
+                            tok.content = false;
+                        } else if tok.content && is_wordmap_stopword(&tok.lemma) {
+                            tok.content = false;
+                        }
+                    }
+                }
+            }
+        }
+        t3
     }
 }
 
@@ -386,12 +406,69 @@ fn has_kanji_or_kata(s: &str) -> bool {
     s.chars().any(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c) || ('\u{30A0}'..='\u{30FF}').contains(&c) || c == '々')
 }
 
-/// Merges IPADIC-split compound nouns validated by JMdict (e.g. 看護+婦 -> 看護婦, 診察+室 -> 診察室, パレット+ナイフ -> パレットナイフ).
+fn has_kanji_only(s: &str) -> bool {
+    !s.is_empty()
+        && s.chars()
+            .all(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c) || c == '々')
+}
+
+/// Merges IPADIC-split compound nouns, kanji prefixes (接頭詞+名詞 like 現+説 -> 現説, 不+自然 -> 不自然,
+/// 無+意識 -> 無意識), numeric JMdict compounds (万+人 -> 万人, 一+瞬 -> 一瞬), and JMdict-validated
+/// compounds & kanji suffixes (看護+婦 -> 看護婦, 診察+室 -> 診察室, 暴力+的 -> 暴力的).
 fn merge_compound_nouns(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> Vec<MorphToken> {
     let mut out: Vec<MorphToken> = Vec::with_capacity(tokens.len());
     let mut i = 0;
     while i < tokens.len() {
         let mut cur = tokens[i].clone();
+
+        // Case A: Prefix (接頭詞,名詞接続) + Noun
+        //   - Kanji prefix (現, 不, 無, 非, 未, 再, 反, 超, 最, 新, 旧, 元, 全, 各, 毎, etc.) + kanji/kata noun -> always merge!
+        //   - Honorific kana prefix (お, ご) + noun -> merge when combined word exists in JMdict (お話, お金, ご飯).
+        if cur.pos == "接頭詞" && i + 1 < tokens.len() {
+            let next = &tokens[i + 1];
+            if next.pos == "名詞"
+                && !matches!(next.sub_pos.as_str(), "数" | "非自立" | "代名詞" | "特殊")
+                && has_kanji_or_kata(&next.surface)
+            {
+                let merged = format!("{}{}", cur.surface, next.surface);
+                let in_dict = dict.map(|d| d.has_exact_word(&merged)).unwrap_or(false);
+                let is_kanji_prefix = has_kanji_only(&cur.surface);
+                if is_kanji_prefix || in_dict {
+                    cur.surface = merged.clone();
+                    cur.lemma = merged;
+                    cur.reading = format!("{}{}", cur.reading, next.reading);
+                    cur.pos = "名詞".to_string();
+                    cur.sub_pos = "一般".to_string();
+                    cur.ignore = false;
+                    cur.content = !is_wordmap_stopword(&cur.lemma);
+                    i += 1;
+                }
+            }
+        }
+
+        // Case B: Single-kanji numeric noun (名詞,数 like 万, 一, 二, 半, 百, 千) + Noun when JMdict validates the compound (万人, 一瞬, 一生, 半分)
+        if cur.pos == "名詞"
+            && cur.sub_pos == "数"
+            && has_kanji_only(&cur.surface)
+            && cur.surface.chars().count() == 1
+            && i + 1 < tokens.len()
+        {
+            let next = &tokens[i + 1];
+            if next.pos == "名詞" && has_kanji_or_kata(&next.surface) {
+                let merged = format!("{}{}", cur.surface, next.surface);
+                if dict.map(|d| d.has_exact_word(&merged)).unwrap_or(false) {
+                    cur.surface = merged.clone();
+                    cur.lemma = merged;
+                    cur.reading = format!("{}{}", cur.reading, next.reading);
+                    cur.sub_pos = "一般".to_string();
+                    cur.ignore = false;
+                    cur.content = !is_wordmap_stopword(&cur.lemma);
+                    i += 1;
+                }
+            }
+        }
+
+        // Case C: Chain JMdict-validated compound nouns & single-kanji nominal suffixes (婦, 室, 欲, 浴, 的, 化, 性, etc.)
         if cur.pos == "名詞"
             && !matches!(cur.sub_pos.as_str(), "数" | "非自立" | "代名詞" | "特殊")
             && has_kanji_or_kata(&cur.surface)
@@ -406,7 +483,6 @@ fn merge_compound_nouns(tokens: Vec<MorphToken>, dict: Option<&LocalJmDict>) -> 
                 }
                 let merged = format!("{}{}", cur.surface, next.surface);
                 let in_dict = dict.map(|d| d.has_exact_word(&merged)).unwrap_or(false);
-                // Merge if validated in JMdict, OR if it's a single-kanji nominal suffix (like 婦, 室, 欲, 浴, 的)
                 let is_kanji_suffix = next.sub_pos == "接尾"
                     && next.surface.chars().count() == 1
                     && next.surface.chars().all(|c| ('\u{4E00}'..='\u{9FFF}').contains(&c));

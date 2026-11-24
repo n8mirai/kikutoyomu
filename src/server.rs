@@ -1441,10 +1441,24 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             Err(e) => return respond_err(req, 400, &format!("Invalid JSON: {}", e)),
         };
         let vocab = {
+            let jmdict_arc = Arc::clone(&state_arc.lock().unwrap().jmdict);
+            let raw_w = parsed.word.trim().to_string();
+            let clean_w = {
+                let jm_g = jmdict_arc.lock().unwrap();
+                match jm_g.as_ref() {
+                    Some(jm) => {
+                        let c = jm.canonicalize_lemma(&raw_w, "");
+                        if c.is_empty() { raw_w.clone() } else { c }
+                    }
+                    None => raw_w.clone(),
+                }
+            };
             let mut st = state_arc.lock().unwrap();
             let vf = st.vocab_file.clone();
-            let clean_w = parsed.word.trim().to_string();
             let was_known = st.vocab.known.contains(&clean_w);
+            if raw_w != clean_w && !raw_w.is_empty() {
+                st.vocab.set_status(&raw_w, "unknown");
+            }
             st.vocab.set_status(&clean_w, &parsed.status);
             if let Some(ref mut sess) = st.active_session {
                 if parsed.status == "known" && !was_known && !clean_w.is_empty() {
@@ -2903,11 +2917,25 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
             for (name, args) in tool_calls {
                 let result_val = match name.as_str() {
                     "mark_vocab" => {
-                        let word = args["word"].as_str().unwrap_or("").trim().to_string();
+                        let raw_w = args["word"].as_str().unwrap_or("").trim().to_string();
                         let status = args["status"].as_str().unwrap_or("known").trim().to_string();
-                        if !word.is_empty() {
+                        if !raw_w.is_empty() {
+                            let jmdict_arc = Arc::clone(&state_arc.lock().unwrap().jmdict);
+                            let word = {
+                                let jm_g = jmdict_arc.lock().unwrap();
+                                match jm_g.as_ref() {
+                                    Some(jm) => {
+                                        let c = jm.canonicalize_lemma(&raw_w, "");
+                                        if c.is_empty() { raw_w.clone() } else { c }
+                                    }
+                                    None => raw_w.clone(),
+                                }
+                            };
                             let mut st = state_arc.lock().unwrap();
                             let vf = st.vocab_file.clone();
+                            if raw_w != word {
+                                st.vocab.set_status(&raw_w, "unknown");
+                            }
                             st.vocab.set_status(&word, &status);
                             st.vocab.save(&vf);
                             st.save();
@@ -3280,13 +3308,35 @@ fn handle_request(mut req: Request, state_arc: Arc<Mutex<SharedState>>) {
 }
 
 pub fn run_server(port: u16, state: Arc<Mutex<SharedState>>) -> Result<(u16, Server), String> {
+    // One-shot startup canonicalization once JMdict finishes loading so conjugated/stem/okurigana duplicates fold cleanly!
+    {
+        let st_clone = Arc::clone(&state);
+        thread::spawn(move || {
+            for _ in 0..80 {
+                let jm_arc = Arc::clone(&st_clone.lock().unwrap().jmdict);
+                let ready = jm_arc.lock().unwrap().is_some();
+                if ready {
+                    let jm_g = jm_arc.lock().unwrap();
+                    if let Some(ref jm) = *jm_g {
+                        let mut st = st_clone.lock().unwrap();
+                        if st.vocab.canonicalize_with_dict(jm) > 0 {
+                            let vf = st.vocab_file.clone();
+                            st.vocab.save(&vf);
+                            st.save();
+                        }
+                    }
+                    break;
+                }
+                thread::sleep(std::time::Duration::from_millis(150));
+            }
+        });
+    }
     for p in port..port.saturating_add(25) {
         let addr = format!("127.0.0.1:{}", p);
         if let Ok(server) = Server::http(&addr) {
             return Ok((p, server));
         }
     }
-    let _ = state;
     Err(format!("Could not bind to localhost starting at port {}", port))
 }
 

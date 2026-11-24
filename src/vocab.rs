@@ -4,6 +4,7 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
+use crate::dict::LocalJmDict;
 use crate::timeutil;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -107,5 +108,77 @@ impl VocabStore {
 
     pub fn export_txt(&self) -> String {
         self.known.iter().cloned().collect::<Vec<_>>().join("\n")
+    }
+
+    /// Deduplicates and canonicalizes all stored vocab sets against JMdict (e.g., folding
+    /// verb masu-stems like 認め -> 認める, -く adverbials like 多く -> 多い, godan potentials
+    /// like 打てる -> 打つ, and okurigana/kana duplicates like 分る/わかる -> 分かる) while
+    /// preserving precedence: known > learning > priority > ignored.
+    pub fn canonicalize_with_dict(&mut self, dict: &LocalJmDict) -> usize {
+        let mut new_known = BTreeSet::new();
+        let mut new_learning = BTreeSet::new();
+        let mut new_priority = BTreeSet::new();
+        let mut new_ignored = BTreeSet::new();
+
+        for w in &self.known {
+            let c = dict.canonicalize_lemma(w, "");
+            if !c.is_empty() {
+                new_known.insert(c);
+            }
+        }
+        // Remove pure-kana duplicates from known if their kanji headword is already in known
+        let kana_dups: Vec<String> = new_known
+            .iter()
+            .filter(|w| dict.find_known_kanji_alias(w, &new_known).is_some())
+            .cloned()
+            .collect();
+        for d in kana_dups {
+            new_known.remove(&d);
+        }
+
+        for w in &self.learning {
+            let c = dict.canonicalize_lemma(w, "");
+            if !c.is_empty()
+                && !new_known.contains(&c)
+                && dict.find_known_kanji_alias(&c, &new_known).is_none()
+            {
+                new_learning.insert(c);
+            }
+        }
+        for w in &self.priority {
+            let c = dict.canonicalize_lemma(w, "");
+            if !c.is_empty()
+                && !new_known.contains(&c)
+                && !new_learning.contains(&c)
+                && dict.find_known_kanji_alias(&c, &new_known).is_none()
+            {
+                new_priority.insert(c);
+            }
+        }
+        for w in &self.ignored {
+            let c = dict.canonicalize_lemma(w, "");
+            if !c.is_empty()
+                && !new_known.contains(&c)
+                && !new_learning.contains(&c)
+                && !new_priority.contains(&c)
+            {
+                new_ignored.insert(c);
+            }
+        }
+
+        let changed = (new_known != self.known)
+            || (new_learning != self.learning)
+            || (new_priority != self.priority)
+            || (new_ignored != self.ignored);
+        if !changed {
+            return 0;
+        }
+        let before = self.known.len() + self.learning.len() + self.priority.len() + self.ignored.len();
+        self.known = new_known;
+        self.learning = new_learning;
+        self.priority = new_priority;
+        self.ignored = new_ignored;
+        let after = self.known.len() + self.learning.len() + self.priority.len() + self.ignored.len();
+        before.abs_diff(after).max(1)
     }
 }
